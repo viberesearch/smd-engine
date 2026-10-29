@@ -90,6 +90,18 @@ def test_remove_drops_links_and_records_the_reason(board2: dict[str, Any]) -> No
     assert errors(new) == []
 
 
+def test_remove_drops_the_links_of_a_goal(board2: dict[str, Any]) -> None:
+    goal = {"id": "g-1", "board": "od", "kind": "goal", "label": "a shared plant"}
+    goal |= {"seen_from": "p-owner", "arises_from": ["gap-risk", "T1"]}
+    goal |= {"goal_source": "assigned", "assigned_by": "place-bank"}
+    board2["elements"].append(goal)
+    gone = ("gap-risk", "T1", "place-bank")
+    new = apply_patch(board2, patch(remove=[{"id": i, "reason": "x"} for i in gone]))
+    left = next(e for e in new["elements"] if e["id"] == "g-1")
+    assert "arises_from" not in left and "assigned_by" not in left
+    assert errors(new) == []
+
+
 def test_apply_refuses_to_write_an_invalid_result(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:

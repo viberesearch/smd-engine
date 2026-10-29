@@ -32,6 +32,24 @@ STEPS: dict[str, dict[str, Any]] = {
             "Объектная доска",
             "Понятия, модели, стандарты и кооперации вокруг рамок.",
         ),
+        "upper": (
+            "Верхняя система",
+            "Система ОРУ: знания о прошлом и прожективные, идеальное состояние, "
+            "программы, средства.",
+        ),
+        "process": (
+            "Доска процесса",
+            "Рабочий процесс, идеализированный на отдельной доске: его функции и "
+            "кооперации.",
+        ),
+        "apparatus": (
+            "Аппарат руководства",
+            "Места и их наполнение, связи подчинения, неформальные группы, клубы.",
+        ),
+        "managed": (
+            "Управляемая система",
+            "Полисистема: моносистемы и их миссии, процессы, траектории, факты.",
+        ),
         "transitions": ("Переходы", "Переходы между досками в порядке хода мысли."),
         "k": ("Квалификации", "Замечания, на которые группа отвечает."),
         "full": ("Экран целиком", "Все доски, переходы и квалификации вместе."),
@@ -80,6 +98,26 @@ STEPS: dict[str, dict[str, Any]] = {
         "object": (
             "Object board",
             "Concepts, models, standards and cooperations around the frames.",
+        ),
+        "upper": (
+            "Upper system",
+            "The system of ОРУ: retrospective and projective knowledge, the ideal "
+            "state, programmes, means.",
+        ),
+        "process": (
+            "Process board",
+            "A working process idealised on a board of its own: its functions and "
+            "cooperations.",
+        ),
+        "apparatus": (
+            "Apparatus of leadership",
+            "Places and their fillers, lines of subordination, informal groups, "
+            "clubs.",
+        ),
+        "managed": (
+            "Managed system",
+            "A polysystem: monosystems and their missions, processes, trajectories, "
+            "facts.",
         ),
         "transitions": ("Transitions", "Transitions between boards, in order."),
         "k": ("Qualifications", "Remarks the group answers."),

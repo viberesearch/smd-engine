@@ -22,6 +22,7 @@
       "additionalProperties": false,
       "description": "items appended to the board's lists; checked by the board schema after application",
       "properties": {
+        "boards": {"$ref": "#/$defs/items", "description": "boards made of the profile's templates"},
         "elements": {"$ref": "#/$defs/items"},
         "relations": {"$ref": "#/$defs/items"},
         "transitions": {"$ref": "#/$defs/items"},
@@ -35,7 +36,7 @@
     },
     "set": {
       "type": "array",
-      "description": "fields merged into the element, K, thesis, hypothesis or ontology record of that id, or into the transition numbered n; null deletes a field",
+      "description": "fields merged into the record board, element, K, thesis, hypothesis or ontology record of that id, or into the transition numbered n; null deletes a field",
       "items": {
         "type": "object",
         "oneOf": [{"required": ["id"]}, {"required": ["n"]}],
@@ -45,7 +46,7 @@
     },
     "remove": {
       "type": "array",
-      "description": "items, or the transition numbered n, dropped with every link that names them; the ids or numbers and reasons go to the board's notes",
+      "description": "items, or the transition numbered n, dropped with every link that names them (a record board with the elements on it); the ids or numbers and reasons go to the board's notes",
       "items": {
         "type": "object",
         "required": ["reason"],

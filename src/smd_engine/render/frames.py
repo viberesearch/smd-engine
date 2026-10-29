@@ -21,7 +21,14 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from smd_engine.profile import Pick, ProfileError, matches, profile_id, profile_of
+from smd_engine.profile import (
+    Pick,
+    ProfileError,
+    Step,
+    matches,
+    profile_id,
+    profile_of,
+)
 from smd_engine.render.frames_text import STEPS
 from smd_engine.render.light import fold, lighten
 from smd_engine.render.svg import LAYERS
@@ -56,7 +63,7 @@ def _bullets(items: list[str]) -> str:
 
 def _reading_selectors(
     data: dict[str, Any],
-) -> list[tuple[str, Callable[[Element], bool]]]:
+) -> list[tuple[Step, Callable[[Element], bool]]]:
     """The profile's reading steps, each with the test of what it adds; a step
     adds only what earlier steps did not show."""
     profile = profile_of(data)
@@ -73,20 +80,25 @@ def _reading_selectors(
             return lambda e: e["id"] in ids
         return lambda e: matches(e, pick)
 
-    return [(step.id, selector(step.pick)) for step in profile.reading]
+    return [(step, selector(step.pick)) for step in profile.reading]
 
 
 def reading_frames(data: dict[str, Any], lang: str = "ru") -> list[Frame]:
-    """Build one record up step by step; empty steps are skipped."""
+    """Build one record up step by step; empty steps are skipped. A step of
+    a record's board (one made of a template) is titled with that board."""
     st = STEPS[lang]
+    profile = profile_of(data)
     shown: set[str] = set()
     out: list[Frame] = []
-    for fid, pick in _reading_selectors(data):
+    for step, pick in _reading_selectors(data):
+        fid = step.id
         added = [e for e in data["elements"] if e["id"] not in shown and pick(e)]
         if not added:
             continue
         shown |= {e["id"] for e in added}
-        title, lead = st[fid]
+        title, lead = st[step.template_step or fid]
+        if step.template_step:
+            title = profile.board_label(step.board, lang)
         text = lead + "\n\n" + _bullets([e["label"] for e in added])
         out.append(
             Frame(
@@ -189,6 +201,12 @@ def cycle_frames(records: list[dict[str, Any]], lang: str = "ru") -> list[Frame]
     return out
 
 
+def reading_ids(data: dict[str, Any]) -> set[str]:
+    """The ids of a record's reading steps; a step of a board the record
+    makes of a template has an id of its own (`<step>-<board>`), outside STEPS."""
+    return {s.id for s in profile_of(data).reading}
+
+
 def lighten_frames(frames: list[Frame], lang: str = "ru") -> list[Frame]:
     """Draw each frame on the lighter screen. A reading step still names what
     it adds off the screen, so the speaker can say it."""
@@ -202,7 +220,9 @@ def lighten_frames(frames: list[Frame], lang: str = "ru") -> list[Frame]:
         vis = {e["id"] for e in f.record["elements"]}
         f.show = None if f.show is None else f.show & vis
         f.focus = None if f.focus is None else f.focus & vis
-        if f.id not in st or f.id in ("transitions", "k", "full"):
+        if f.id in ("transitions", "k", "full") or not (
+            f.id in st or f.id in reading_ids(full)
+        ):
             continue
         labels = {e["id"]: e["label"] for e in full["elements"]}
         lead = f.text.split("\n\n")[0]

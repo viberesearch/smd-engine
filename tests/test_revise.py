@@ -87,6 +87,22 @@ def test_bad_signoffs_are_refused(board2: dict[str, Any], signoff: Any) -> None:
         revise(board2, decisions={"signoffs": [signoff]})
 
 
+def test_stance_and_goal_fields_are_carried(board2: dict[str, Any]) -> None:
+    owner = next(e for e in board2["elements"] if e["id"] == "p-owner")
+    owner.update(stance="inside", acts_as="leader")
+    reflect = next(e for e in board2["elements"] if e["id"] == "p-reflect")
+    reflect["stance"] = "reflexive"
+    new, _ = revise(
+        board2, date="2026-02-01", decisions={"reflected_from": "p-reflect"}
+    )
+    els = {e["id"]: e for e in new["elements"]}
+    assert (
+        els["p-owner"]["stance"] == "inside" and els["p-owner"]["acts_as"] == "leader"
+    )
+    assert els["p-reflect"]["stance"] == "reflexive"
+    assert errors(new, board2) == []
+
+
 def test_next_id_needs_a_trailing_number() -> None:
     assert next_id("case-m9") == "case-m10"
     with pytest.raises(ValueError):

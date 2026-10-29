@@ -80,7 +80,7 @@ def _element(el: dict[str, Any], box: Box, profile: Profile) -> str:
     kind = profile.kind(el["kind"])
     shape = kind.shape
     # outlines take the ink of the board the kind lives on
-    ink = profile.board(kind.home or el["board"]).colour[1]
+    ink = profile.board_or_template(kind.home or el["board"]).colour[1]
     lit = bool(el.get("lineage"))
     st = _style(el)
     b = box

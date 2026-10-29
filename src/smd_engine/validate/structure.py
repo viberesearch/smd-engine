@@ -24,6 +24,18 @@ SUBJECT_OBJECT = re.compile(
     r"\b(мы должны|нам нужно|нам надо|наша задача|мы будем|we must|we need to|our task)\b",
     re.IGNORECASE,
 )
+# Fields of gates Ш9-Ш10 and the kind that takes them, by id: `position` as
+# everywhere, `goal` as the kind of the hint goal-without-breakdown
+# (profile.HINT_KINDS). `stance` goes to the kinds a profile flags `stance`.
+KIND_FIELDS = {
+    "acts_as": ("position", "positions"),
+    "arises_from": ("goal", "goals"),
+    "goal_source": ("goal", "goals"),
+    "assigned_by": ("goal", "goals"),
+}
+# What a goal may arise from: a breakdown on the board or in the talk
+# (GP-Guide11 ¶43): a gap, a kind flagged `factual`, or such a thesis.
+BREAKDOWN_THESES = ("difficulty", "problem")
 
 
 def _ref_ok(ctx: Ctx, out: list[Finding], ref: str, where: str, what: str) -> bool:
@@ -75,6 +87,27 @@ def _element_findings(ctx: Ctx, el: dict[str, Any], out: list[Finding]) -> None:
     for field in ("of", "scheme"):
         if field in el and kind != "gap":
             out.append(Finding("error", eid, f"'{field}' is only for gaps"))
+    for field, (only, name) in KIND_FIELDS.items():
+        if field in el and kind != only:
+            out.append(Finding("error", eid, f"'{field}' is only for {name}"))
+    stance = profile.kinds_where("stance")
+    if "stance" in el and kind not in stance:
+        out.append(
+            Finding(
+                "error",
+                eid,
+                "'stance' is only for positions: " + ", ".join(sorted(stance)),
+            )
+        )
+    if "nature" in el and not board.object:
+        objects = [b.label["en"].lower() for b in profile.boards if b.object]
+        where = (
+            "the " + " or the ".join(objects)
+            if objects
+            else f"an object board, and profile '{profile.id}' has none"
+        )
+        out.append(Finding("error", eid, f"'nature' is only for {where}"))
+    _goal_findings(ctx, el, out)
     if "fillers" in el and kind not in roles:
         out.append(
             Finding(
@@ -134,8 +167,15 @@ def _element_findings(ctx: Ctx, el: dict[str, Any], out: list[Finding]) -> None:
             )
         )
     home = profile.kind(kind).home
-    if home and el["board"] != home:
-        out.append(Finding("warning", eid, f"{kind} usually lies on board '{home}'"))
+    # on a record's board the template's kinds are its own (checked with the
+    # profile's boards); elsewhere a kind is warned off its home
+    if home and not board.template and el["board"] != home:
+        where = (
+            f"a board of template '{home}'"
+            if profile.template(home)
+            else f"board '{home}'"
+        )
+        out.append(Finding("warning", eid, f"{kind} usually lies on {where}"))
     if "seen_from" in el:
         if _ref_ok(ctx, out, el["seen_from"], eid, "seen_from"):
             if by_id[el["seen_from"]]["kind"] != "position":
@@ -164,6 +204,80 @@ def _element_findings(ctx: Ctx, el: dict[str, Any], out: list[Finding]) -> None:
         if eid in move["from"]:
             out.append(Finding("error", eid, "a move cannot start from its result"))
     out += cite_findings(el.get("cites", []), eid, ctx.source_ids)
+
+
+@board_set
+def check_record_boards(ctx: Ctx) -> list[Finding]:
+    """The boards a record makes of its profile's templates: an id apart from
+    the element ids, the position it is seen from (`seen_from`; a warning
+    when the template asks for one and it is missing), what it unfolds (of
+    a kind among the template's `unfolds`, when it lists any)."""
+    out: list[Finding] = []
+    for raw in ctx.record.get("boards", []):
+        where = f"board {raw['id']}"
+        if raw["id"] in ctx.by_id:
+            out.append(Finding("error", where, "board id is also an element id"))
+        template = ctx.profile.template(raw["template"])
+        if "seen_from" in raw:
+            if _ref_ok(ctx, out, raw["seen_from"], where, "seen_from"):
+                if ctx.by_id[raw["seen_from"]]["kind"] != "position":
+                    out.append(Finding("error", where, "seen_from must be a position"))
+        elif template and template.needs_position:
+            out.append(Finding("warning", where, "no position it is seen from"))
+        if "unfolds" in raw and _ref_ok(ctx, out, raw["unfolds"], where, "unfolds"):
+            kind = ctx.by_id[raw["unfolds"]]["kind"]
+            if template and template.unfolds and kind not in template.unfolds:
+                out.append(
+                    Finding(
+                        "error",
+                        where,
+                        f"unfolds '{raw['unfolds']}', a {kind}; a board of template "
+                        f"'{template.id}' unfolds {', '.join(template.unfolds)}",
+                    )
+                )
+        out += cite_findings(raw.get("cites", []), where, ctx.source_ids)
+    return out
+
+
+def _goal_findings(ctx: Ctx, el: dict[str, Any], out: list[Finding]) -> None:
+    """The links of a goal: what it arises from, who assigned it (gate Ш9)."""
+    eid = el["id"]
+    for ref in el.get("arises_from", []):
+        if ref in ctx.theses:
+            thesis = ctx.theses[ref]
+            ok = thesis["kind"] in BREAKDOWN_THESES or thesis.get("modality") == "fact"
+        elif ref in ctx.by_id:
+            source = ctx.by_id[ref]
+            ok = (
+                source["kind"] == "gap"
+                or source["kind"] in ctx.profile.kinds_where("factual")
+                or source.get("modality") == "fact"
+            )
+        else:
+            out.append(
+                Finding(
+                    "error", eid, f"arises_from '{ref}' is not an element or thesis"
+                )
+            )
+            continue
+        if not ok:
+            out.append(
+                Finding(
+                    "error",
+                    eid,
+                    f"arises_from '{ref}': a gap, a fact, or a difficulty, "
+                    "problem or factual thesis",
+                )
+            )
+    if "assigned_by" in el and _ref_ok(ctx, out, el["assigned_by"], eid, "assigned_by"):
+        if ctx.by_id[el["assigned_by"]]["kind"] not in ("position", "place_for_others"):
+            out.append(
+                Finding(
+                    "error",
+                    eid,
+                    "assigned_by must be a position or a place for others",
+                )
+            )
 
 
 def _containment_cycles(by_id: dict[str, dict[str, Any]]) -> list[Finding]:
@@ -277,10 +391,20 @@ def check_record_level(ctx: Ctx) -> list[Finding]:
 
     if "reflected_from" in data:
         if _ref_ok(ctx, out, data["reflected_from"], "reflected_from", "position"):
-            if ctx.by_id[data["reflected_from"]]["kind"] != "position":
+            reflexive = ctx.by_id[data["reflected_from"]]
+            if reflexive["kind"] != "position":
                 out.append(
                     Finding(
                         "error", "reflected_from", "reflected_from must be a position"
+                    )
+                )
+            elif reflexive.get("stance") == "inside":
+                out.append(
+                    Finding(
+                        "warning",
+                        "reflected_from",
+                        f"'{reflexive['id']}' has stance inside: the reflexive exit "
+                        "is made from outside the place one acts in (GP-Guide11 ¶35)",
                     )
                 )
     elif "revises" in data:

@@ -45,6 +45,7 @@ Elements, theses, hypotheses and ontology records carry `lens: <id>`; `smd compa
 | `design-chain` | smd | team design study (local) | goal, beneficiary, subject, form, instruments, conditions, result of a pass between positions |
 | `triz-contradictions` | triz | ARIZ-85V, Altshuller | a contradiction inside one object: zone, time, resources, ideal result, separation |
 | `scamper-check` | smd | Eberle, Osborn; Zharnikov | a cross-check of the four structural moves after the tract |
+| `three-positions` | smd | G.P., «Программа действий» (GP-Guide11); т. 5 | from where a scheme is drawn: inside, reflexive, external; which structures stay conditions |
 
 ## Selection table
 
@@ -60,6 +61,7 @@ Rows are procedure and step. "Q" is the question number in the lens file. Where 
 | `visionary-tract` | after 6, before the hand-over | `scamper-check` | all | Looks for candidates the four-move pass missed |
 | `visionary-tract` | 10 Hand over | `schukin-interface-tax` | Q11 | As above |
 | `positional-construction` | 2 Positional set | `khaprov-levels` | Q1-Q3, Q10 | Asks whether a position acts at the level its task needs, and whether the missing one is a gap or missing knowledge |
+| `positional-construction` | 2 Positional set, 4 Representations | `three-positions` | Q1, Q2, Q5, Q6 | A position that draws the structure it works inside draws a condition, not an object (GP-Guide11 ¶36); `stance` on the positions |
 | `positional-construction` | 3 The construction | `design-chain` | Q1-Q5, Q9 | The `flow` relations label what passes, from whom, to whom; the chain asks what stays behind |
 | `positional-construction` | 5 One common object | `khaprov-ontology` | Q5-Q11 | The ontology record's `subjects`, `valid_for`, `competes`, `cooperation` and `test` |
 | `functional-plan` | 2 Draft the chain, 5 Align | `fliamer-diamond` | Q3-Q5 | Functions in a chain, products, consumers; material on how the chain is arranged elsewhere |
@@ -74,12 +76,13 @@ Rows are procedure and step. "Q" is the question number in the lens file. Where 
 | `problematization` | 6 Pointer to the other route | `triz-contradictions` | all | The procedure flags a contradiction inside the object and writes no TRIZ terms; the lens is a separate pass |
 | `qualification-pass` | 3.1 C7, 3.3 realizability | `khaprov-ontology` | Q1-Q4, Q9-Q11 | Questions only: the scale and the stated reason; the test and the cooperation. No elements |
 | `qualification-pass` | 6 Hand over | `schukin-interface-tax` | Q11 | As above |
+| `reflexive-protocol` | 2 The exit, fourth question | `three-positions` | all | The longer form of the fourth question: the reflexive and the external position, and the language of the next object scheme |
 | `reflexive-protocol` | 6 Sign-offs | `schukin-interface-tax` | Q11 | As above |
 | `theses-to-board` | 5 Sign-offs | `schukin-interface-tax` | Q11 | As above |
 | `solo-session` | none of its own | all of the above | by step | It orders the step procedures and inherits their lenses; the human may call another lens at a gate |
 | `ingest-transcript`, `field-result` | none | none | | They turn a record of talk or a field artefact into theses or a result, and a lens would put the model's questions into that reading |
 
-The table is the engine's selection. The source materials do not say which lens belongs at which step. A procedure already names the source in these places: the scale test at tract step 5 and in `qualification-pass`, the four families and five grounds at functional-plan section 6, the ontology test at positional-construction section 5, the sign-off rule everywhere.
+The table is the engine's selection. The source materials do not say which lens belongs at which step. A procedure already names the source in these places: the scale test at tract step 5 and in `qualification-pass`, the four families and five grounds at functional-plan section 6, the ontology test at positional-construction section 5, the three positions at reflexive-protocol section 2, the sign-off rule everywhere.
 
 ## Rules for every lens
 

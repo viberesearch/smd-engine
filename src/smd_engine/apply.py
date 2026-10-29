@@ -8,6 +8,7 @@ from typing import Any
 
 # Board lists a patch may add to, in the order of the board schema.
 ADDABLE = (
+    "boards",
     "elements",
     "relations",
     "transitions",
@@ -17,15 +18,31 @@ ADDABLE = (
     "ontology",
     "signoffs",
 )
-# Board lists whose items have an id that `set` and `remove` may name.
-WITH_ID = ("elements", "qualifications", "theses", "hypotheses", "ontology")
+# Board lists whose items have an id that `set` and `remove` may name; a
+# record board (`boards`) is removed with the elements on it.
+WITH_ID = ("boards", "elements", "qualifications", "theses", "hypotheses", "ontology")
 # Item fields that name other items: lists dropped when they become empty...
-OPTIONAL_LISTS = ("in", "feeds", "about", "targets", "raises", "qualifications")
+OPTIONAL_LISTS = (
+    "in",
+    "feeds",
+    "about",
+    "targets",
+    "raises",
+    "qualifications",
+    "arises_from",
+)
 # ...lists the schema requires to be non-empty, left empty for the validator to
 # report, so that a removal never deletes a decision silently...
 REQUIRED_LISTS = ("valid_for",)
 # ...and single ids, deleted.
-SCALARS = ("seen_from", "performed_by", "cooperation", "test")
+SCALARS = (
+    "seen_from",
+    "performed_by",
+    "cooperation",
+    "test",
+    "assigned_by",
+    "unfolds",
+)
 
 
 class PatchError(ValueError):
@@ -50,6 +67,8 @@ def apply_patch(board: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
         raise ValueError(f"patch {patch['id']} is already applied to {board['id']}")
     new = copy.deepcopy(board)
     add = patch.get("add", {})
+    if add.get("boards") and "boards" not in new:
+        new = _with_boards(new)
     for field in ADDABLE:
         if add.get(field):
             new.setdefault(field, []).extend(copy.deepcopy(add[field]))
@@ -73,13 +92,22 @@ def apply_patch(board: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
     if removed:
         ids = {k for k in removed if isinstance(k, str)}
         numbers = {k for k in removed if isinstance(k, int)}
-        dropped = _remove(new, ids, numbers)
+        on = _on_boards(new, ids)
+        dropped = _remove(new, ids | {e for es in on.values() for e in es}, numbers)
         for key, why in removed.items():
             if isinstance(key, int):
                 lines.append(f"{patch['id']}: removed transition {key}: {why}")
             else:
                 head = f"{patch['id']}: removed {key}: {why}"
-                lines.append("; ".join([head] + dropped.get(key, [])))
+                with_it = [f"with {', '.join(on[key])}"] if on.get(key) else []
+                lines.append(
+                    "; ".join(
+                        [head]
+                        + with_it
+                        + dropped.get(key, [])
+                        + [d for e in on.get(key, []) for d in dropped.get(e, [])]
+                    )
+                )
     if lines:
         new["notes"] = "\n".join(([new["notes"]] if new.get("notes") else []) + lines)
     for sid in add.get("sources", []):
@@ -93,6 +121,27 @@ def apply_patch(board: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
         new = _with_applied(new)
     new["applied"].append(patch["id"])
     return new
+
+
+def _with_boards(board: dict[str, Any]) -> dict[str, Any]:
+    """The board with an empty `boards`, placed before the elements as in the schema."""
+    out: dict[str, Any] = {}
+    for key, value in board.items():
+        if key == "elements":
+            out["boards"] = []
+        out[key] = value
+    out.setdefault("boards", [])
+    return out
+
+
+def _on_boards(board: dict[str, Any], ids: set[str]) -> dict[str, list[str]]:
+    """The elements on each removed record board, by board id."""
+    removed = {b.get("id") for b in board.get("boards", []) if b.get("id") in ids}
+    out: dict[str, list[str]] = {}
+    for el in board.get("elements", []):
+        if el.get("board") in removed and el.get("id") not in ids:
+            out.setdefault(el["board"], []).append(str(el["id"]))
+    return out
 
 
 def _with_applied(board: dict[str, Any]) -> dict[str, Any]:

@@ -15,6 +15,8 @@ BOARD_TOP = 100  # the top edge of every board as drawn
 # Around its region a board is drawn 20 wider to each side, 50 taller above
 # (for its name) and 10 below: left, top, right, bottom.
 MARGIN = (20.0, 50.0, 20.0, 10.0)
+# The height of a region of a board a record makes of a profile's template.
+RECORD_BOARD_HEIGHT = 300.0
 
 # The triangles screen: the two top boards meet at the apex, the third lies
 # below it, between the lower corners.
@@ -39,6 +41,25 @@ def overlap(a: Rect, b: Rect) -> bool:
 def inside(a: Rect, b: Rect) -> bool:
     """Whether rectangle `a` lies within `b`."""
     return b[0] <= a[0] and b[1] <= a[1] and a[2] <= b[2] and a[3] <= b[3]
+
+
+def record_regions(fixed: list[Rect], n: int, columns: int) -> list[Rect]:
+    """Regions of `n` record boards below the fixed boards' regions `fixed`:
+    rows of `columns` across the span of the fixed boards, as close as the
+    margins they are drawn with allow (40 side by side, 60 one above the
+    other), each RECORD_BOARD_HEIGHT tall."""
+    left, top, right, bottom = MARGIN
+    x0, x1 = min(r[0] for r in fixed), max(r[2] for r in fixed)
+    y0 = max(r[3] for r in fixed) + bottom + top
+    gap = left + right
+    width = (x1 - x0 - (columns - 1) * gap) / columns
+    out: list[Rect] = []
+    for i in range(n):
+        row, col = divmod(i, columns)
+        rx = x0 + col * (width + gap)
+        ry = y0 + row * (RECORD_BOARD_HEIGHT + top + bottom)
+        out.append((rx, ry, rx + width, ry + RECORD_BOARD_HEIGHT))
+    return out
 
 
 def triangle_parts() -> tuple[Rect, Rect, Rect]:

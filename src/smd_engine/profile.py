@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 from math import inf
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from functools import cache
 from importlib import resources
 from itertools import combinations
@@ -26,6 +26,7 @@ from smd_engine.screen import (
     inside,
     outline,
     overlap,
+    record_regions,
     triangle_parts,
 )
 
@@ -43,6 +44,12 @@ SHAPES = {
 }
 SCREENS = ("regions", "triangles")
 COLOUR = re.compile(r"#[0-9a-fA-F]{6}")
+# The id of a board a record makes of a template: the schema's id less the
+# dot, which separates a board from its half (`s.small`).
+RECORD_BOARD_ID = re.compile(r"[a-z0-9][a-z0-9_-]*")
+# The layers `smd graph` draws above and below the board planes, keyed like a
+# board (render/graph.py `planes`, assets/graph.js): no board takes these ids.
+RESERVED_BOARD_IDS = ("records", "sources")
 FRAME_PICKS = {"old-frames", "new-frames"}
 PICK_KEYS = {"kinds", "board", "half", "frame_state"}
 FRAME_STATES = ("old", "new")  # the schema's enum for `frame_state`
@@ -61,6 +68,10 @@ TOP_KEYS = {
 }
 BOARD_KEYS = {"id", "label", "halves", "region", "colour", "split"}
 BOARD_FLAGS = ("object",)
+# A board template (`per_record: true`): no region or halves; the kinds its
+# boards take; each record declares its own boards of it (`boards` in a record).
+TEMPLATE_KEYS = {"id", "label", "colour", "kinds", "unfolds", "per_record"}
+TEMPLATE_FLAGS = ("object", "needs_position")
 KIND_KEYS = {"id", "label", "home", "shape"}
 KIND_FLAGS = (
     "needs_position",
@@ -69,8 +80,24 @@ KIND_FLAGS = (
     "scheme",
     "skeleton",
     "light_off",
+    "stance",
+    "factual",
 )
 STEP_KEYS = {"step", "board", "pick"}
+RELATION_KEYS = {"id", "label"}
+# Relation kinds the engine labels itself (render/graph.py EDGE_KINDS): a
+# profile lists them by id; any other relation kind comes with its label.
+ENGINE_RELATIONS = (
+    "shift",
+    "flow",
+    "produces",
+    "uses",
+    "belongs",
+    "opposes",
+    "refers",
+    "represents",
+    "other",
+)
 # Kind ids the engine names in its checks, switches and fold counters
 # (docs/profiles.md, "Ids every profile defines"); a hint may need one more.
 REQUIRED_KINDS = (
@@ -81,7 +108,7 @@ REQUIRED_KINDS = (
     "gap",
     "note",
 )
-HINT_KINDS = {"entry": "entry"}
+HINT_KINDS = {"entry": "entry", "goal-without-breakdown": "goal"}
 # The SessionFlow questions render/sessionflow.py fills from the profile.
 SESSIONFLOW_BLOCKS = ("who", "where", "what_for")
 # Reading steps `smd frames` has a title and lead for: the step texts of
@@ -107,6 +134,22 @@ class Board:
     colour: tuple[str, str]  # background, ink
     split: float = 0.0  # x where two halves meet: `split`, or the region's middle
     object: bool = False  # subject-object talk on it is warned
+    template: str = ""  # a board a record makes of a template: the template's id
+
+
+@dataclass(frozen=True)
+class Template:
+    """A board template (`per_record: true`): each record makes its own boards
+    of it, which take its kinds; `unfolds` limits the kinds of the element a
+    board of it unfolds (any kind when empty)."""
+
+    id: str
+    label: dict[str, str]
+    colour: tuple[str, str]  # background, ink
+    kinds: tuple[str, ...]
+    unfolds: tuple[str, ...] = ()
+    object: bool = False
+    needs_position: bool = False  # a board of it names `seen_from`
 
 
 @dataclass(frozen=True)
@@ -121,15 +164,21 @@ class Kind:
     shape: str
     skeleton: bool
     light_off: bool = False  # left off the lighter screen (--light)
+    stance: bool = False  # takes the field `stance`: a position (GP-Guide11 ¶35)
+    factual: bool = False  # records a fact: a breakdown a goal can arise from
 
 
 @dataclass(frozen=True)
 class Step:
-    """A reading step: its id, the board or half it is cut to, what it adds."""
+    """A reading step: its id, the board or half it is cut to, what it adds.
+    A step on a template is repeated for each record board of it: such a step
+    keeps the id of the template's step in `template_step`, whose texts
+    (render/frames_text.py) it takes, and is named by its board."""
 
     id: str
     board: str
     pick: Pick
+    template_step: str = ""
 
 
 # eq=False: load_profile reads each profile once, so identity is equality, and
@@ -147,6 +196,12 @@ class Profile:
     sessionflow: dict[str, tuple[dict[str, Any], ...]] | None = None
     screen: str = "regions"
     compare_skip: tuple[str, ...] = ()
+    # labels {ru, en} of the relation kinds outside ENGINE_RELATIONS
+    relation_labels: dict[str, dict[str, str]] = field(default_factory=dict)
+    # board templates (`per_record`), and every reading step as written, the
+    # steps of a template's boards included (`reading` holds the expanded ones)
+    templates: tuple[Template, ...] = ()
+    steps: tuple[Step, ...] = ()
     _boards: dict[str, Board] = field(default_factory=dict, repr=False)
     _kinds: dict[str, Kind] = field(default_factory=dict, repr=False)
 
@@ -162,6 +217,18 @@ class Profile:
 
     def has_board(self, board_id: str) -> bool:
         return board_id in self._boards
+
+    def template(self, template_id: str) -> Template | None:
+        return next((t for t in self.templates if t.id == template_id), None)
+
+    def board_or_template(self, board_id: str) -> Board | Template:
+        """A board, or a template: what a kind's `home` may name."""
+        return self.template(board_id) or self.board(board_id)
+
+    @property
+    def record_boards(self) -> tuple[Board, ...]:
+        """The boards a record made of the templates, in the record's order."""
+        return tuple(b for b in self.boards if b.template)
 
     def has_kind(self, kind_id: str) -> bool:
         return kind_id in self._kinds
@@ -307,6 +374,30 @@ def _board(raw: dict[str, Any], where: str) -> Board:
     )
 
 
+def _template(raw: dict[str, Any], where: str) -> Template:
+    """A board template: a label, a colour and the kinds its boards take; no
+    region or halves, since each record places its own boards of it."""
+    _keys(raw, TEMPLATE_KEYS | set(TEMPLATE_FLAGS), where)
+    flags = _flags(raw, TEMPLATE_FLAGS, where)
+    if raw["per_record"] is not True:
+        raise ProfileError(f"{where}: per_record must be true")
+    colour = tuple(str(c) for c in raw["colour"])
+    if len(colour) != 2 or not all(COLOUR.fullmatch(c) for c in colour):
+        raise ProfileError(f"{where}: colour takes 2 colours, each #rrggbb")
+    kinds = _strings(raw.get("kinds"), f"{where}: kinds")
+    if not kinds:
+        raise ProfileError(f"{where}: a template takes at least one kind")
+    return Template(
+        str(raw["id"]),
+        _labels(raw.get("label"), where),
+        (colour[0], colour[1]),
+        kinds,
+        _strings(raw.get("unfolds", []), f"{where}: unfolds"),
+        flags["object"],
+        flags["needs_position"],
+    )
+
+
 def _list(
     data: dict[str, Any], key: str, where: str, required: bool = False
 ) -> list[Any]:
@@ -348,7 +439,9 @@ def _kind(raw: dict[str, Any], boards: set[str], where: str) -> Kind:
     _keys(raw, KIND_KEYS | set(KIND_FLAGS), where)
     flags = _flags(raw, KIND_FLAGS, where)
     if raw.get("home") is not None and raw["home"] not in boards:
-        raise ProfileError(f"{where}: home '{raw['home']}' is not a board")
+        raise ProfileError(
+            f"{where}: home '{raw['home']}' is neither a board nor a template"
+        )
     if raw.get("shape") not in SHAPES:
         raise ProfileError(f"{where}: shape must be one of {', '.join(sorted(SHAPES))}")
     return Kind(
@@ -387,8 +480,15 @@ def _pick(
 
 
 def _reading(
-    items: list[Any], name: str, boards: dict[str, Board], kinds: set[str]
+    items: list[Any],
+    name: str,
+    boards: dict[str, Board],
+    kinds: set[str],
+    templates: dict[str, Template],
 ) -> tuple[Step, ...]:
+    """The reading steps as written. A step whose board is a template is read
+    once per board a record makes of it; its pick is a filter, narrowed to
+    that board (a `board` in it names the template)."""
     steps: list[Step] = []
     for raw in _mappings(items, f"{name}: reading steps"):
         step = str(raw["step"])
@@ -400,12 +500,28 @@ def _reading(
                 f"known: {', '.join(sorted(READING_STEPS))}"
             )
         board, _, half = str(raw["board"]).partition(".")
-        if board not in boards or (half and half not in boards[board].halves):
+        template = board in templates and not half
+        if not template and (
+            board not in boards or (half and half not in boards[board].halves)
+        ):
             raise ProfileError(
                 f"{where}: board '{raw['board']}' is neither a board nor a half"
             )
         pick = raw["pick"]
-        if not (isinstance(pick, str) and pick in FRAME_PICKS):
+        if template:
+            if (
+                not isinstance(pick, dict)
+                or pick.get("board", board) != board
+                or "half" in pick
+            ):
+                raise ProfileError(
+                    f"{where}: a step on a template takes a filter without half, "
+                    "whose board, if given, is the template"
+                )
+            rest = {k: v for k, v in pick.items() if k != "board"}
+            if rest:
+                _pick(rest, where, boards, kinds)
+        elif not (isinstance(pick, str) and pick in FRAME_PICKS):
             if isinstance(pick, str):
                 raise ProfileError(
                     f"{where}: a named pick is one of {', '.join(sorted(FRAME_PICKS))}"
@@ -454,6 +570,57 @@ def _hints(hints: tuple[str, ...], name: str) -> tuple[str, ...]:
     return hints
 
 
+def _relations(items: Any, name: str) -> dict[str, dict[str, str]]:
+    """Relation kinds in order: an engine relation by id, or `{id, label}`;
+    a kind outside ENGINE_RELATIONS needs its label. Returns id to label ({}
+    for an engine relation)."""
+    if not isinstance(items, list):
+        raise ProfileError(
+            f"{name}: relations must be a list of strings and {{id, label}} mappings"
+        )
+    out: dict[str, dict[str, str]] = {}
+    ids: list[str] = []
+    for raw in items:
+        if isinstance(raw, str):
+            rid, label = raw, {}
+        elif isinstance(raw, dict):
+            _keys(raw, RELATION_KEYS, f"{name}: relation {raw.get('id')}")
+            rid = str(raw["id"])
+            label = _labels(raw.get("label"), f"{name}: relation {rid}")
+        else:
+            raise ProfileError(
+                f"{name}: relations must be a list of strings and {{id, label}} "
+                "mappings"
+            )
+        if label and rid in ENGINE_RELATIONS:
+            raise ProfileError(
+                f"{name}: relation '{rid}' is the engine's; it takes no label"
+            )
+        if not label and rid not in ENGINE_RELATIONS:
+            raise ProfileError(
+                f"{name}: relation '{rid}' is not the engine's and needs a label "
+                "{ru, en}"
+            )
+        ids.append(rid)
+        out[rid] = label
+    _unique(ids, "relation", name)
+    return out
+
+
+def _hint_needs(hints: tuple[str, ...]) -> tuple[set[str], set[str]]:
+    """The kinds and relation kinds the enabled hints name: HINT_KINDS, and
+    what a hint of one profile's scheme registers (validate/context.py `hint`)."""
+    from smd_engine.validate.context import hint_needs
+
+    kinds = {HINT_KINDS[h] for h in hints if h in HINT_KINDS}
+    relations: set[str] = set()
+    for h in hints:
+        k, r = hint_needs(h)
+        kinds |= set(k)
+        relations |= set(r)
+    return kinds, relations
+
+
 def _layout(boards: tuple[Board, ...], screen: Any, name: str) -> None:
     """The shape a screen can draw; boards drawn apart; rows the layout can grow."""
     if screen not in SCREENS:
@@ -500,20 +667,45 @@ def _triangles(boards: tuple[Board, ...], name: str) -> None:
 def _parse(data: dict[str, Any], name: str) -> Profile:
     try:
         _keys(data, TOP_KEYS, name)
+        entries = _mappings(_list(data, "boards", name, True), f"{name}: boards")
         boards = tuple(
             _board(b, f"{name}: board {b.get('id')}")
-            for b in _mappings(_list(data, "boards", name, True), f"{name}: boards")
+            for b in entries
+            if "per_record" not in b
+        )
+        templates = tuple(
+            _template(b, f"{name}: template {b.get('id')}")
+            for b in entries
+            if "per_record" in b
         )
         if not boards:
             raise ProfileError(f"{name}: a profile takes at least one board")
         by_id = {b.id: b for b in boards}
+        by_template = {t.id: t for t in templates}
         kinds = tuple(
-            _kind(k, set(by_id), f"{name}: kind {k.get('id')}")
+            _kind(k, set(by_id) | set(by_template), f"{name}: kind {k.get('id')}")
             for k in _mappings(_list(data, "kinds", name, True), f"{name}: kinds")
         )
-        _unique([b.id for b in boards], "board", name)
+        ids = [b.id for b in boards] + [t.id for t in templates]
+        _unique(ids, "board", name)
+        reserved = sorted(set(ids) & set(RESERVED_BOARD_IDS))
+        if reserved:
+            raise ProfileError(
+                f"{name}: board ids {reserved} are the layers of smd graph"
+            )
         _unique([k.id for k in kinds], "kind", name)
         known = {k.id for k in kinds}
+        for t in templates:
+            _known(t.kinds, known, f"{name}: template {t.id}")
+            _known(t.unfolds, known, f"{name}: template {t.id}: unfolds")
+            homed = sorted(
+                k.id for k in kinds if k.home == t.id and k.id not in t.kinds
+            )
+            if homed:
+                raise ProfileError(
+                    f"{name}: template {t.id}: kinds {homed} live on it but are "
+                    "not among its kinds"
+                )
         raw_groups = data.get("compare_groups") or {}
         if not isinstance(raw_groups, dict):
             raise ProfileError(f"{name}: compare_groups must be a mapping")
@@ -523,19 +715,27 @@ def _parse(data: dict[str, Any], name: str) -> Profile:
         }
         skip = _strings(data.get("compare_skip") or [], f"{name}: compare_skip")
         _known(skip, known, f"{name}: compare_skip")
-        reading = _reading(_list(data, "reading", name), name, by_id, known)
+        steps = _reading(_list(data, "reading", name), name, by_id, known, by_template)
         sessionflow = _sessionflow(data.get("sessionflow"), name, by_id, known)
-        relations = _strings(data.get("relations") or [], f"{name}: relations")
-        _unique(list(relations), "relation", name)
+        relation_map = _relations(data.get("relations") or [], name)
+        relations = tuple(relation_map)
         hints = _hints(_strings(data.get("hints") or [], f"{name}: hints"), name)
         if data.get("id") != name:
             raise ProfileError(f"{name}: id must be the file name")
         screen = data.get("screen", "regions")
         _layout(boards, screen, name)
-        need = set(REQUIRED_KINDS) | {HINT_KINDS[h] for h in hints if h in HINT_KINDS}
+        if templates and screen == "triangles":
+            raise ProfileError(f"{name}: the triangles screen takes no templates")
+        hint_kinds, hint_relations = _hint_needs(hints)
+        need = set(REQUIRED_KINDS) | hint_kinds
         if need - known:
             raise ProfileError(
                 f"{name}: missing kinds the engine names: {sorted(need - known)}"
+            )
+        if hint_relations - set(relations):
+            raise ProfileError(
+                f"{name}: missing relation kinds the hints name: "
+                f"{sorted(hint_relations - set(relations))}"
             )
     except (KeyError, TypeError) as exc:
         raise ProfileError(f"{name}: malformed profile ({exc})") from exc
@@ -547,10 +747,13 @@ def _parse(data: dict[str, Any], name: str) -> Profile:
         relations,
         hints,
         groups,
-        reading,
+        tuple(s for s in steps if s.board not in by_template),
         sessionflow,
         str(screen),
         skip,
+        {r: label for r, label in relation_map.items() if label},
+        templates,
+        steps,
     )
 
 
@@ -579,5 +782,77 @@ def profile_id(data: dict[str, Any]) -> str:
 
 
 def profile_of(data: dict[str, Any]) -> Profile:
-    """The profile a board set follows."""
-    return load_profile(profile_id(data))
+    """The profile a board set follows, with the boards the record makes of
+    the profile's templates (`boards` in the record). A record board that is
+    malformed, names an unknown template or takes a taken or reserved id is
+    left out; the validator reports it (validate/__init__.py
+    `_record_board_findings`)."""
+    base = load_profile(profile_id(data))
+    declared = data.get("boards") if base.templates else None
+    if not isinstance(declared, list):
+        return base
+    taken = {b.id for b in base.boards} | {t.id for t in base.templates}
+    made: list[tuple[str, str, str]] = []
+    for raw in declared:
+        if not isinstance(raw, dict):
+            continue
+        bid, tid, label = raw.get("id"), raw.get("template"), raw.get("label")
+        if (
+            isinstance(bid, str)
+            and isinstance(tid, str)
+            and isinstance(label, str)
+            and RECORD_BOARD_ID.fullmatch(bid)
+            and base.template(tid) is not None
+            and bid not in taken
+            and bid not in RESERVED_BOARD_IDS
+        ):
+            taken.add(bid)
+            made.append((bid, tid, label))
+    return _with_record_boards(base, tuple(made)) if made else base
+
+
+@cache
+def _with_record_boards(
+    base: Profile, made: tuple[tuple[str, str, str], ...]
+) -> Profile:
+    """The profile with record boards `made` (id, template, label): each takes
+    its template's colour and `object`, a region below the fixed boards
+    (screen.record_regions) and the label "<template>: <label>"; a reading
+    step of a template is repeated for each of its boards, in the record's
+    order, with the id "<step>-<board>"."""
+    columns = max(len(row) for row in rows_of(base.boards))
+    regions = record_regions([b.region for b in base.boards], len(made), columns)
+    boards: list[Board] = []
+    for (bid, tid, label), region in zip(made, regions):
+        t = base.template(tid)
+        assert t is not None
+        boards.append(
+            Board(
+                bid,
+                {lang: f"{text}: {label}" for lang, text in t.label.items()},
+                (),
+                region,
+                t.colour,
+                (region[0] + region[2]) / 2,
+                t.object,
+                tid,
+            )
+        )
+    reading: list[Step] = []
+    for step in base.steps:
+        if base.template(step.board) is None:
+            reading.append(step)
+            continue
+        pick = step.pick if isinstance(step.pick, dict) else {}
+        reading += [
+            Step(f"{step.id}-{b.id}", b.id, {**pick, "board": b.id}, step.id)
+            for b in boards
+            if b.template == step.board
+        ]
+    return replace(
+        base,
+        boards=base.boards + tuple(boards),
+        reading=tuple(reading),
+        _boards={},
+        _kinds={},
+    )

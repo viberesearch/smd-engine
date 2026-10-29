@@ -1,0 +1,121 @@
+# Выдуманный учебный пример на схеме ОРУ Г.П. Щедровицкого (профиль
+# management-four-boards): пекарни из cases/example_ru, где организатор общего
+# производства управляет ночным замесом теста. Все четыре доски заполнены;
+# каждый рабочий процесс идеализирован на отдельной доске процесса (`boards`).
+record: board_set
+schema_version: "0.3"
+id: pekarni-oru-c1
+case: example-pekarni
+title: Пекарни на схеме ОРУ, экран после сессии 1
+date: "2026-01-10"
+cycle: 1
+status: draft
+profile: management-four-boards
+sources: [s1]
+# Доски процессов: каждая — отдельная доска (шаблон process профиля), под четырьмя
+boards:
+  - {id: pb-dough, template: process, label: "ночной замес теста", seen_from: p-organiser,
+     unfolds: wp-dough}
+  - {id: pb-delivery, template: process, label: "доставка теста в пекарни",
+     seen_from: p-organiser, unfolds: wp-delivery}
+elements:
+  # Оргдеятельностная доска: позиции и их самоопределение
+  - {id: p-organiser, board: od, kind: position, label: "организатор общего производства",
+     acts_as: manager, stance: external}
+  - {id: p-owner, board: od, kind: position, label: "владелец трёх пекарен", acts_as: leader,
+     stance: inside}
+  - {id: p-founder, board: od, kind: position, label: "учредитель общего цеха", acts_as: organiser}
+  - {id: p-chair, board: od, kind: position, label: "председатель ассоциации пекарен",
+     acts_as: politician}
+  - {id: p-reflexive, board: od, kind: reflexive_position,
+     label: "группа, оглядывающаяся на свою сессию", stance: reflexive}
+  - {id: g-plant, board: od, kind: goal, label: "тесто из общего цеха к весне",
+     seen_from: p-organiser, goal_source: breakdown, arises_from: [f-night]}
+  - {id: place-mills, board: od, kind: place_for_others, label: "мельницы региона"}
+  - {id: gap-shares, board: od, kind: gap, label: "кто управляет цехом, если мельницы войдут в долю?",
+     of: position}
+  # Система ОРУ: знания, идеальное состояние, программа, средства
+  - {id: k-retro, board: ot, kind: knowledge_retro,
+     label: "как пекарни работали три года: смены, потери, закупки", seen_from: p-organiser}
+  - {id: k-proj, board: ot, kind: knowledge_projective,
+     label: "варианты общего цеха: смены, логистика, доли", seen_from: p-organiser}
+  - {id: ideal, board: ot, kind: ideal_state, label: "пекарни получают тесто к 5 утра",
+     seen_from: p-organiser, modality: ought}
+  - {id: prog, board: ot, kind: programme, label: "пилот с двумя пекарнями, затем остальные",
+     seen_from: p-organiser}
+  - {id: means-shares, board: ot, kind: means, label: "договор о долях в общем цехе",
+     seen_from: p-organiser}
+  # Доска процесса «ночной замес теста»: его функции
+  - {id: fn-mix, board: pb-dough, kind: function, label: "замес"}
+  - {id: fn-proof, board: pb-dough, kind: function, label: "расстойка"}
+  - {id: fn-hand-over, board: pb-dough, kind: function, label: "передача теста водителю"}
+  # Доска процесса «доставка теста в пекарни»: функции и кооперация
+  - {id: fn-load, board: pb-delivery, kind: function, label: "погрузка"}
+  - {id: fn-deliver, board: pb-delivery, kind: function, label: "развоз к 5 утра"}
+  - {id: coop-delivery, board: pb-delivery, kind: cooperation,
+     label: "пекарь общего цеха, водитель, старший смены пекарни"}
+  # Аппарат руководства: места, наполнение, группы, клуб
+  - {id: post-director, board: ap, kind: post, label: "директор пекарни", fillers: [владелец]}
+  - {id: post-shift, board: ap, kind: post, label: "старший ночной смены"}
+  - {id: grp-bakers, board: ap, kind: group, label: "пекари ночной смены"}
+  - {id: club-assoc, board: ap, kind: club, label: "клуб ассоциации пекарен"}
+  # Управляемая полисистема: моносистемы, миссия, процессы, траектории, факты
+  - {id: mono-people, board: us, kind: monosystem, label: "система людей: пекари трёх пекарен",
+     seen_from: p-organiser}
+  - {id: mono-tech, board: us, kind: monosystem, label: "система процессов: тесто и выпечка",
+     seen_from: p-organiser}
+  - {id: mission, board: us, kind: mission, label: "свежий хлеб в районе к утру",
+     in: [mono-people], seen_from: p-founder}
+  - {id: self-motion, board: us, kind: self_motion, label: "пекари сами ищут, как уйти с ночи",
+     in: [mono-people], seen_from: p-organiser}
+  - {id: tr-natural, board: us, kind: trajectory, label: "каждая пекарня сама сокращает ночь",
+     in: [mono-people], seen_from: p-organiser, modality: fact, nature: natural}
+  - {id: tr-ought, board: us, kind: trajectory, label: "ночной замес уходит в общий цех",
+     in: [mono-people], seen_from: p-organiser, modality: ought, nature: both}
+  - {id: wp-dough, board: us, kind: work_process, label: "ночной замес теста", in: [mono-tech],
+     seen_from: p-organiser}
+  - {id: wp-delivery, board: us, kind: work_process, label: "доставка теста в пекарни",
+     in: [mono-tech], seen_from: p-organiser}
+  - {id: pl-functions, board: us, kind: functional_structure, label: "смены и их участки",
+     in: [mono-tech], seen_from: p-organiser}
+  - {id: pl-links, board: us, kind: link_structure, label: "кто кому передаёт тесто",
+     in: [mono-tech], seen_from: p-organiser}
+  - {id: pl-morphology, board: us, kind: morphology, label: "печи и график смен", in: [mono-tech],
+     seen_from: p-organiser}
+  - {id: pl-material, board: us, kind: material, label: "мука, вода, дрожжи", in: [mono-tech],
+     seen_from: p-organiser}
+  - {id: f-night, board: us, kind: fact, label: "ночная смена стоит треть фонда оплаты труда",
+     seen_from: p-organiser, epistemic: unverified, cites: ["s1#t=00:12:40"]}
+relations:
+  - {from: p-owner, to: p-organiser, kind: shift, label: "другая позиция"}
+  - {from: p-organiser, to: wp-dough, kind: represents}
+  - {from: p-owner, to: post-director, kind: represents}
+  - {from: p-founder, to: mission, kind: represents}
+  - {from: p-chair, to: club-assoc, kind: represents}
+  - {from: p-organiser, to: wp-dough, kind: manages, label: "через договор о долях"}
+  - {from: p-organiser, to: means-shares, kind: produces}
+  - {from: wp-dough, to: means-shares, kind: uses}
+  - {from: p-founder, to: mission, kind: organises}
+  - {from: p-chair, to: p-organiser, kind: contends, label: "чей цех"}
+  - {from: p-owner, to: post-director, kind: belongs}
+  - {from: p-owner, to: post-shift, kind: leads}
+  - {from: post-director, to: post-shift, kind: subordinates}
+  - {from: grp-bakers, to: post-shift, kind: personal}
+  - {from: prog, to: mono-tech, kind: captures}
+  - {from: k-retro, to: f-night, kind: knows}
+  - {from: ideal, to: f-night, kind: refers, label: "из прошлого"}
+  - {from: tr-natural, to: tr-ought, kind: refers, label: "усилить"}
+  - {from: mono-tech, to: mono-people, kind: mechanism_of}
+  - {from: fn-mix, to: fn-proof, kind: flow}
+  - {from: fn-proof, to: fn-hand-over, kind: flow}
+  - {from: fn-hand-over, to: fn-load, kind: flow, label: "между досками процессов"}
+  - {from: fn-load, to: fn-deliver, kind: flow}
+transitions:
+  - {n: 1, from: p-organiser, to: f-night, label: "прошлое объекта", cites: ["s1#t=00:12:40"]}
+  - {n: 2, from: f-night, to: ideal, label: "идеал в будущем"}
+  - {n: 3, from: ideal, to: post-shift, label: "кто держит смену"}
+  - {n: 4, from: post-shift, to: fn-hand-over, label: "кто передаёт тесто"}
+state:
+  version: "0.1"
+  open: ["gap-shares"]
+  next_move: "спросить мельницы, войдут ли они в долю общего цеха"

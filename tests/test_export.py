@@ -57,6 +57,28 @@ def test_pack_collects_the_context() -> None:
     assert "# Lens: lenses/design-chain.md" in lens_text
 
 
+def test_pack_lists_the_cells_of_the_latest_cycle() -> None:
+    records = [EXAMPLE / "bakeries-c2.board.yaml", EXAMPLE / "bakeries-c1.board.yaml"]
+    text = pack("ingest-transcript", records)
+    cells = text[text.index("# Cells to fill: bakeries-c2.board.yaml") :]
+    cells = cells[: cells.index("# Record:")]
+    assert "p-reflect: position on od: the group looking back at session 1" in cells
+    assert "f-new: frame on oo:" in cells and "m-coop" not in cells
+    assert "# Cells to fill" not in pack("ingest-transcript", [])
+
+
+def test_pack_cells_skip_a_malformed_element(tmp_path: Path) -> None:
+    rec = tmp_path / "x.board.yaml"
+    rec.write_text(
+        "record: board_set\ncycle: 1\nelements:\n"
+        "  - {id: p-a, board: od, kind: position, label: owner}\n"
+        "  - {kind: position, label: no id or board}\n"
+    )
+    cells = pack("ingest-transcript", [rec]).split("# Cells to fill")[1]
+    cells = cells.split("# Record:")[0]
+    assert "p-a: position on od: owner" in cells and "None" not in cells
+
+
 def test_pack_cli(tmp_path: Path) -> None:
     out = tmp_path / "pack.md"
     assert main(["pack", "field-result", "-o", str(out)]) == 0
@@ -101,4 +123,12 @@ def test_wheel_carries_profiles() -> None:
         assert include[folder] == f"smd_engine/assets/{folder}"
         assert (ROOT / folder).is_dir()
     listed = sorted(p.stem for p in (asset_root() / "profiles").glob("*.yaml"))
-    assert listed == profile_ids() == ["classic-two-boards", "program-three-boards"]
+    assert (
+        listed
+        == profile_ids()
+        == [
+            "classic-two-boards",
+            "management-four-boards",
+            "program-three-boards",
+        ]
+    )

@@ -75,16 +75,29 @@ def board_set(check: Check) -> Check:
     return guarded
 
 
-def hint(hint_id: str) -> Callable[[Check], Check]:
-    """Mark a board-set check as a method hint with a string id."""
+def hint(
+    hint_id: str, kinds: tuple[str, ...] = (), relations: tuple[str, ...] = ()
+) -> Callable[[Check], Check]:
+    """Mark a board-set check as a method hint with a string id. A hint of one
+    profile's scheme names that profile's kinds and relation kinds here, so a
+    profile that enables it must define them (profile.py)."""
 
     def register(check: Check) -> Check:
         guarded = board_set(check)
         setattr(guarded, "hint_id", hint_id)
+        setattr(guarded, "needs", (kinds, relations))
         HINTS[hint_id] = guarded
         return guarded
 
     return register
+
+
+def hint_needs(hint_id: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """The kinds and relation kinds a hint names: (kinds, relations)."""
+    needs: tuple[tuple[str, ...], tuple[str, ...]] = getattr(
+        HINTS[hint_id], "needs", ((), ())
+    )
+    return needs
 
 
 def cite_findings(

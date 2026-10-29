@@ -34,6 +34,7 @@
       }
     },
     "applied": {"type": "array", "items": {"$ref": "#/$defs/id"}, "uniqueItems": true, "description": "ids of the patches applied to the record"},
+    "boards": {"type": "array", "items": {"$ref": "#/$defs/record_board"}, "description": "boards this record makes of its profile's board templates (`per_record`), e.g. one process board per working process; each is a board of its own"},
     "elements": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/element"}},
     "relations": {"type": "array", "items": {"$ref": "#/$defs/relation"}},
     "transitions": {"type": "array", "items": {"$ref": "#/$defs/transition"}},
@@ -46,6 +47,19 @@
   },
   "$defs": {
     "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+    "record_board": {
+      "type": "object",
+      "required": ["id", "template", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$", "description": "the board id elements name in `board`; no dot (a dot separates a board from its half)"},
+        "template": {"type": "string", "minLength": 1, "description": "a board template of the record's profile (`per_record: true`)"},
+        "label": {"type": "string", "minLength": 1, "description": "drawn after the template's label: '<template>: <label>'"},
+        "seen_from": {"$ref": "#/$defs/id", "description": "element id of the position the board is seen from"},
+        "unfolds": {"$ref": "#/$defs/id", "description": "element id of what the board unfolds, e.g. the working process a process board idealises"},
+        "cites": {"$ref": "#/$defs/cites"}
+      }
+    },
     "tags": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"}, "uniqueItems": true},
     "cite": {
       "type": "string",
@@ -61,6 +75,10 @@
     },
     "route": {"enum": ["smd", "triz"], "description": "the line of work the item came from: the SMD line or the TRIZ line"},
     "scheme": {"$ref": "#/$defs/id", "description": "free id of the named scheme, next to 'of' (the block of that scheme)"},
+    "modality": {
+      "enum": ["fact", "ought"],
+      "description": "модальность фактического or должного: what is, or what should be made (GP-Guide11 ¶7)"
+    },
     "voice": {
       "enum": ["group", "participant", "moderator", "expert", "organisers", "ai"],
       "description": "whose words these are; no speaker names"
@@ -99,6 +117,13 @@
         "route": {"$ref": "#/$defs/route"},
         "tags": {"$ref": "#/$defs/taxonomy_tags"},
         "seen_from": {"$ref": "#/$defs/id", "description": "element id of the position this item is seen from"},
+        "stance": {"enum": ["inside", "reflexive", "external"], "description": "positions and reflexive positions only: внутренняя (a place in the structure), рефлексивная or внешняя позиция (GP-Guide11 ¶35-36)"},
+        "acts_as": {"enum": ["organiser", "leader", "manager", "politician", "functionary"], "description": "positions only: the place the position takes: организатор, руководитель, управляющий, политик, функционер (GP-Guide10 ¶7; GP-T5 pp. 242-243)"},
+        "arises_from": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"anyOf": [{"$ref": "#/$defs/id"}, {"type": "string", "pattern": "^T[0-9]+$"}]}, "description": "goals only: the breakdown the goal answers: gaps, facts, difficulty or problem theses (GP-Guide11 ¶43)"},
+        "goal_source": {"enum": ["breakdown", "assigned", "own"], "description": "goals only: set at a breakdown (прокол), passed down under руководство, or the position's own (собственная) goal (GP-Guide11 ¶43; GP-Guide4 ¶12-15)"},
+        "assigned_by": {"$ref": "#/$defs/id", "description": "goals with goal_source assigned: the position or place for others that passed the goal down"},
+        "modality": {"$ref": "#/$defs/modality"},
+        "nature": {"enum": ["natural", "artificial", "both"], "description": "elements of an object board only: естественное, искусственное or both, the кентавр-объект (GP-STS; GP-T5 p. 252)"},
         "performed_by": {"$ref": "#/$defs/id", "description": "functions only: the position or place for others that performs it"},
         "in": {"type": "array", "items": {"$ref": "#/$defs/id"}, "description": "containers, e.g. a function inside a frame"},
         "epistemic": {"enum": ["stated", "hypothesis", "unverified", "checked"]},
@@ -205,6 +230,7 @@
         "tags": {"$ref": "#/$defs/taxonomy_tags"},
         "raises": {"type": "array", "items": {"type": "string", "pattern": "^K[0-9]+$"}, "description": "qualifications this thesis raised"},
         "about": {"type": "array", "items": {"$ref": "#/$defs/id"}, "description": "board elements the thesis reads or comments on without changing them"},
+        "modality": {"$ref": "#/$defs/modality"},
         "move": {"$ref": "#/$defs/move"},
         "lens": {"$ref": "#/$defs/id", "description": "id of the lens (lenses/<id>.md) behind the thesis"},
         "cites": {"$ref": "#/$defs/cites"},

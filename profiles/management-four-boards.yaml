@@ -1,0 +1,175 @@
+# G.P. Shchedrovitsky's scheme of organisation, leadership and management
+# (ОРУ) on four boards: gate Ш13 В, amended by Ш15 В after GP-T5 lectures 4-6
+# (т. 5, 1988). Where G.P. texts of different periods disagree, the latest wins;
+# the earlier view is kept here as a note, not as a kind or hint:
+# - No forecast kind and no manage-without-forecast hint. GP-Guide5 ¶7 = GP-T4
+#   pp. 58-59 (1981): «Управлять без прогноза в принципе невозможно»; GP1975a
+#   p. 432 lists forecasting among the components of management. GP-T5 p. 251
+#   (1988): «прогнозирование в оргуправлении есть форма подмены принципов
+#   оргуправленческой работы сциентистскими принципами». In its place: the
+#   knowledge kinds and the hint manage-without-knowledge (p. 241).
+# - work_process is «рабочий процесс», the object of управление (GP-T5 p. 244),
+#   not «технология, ход работ» as the руководитель's object (GP-Guide11 ¶33,
+#   1981); the subject of ОРУ is people's live activity and thinking (p. 223).
+# - The managed system has five planes (GP-T5 pp. 201, 205), not the four
+#   layers of GP-T4 pp. 134, 152-153 (1981).
+# - The relation «захват» (captures, GP-T5 pp. 226-227) replaces the draft
+#   encloses («матрёшка», GP-Guide2004 pdf 134); knows replaces the draft
+#   reflects, since GP-T5 p. 181 drops «принцип отражения».
+# Format: docs/profiles.md; kinds and relations: docs/data-model.md.
+id: management-four-boards
+title:
+  ru: Схема ОРУ Г.П. Щедровицкого, четыре доски
+  en: G.P.'s management scheme, four boards
+# The upper (ОРУ) system above the managed one (GP-T5 p. 239: «Внизу идет
+# естественный процесс изменения объекта, а вверху — процесс преобразования»).
+boards:
+  - id: od
+    label: {ru: Оргдеятельностная доска, en: Org-activity board}
+    halves: none
+    region: [60, 150, 780, 450]
+    colour: ["#eef4f1", "#2e7d62"]
+  - id: ot
+    label: {ru: Система ОРУ (верхняя), en: ОРУ system (upper)}
+    halves: none
+    region: [820, 150, 1540, 450]
+    colour: ["#f3f4fb", "#5c63b8"]
+    object: true
+  - id: ap
+    label: {ru: Аппарат руководства, en: Apparatus of leadership}
+    halves: none
+    region: [60, 510, 780, 850]
+    colour: ["#f5eee2", "#a8782a"]
+  - id: us
+    label: {ru: Управляемая полисистема, en: Managed polysystem}
+    halves: none
+    region: [820, 510, 1540, 850]
+    colour: ["#f9efec", "#b0533c"]
+    object: true
+# Each working process idealised «на отдельной доске» (GP-T5 pp. 245-247): a
+# template; a record declares its process boards in `boards`, each a board of
+# its own, drawn below the four. Part of the upper system, so `object`.
+  - id: process
+    per_record: true
+    label: {ru: Доска процесса, en: Process board}
+    colour: ["#f4f1fa", "#6b4fa8"]
+    kinds: [function, cooperation, gap, note]
+    unfolds: [work_process]
+    needs_position: true
+    object: true
+# In layout order: a region places its items kind by kind in this order.
+kinds:
+  # od: positions and their self-determination (GP-Guide10 ¶7; GP-T5 pp. 150-151)
+  - {id: position, label: {ru: позиции, en: positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true, stance: true}
+  - {id: reflexive_position, label: {ru: рефлексивные позиции, en: reflexive positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true, stance: true}
+  - {id: goal, label: {ru: цели, en: goals}, home: od, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: place_for_others, label: {ru: места для других, en: places for others}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: ellipse, skeleton: false}
+  # ot: the system of ОРУ, served by the organisation of knowledge (GP-T5 pp. 239-241)
+  - {id: knowledge_retro, label: {ru: ретроспективные знания, en: retrospective knowledge}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: knowledge_projective, label: {ru: прожективные знания, en: projective knowledge}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: ideal_state, label: {ru: идеальные состояния, en: ideal states}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: true}
+  - {id: programme, label: {ru: программы, en: programmes}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: means, label: {ru: средства, en: means}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: functional_place, label: {ru: функциональные места, en: functional places}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: model, label: {ru: модели, en: models}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: concept, label: {ru: понятия, en: concepts}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  # the steps of a working process, on its process board (template `process`)
+  - {id: function, label: {ru: функции, en: functions}, home: process, needs_position: false, container: true, role: false, scheme: true, shape: box, skeleton: true}
+  - {id: cooperation, label: {ru: кооперации, en: cooperations}, home: ot, needs_position: false, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  # ap: places and people (GP-Guide8; GP-T5 pp. 177, 192-193, 241-242, 254)
+  - {id: post, label: {ru: места, en: posts}, home: ap, needs_position: false, container: false, role: true, scheme: false, shape: box, skeleton: true}
+  - {id: group, label: {ru: неформальные группы, en: informal groups}, home: ap, needs_position: false, container: false, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: club, label: {ru: клубы, en: clubs}, home: ap, needs_position: false, container: false, role: false, scheme: false, shape: box, skeleton: false}
+  # us: the managed polysystem (GP-T5 pp. 205-213), five planes (p. 201, 205)
+  - {id: monosystem, label: {ru: моносистемы, en: monosystems}, home: us, needs_position: true, container: true, role: false, scheme: true, shape: frame, skeleton: true}
+  - {id: mission, label: {ru: миссии, en: missions}, home: us, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: self_motion, label: {ru: самодвижение, en: self-motion}, home: us, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: trajectory, label: {ru: траектории, en: trajectories}, home: us, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: work_process, label: {ru: рабочие процессы, en: working processes}, home: us, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: true}
+  - {id: functional_structure, label: {ru: функциональные структуры, en: functional structures}, home: us, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: link_structure, label: {ru: структуры связей, en: structures of links}, home: us, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: morphology, label: {ru: организованности материала, en: organizednesses of material}, home: us, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: material, label: {ru: материал, en: material}, home: us, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: fact, label: {ru: факты, en: facts}, home: us, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false, factual: true}
+  - {id: other, label: {ru: прочее, en: other}, home: null, needs_position: false, container: true, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: note, label: {ru: заметки, en: notes}, home: null, needs_position: false, container: false, role: false, scheme: false, shape: box, skeleton: false, light_off: true}
+  - {id: gap, label: {ru: разрывы, en: gaps}, home: null, needs_position: false, container: false, role: true, scheme: false, shape: question, skeleton: false}
+# The engine's relations by id, then G.P.'s with their labels.
+relations:
+  - shift
+  - flow
+  - produces
+  - uses
+  - belongs
+  - opposes
+  - refers
+  - represents
+  - other
+  # организация, руководство, управление (GP-T5 pp. 169-175, 241-244)
+  - {id: organises, label: {ru: организует, en: organises}}
+  - {id: leads, label: {ru: руководит, en: leads}}
+  - {id: manages, label: {ru: управляет, en: manages}}
+  # from the superior place to the subordinate one (GP-T5 pp. 169, 242)
+  - {id: subordinates, label: {ru: подчиняет, en: subordinates}}
+  # personal, informal links of people (GP-T5 pp. 166, 224-225)
+  - {id: personal, label: {ru: личная связь, en: personal link}}
+  # «захват»: the system of ОРУ captures the managed one (GP-T5 pp. 226-227, 236)
+  - {id: captures, label: {ru: захватывает, en: captures}}
+  # retrospective and projective knowledge of the lower system (GP-T5 p. 241);
+  # not «отражение», which GP-T5 p. 181 drops
+  - {id: knows, label: {ru: знает, en: knows}}
+  # politics: rival systems of ОРУ in a struggle for the capture of the object,
+  # an activity built over управление (GP-T5 pp. 225-229, 253)
+  - {id: contends, label: {ru: политика, en: contends}}
+  # between monosystems of a polysystem (GP-T5 p. 208)
+  - {id: parasitic, label: {ru: паразитирует на, en: parasitic on}}
+  - {id: symbiotic, label: {ru: симбиоз, en: symbiotic with}}
+  - {id: mechanism_of, label: {ru: механизм для, en: mechanism of}}
+hints:
+  - empty-boards
+  - positions
+  - new-frames
+  - gaps
+  - open-qualifications
+  - candidate-moves
+  - problems
+  - belts
+  - ontology
+  - difficulty
+  - revise-if
+  - ai-drafts
+  - ai-variants
+  - no-new-scheme
+  # Gates Ш8-Ш12 (GP-Guide11 «Программа действий»; GP-T5)
+  - object-from-inside
+  - external-without-reflection
+  - goal-without-breakdown
+  - position-without-object
+  - ought-without-fact
+  - design-the-natural
+  - information-without-cell
+  - cells-from-information
+  # This scheme (validate/management.py)
+  - lead-vs-manage
+  - manage-via-organizedness
+  - manage-without-knowledge
+  - leads-outside-organisation
+  - representation-fit
+  - development-step
+  - polysystem
+compare_skip: [note]
+compare_groups:
+  positions: [position, reflexive_position, place_for_others]
+  upper: [knowledge_retro, knowledge_projective, ideal_state, programme, means, functional_place, model, concept]
+  processes: [function, cooperation, work_process]
+  apparatus: [post, group, club]
+  managed: [monosystem, mission, self_motion, trajectory, functional_structure, link_structure, morphology, material, fact]
+  gaps: [gap]
+reading:
+  - {step: positions, board: od, pick: {board: od, kinds: [position, reflexive_position, goal]}}
+  - {step: places, board: od, pick: {board: od}}
+  - {step: upper, board: ot, pick: {board: ot}}
+  # once per process board of the record, in the record's order
+  - {step: process, board: process, pick: {board: process}}
+  - {step: apparatus, board: ap, pick: {board: ap}}
+  - {step: managed, board: us, pick: {board: us}}

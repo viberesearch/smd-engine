@@ -2,7 +2,7 @@
 id: reflexive-protocol
 title: Reflexive protocol, close a cycle and open the next
 step: 3
-version: 0.2.3
+version: 0.3.0
 role: игротехник
 profile: any
 inputs:
@@ -14,7 +14,7 @@ outputs:
   - the successor record, opened as a draft (cycle n+1, revises, reflected_from, state; in proposal mode without `reflected_from` and `difficulty`)
   - the list of sign-offs to request, each with its function
 next: solo-session
-sources: [GP1975 (reflexive exit), GP1974r (basic paradox of reflection), GP1987 (degenerate forms), GP-PP (difficulty, problem, scheme block), PG-GT (game technician, daily reflection slot), Girenko day 2 (reflection, problem template), Girenko module-1 closing sheet (reflexive protocol), SessionFlow frame 03 (state line), Schukin (interface tax)]
+sources: [GP1975 (reflexive exit), GP1974r (basic paradox of reflection), GP-Guide11 (three positions: inside, reflexive, external), GP1987 (degenerate forms), GP-PP (difficulty, problem, scheme block), PG-GT (game technician, daily reflection slot), Girenko day 2 (reflection, problem template), Girenko module-1 closing sheet (reflexive protocol), SessionFlow frame 03 (state line), Schukin (interface tax)]
 ---
 
 # Reflexive protocol, close a cycle and open the next
@@ -41,7 +41,7 @@ Write in the reply, from the record only. Keep it short.
 
 This is the past activity taken as material (GP1975: reflexive absorption). Add no judgement of your own about success.
 
-## 2. The exit: three questions
+## 2. The exit: four questions
 
 Ask in this order and wait for each answer.
 
@@ -53,11 +53,17 @@ Ask in this order and wait for each answer.
 **From which position (`reflected_from`).** From where is the human looking at this cycle now, outside every actor position used in it? Create the element:
 
 ```yaml
-- {id: p-reflect-2, board: od, kind: position, voice: participant,
+- {id: p-reflect-2, board: od, kind: position, voice: participant, stance: reflexive,
    label: "the author looking back at session 2, AI positions set aside"}
 ```
 
-The label is the human's wording (`voice: participant`). If you drafted it and the human kept it, `voice: ai`. Optional: a `shift` relation from the actor position the human acted from to this position, because reflection is the result of a change of positions (PG2019, quoted in `docs/method/smd-classic.md`).
+The label is the human's wording (`voice: participant`). `stance: reflexive` marks it as the reflexive position; the actor positions the cycle acted from may be marked `stance: inside`. A `reflected_from` with `stance: inside` is a warning. If you drafted it and the human kept it, `voice: ai`. Optional: a `shift` relation from the actor position the human acted from to this position, because reflection is the result of a change of positions (PG2019, quoted in `docs/method/smd-classic.md`).
+
+**From which external position, and in what language (`stance: external`).** After reflection G.P. steps into an external position and draws the scheme of the object he was inside before, "если у меня есть соответствующий язык" (GP-Guide11 ¶35); a structure one works inside is a condition of action, not an object (¶36). Ask: from which external position is the object scheme of the next cycle drawn, and in what language, that is, with which scheme or notions?
+- Create a `position` on `od` with `stance: external` and the language in `label_note`, in the human's words. The object-board elements of the next cycle take it as `seen_from`.
+- If the human names the position but not the language, keep the position and put the language question into `state.open`.
+- The lens `three-positions` is the longer form of this question; offer it in one line (`lenses/README.md`).
+- The validator reads these fields: an object-board element seen from a position with `stance: inside` gets the hint `object-from-inside`, and a new cycle seen from an `external` position with no `reflected_from` gets `external-without-reflection`.
 
 **What is projected (`state.next_move`).** One move for the next cycle, with an object and a place where it is done. Offer at most three options, each tied to its record source:
 - an open K to work on;
@@ -135,7 +141,7 @@ Create a new record, status `draft`. `smd revise <closed record> --decisions <fi
 1. `id` new, same `case`, `cycle` n+1, `revises` the closed record's id, `date` of today, `sources` and `lineage` as before.
 2. Copy forward `elements`, `relations`, `qualifications`, `theses`, `hypotheses`, `ontology` and `signoffs`, unchanged, with one allowed change: a participant's name in a label, note or claim becomes the position the person holds (`roles/README.md`, rule 8: no participant names). Say in the record's `notes` that names were anonymised on carry-forward, and which ids changed. Change nothing else in a copied item, including its `voice`, `seen_from` and `status`. A closed K, a refined thesis or an accepted move needs its sign-off in the new record too. Do not copy `transitions`; the new cycle numbers its own from 1, in the order of moves between boards in the session, whoever made them (AI moves carry `voice: ai`).
    - The boundary of "we" does not move when a position is copied. A copied or anonymised position stays the element it was, with its own voice; do not relabel it as an element of the human now working. If you propose that it is inside or outside "we", write a thesis with `voice: ai`, `status: ai_variant` and `about: [<position id>]`. The human fixes the boundary at gate 1 of `solo-session`.
-3. With a human: add the reflexive position and set `reflected_from` to it. In proposal mode: add neither; leave `reflected_from` out.
+3. With a human: add the reflexive position (`stance: reflexive`) and set `reflected_from` to it; add the external position of the fourth question (`stance: external`). In proposal mode: add neither; leave `reflected_from` out.
 4. `state`: with a human, the new `version`, `difficulty` from section 2, `accepted` and `open` as closed, `next_move` as projected. In proposal mode: `version` `n.0` for cycle n (the opener sets it when the opening skips this protocol's answers); no `difficulty`; `accepted` as in the closing record; `open` starts with the questions of section 2 as gate 0, then the items open in the closing record; `next_move` is "the human answers gate 0, then the other entries of `state.open` in order".
 
 ```yaml
@@ -158,7 +164,7 @@ If a human is working and leaves before answering section 2, do not open the rec
 
 Fix every error the validator reports. The next record will carry "reflection without a new scheme?" until the next session adds a scheme; that is expected, not a fault. Report the other warnings and hints you leave, with a reason.
 
-In the reply give: the three answers of section 2, the level answers kept out of the record, the sign-off requests with their functions, the refusals recorded, the gaps in the record's fields, and the first step of the next session. In proposal mode, give the questions in place of the answers, and say that the record is paused.
+In the reply give: the four answers of section 2, the level answers kept out of the record, the sign-off requests with their functions, the refusals recorded, the gaps in the record's fields, and the first step of the next session. In proposal mode, give the questions in place of the answers, and say that the record is paused.
 
 Then run:
 

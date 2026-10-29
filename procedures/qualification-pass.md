@@ -2,7 +2,7 @@
 id: qualification-pass
 title: Qualification pass over a board set
 step: 3
-version: 0.3.3
+version: 0.4.0
 role: методолог
 profile: program-three-boards
 inputs:
@@ -21,6 +21,7 @@ sources:
   - GP-PP (task and problem; a scheme must be named)
   - GP-SMD (board separation)
   - GP1981 (representations are not ranked by truth; realizability)
+  - GP-Guide10, GP-Guide11 (the representation fits the place the position takes); GP-T5 (politics as a fourth level)
   - Khaprov (ontology test; three scales)
   - Schukin (interface tax)
 ---
@@ -129,6 +130,7 @@ Each row states the rule in one line, so that this file can be used without read
 | Question vs problem | a question only provokes a reflexive exit; it is not a problem (GP-PP) | a `question` fed into a gap as if it were a problem | К |
 | Scheme named | a problematization without a named structural-functional scheme is invalid (GP-PP) | each `gap` and each problem thesis has `of`; the scheme it belongs to is stated in `grounds` | if `problematization` runs in this cycle, it goes first and names the scheme (step 3.4); raise a К only if it does not run |
 | Representations not ranked by truth | representations of different positions are not checked against each other (GP1981) | no K and no thesis calls one position's representation false | rewrite your own К |
+| Representation fits the place | the object representation must fit the place the position has taken: a начальник in a ready place who keeps the org structure as his object has a representation "не соответствующее его позиции" (GP-Guide11 ¶33-34; GP-Guide10 ¶7, ¶19; politics as a fourth level, GP-T5 pp. 242-243) | ask: does this representation fit the place the position has taken (организатор, руководитель, управляющий, политик, функционер)? Read `acts_as` and the position's `represents` targets; the hint `position-without-object` lists the positions with `acts_as` and no representation | К as a question to the group; the fit is asked, not graded true or false |
 | Role, not actor | the boards hold roles; a positioner is the carrier who occupies a place (GP-OP, GP1981; `docs/method/roles-and-actors.md`) | a `position`, `place_for_others` or `performed_by` that names an organisation or person type instead of what is done; an actor that sits beside the role it fills | label fix by whoever wrote the record (actor to `fillers`); К if the role itself is not named |
 | Board separation | subject-object talk is allowed on the org-activity board, not on the ontology board (GP-SMD) | subject-object talk ("we must", "our task") sits on `od`, not on `oo` | К for each such label still on `oo` after validation |
 | Realizability | a methodological product is checked for realizability in activity, not for truth (GP1981) | an `ontology` entry has a `test` that is a hypothesis; a multi-position object has a `cooperation` | К asking for the test or the cooperation |
@@ -153,6 +155,7 @@ Degeneration (GP1987), counted over the record's theses:
 | not closed: K..; candidates awaiting a decision; AI variants awaiting the group | no К. List them as sign-off requests (step 6) |
 | ai-drafts: K and H drafted by AI, for a human to keep or drop | no К. To keep one, the human rewrites it or adopts it and sets its `voice` to the human position (no sign-off, since nothing is licensed). Otherwise the human drops it. List the ids in the report as a request to the human |
 | belt hints; reflection without a new scheme | degeneration rows |
+| position-without-object: a position with `acts_as` represents no object | representation-fits-the-place row |
 
 ## 4. Choose what to raise
 

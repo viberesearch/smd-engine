@@ -12,10 +12,10 @@ Profiles are files in `profiles/` of the install: the repository folder in a che
 |---|---|
 | `id`, `title` | the file name; `{ru, en}` |
 | `screen` | `regions` (default) or `triangles`; see Screen and layout |
-| `boards` | in screen order: `id`, `label: {ru, en}`, `halves` (`[small, big]`, one of them, or `none`; each half at most once), `region: [x0, y0, x1, y1]` (screen units, width 1600), `colour: [background, ink]` (`#rrggbb`), `split` (only for a board with two halves: the x where they meet; the middle of the region by default), `object` (`true`: a board of objects, where subject-object talk is warned) |
-| `kinds` | in layout order: `id`, `label: {ru, en}` (plural, for counters and tables), `home` (the board it usually lies on, a warning otherwise), `shape`, and the flags `needs_position`, `container`, `role` (takes `fillers`), `scheme` (counts for "reflection without a new scheme"), `skeleton` (kept by the folded overview), `light_off` (left off the lighter screen, `--light`) |
-| `relations` | relation kinds, each once |
-| `hints` | ids of the hints enabled, each once, among the hints the engine has (`src/smd_engine/validate/hints.py`). `situation-halves` reports an empty half as "small situation not laid out" or "big situation not laid out", the method's names for the halves, so a profile that halves a board without situations leaves it off |
+| `boards` | a board template among them: see Board templates. Otherwise in screen order: `id`, `label: {ru, en}`, `halves` (`[small, big]`, one of them, or `none`; each half at most once), `region: [x0, y0, x1, y1]` (screen units, width 1600), `colour: [background, ink]` (`#rrggbb`), `split` (only for a board with two halves: the x where they meet; the middle of the region by default), `object` (`true`: a board of objects, where subject-object talk is warned) |
+| `kinds` | in layout order: `id`, `label: {ru, en}` (plural, for counters and tables), `home` (the board it usually lies on, a warning otherwise; or a template, see Board templates), `shape`, and the flags `needs_position`, `container`, `role` (takes `fillers`), `scheme` (counts for "reflection without a new scheme"), `skeleton` (kept by the folded overview; listed by `smd pack` as the cells a reading fills), `light_off` (left off the lighter screen, `--light`), `stance` (takes the element field `stance`: the positions, GP-Guide11 ¶35), `factual` (records a fact: a breakdown a goal may arise from, and the fact the hint `ought-without-fact` looks for). Flags left out are false |
+| `relations` | relation kinds, each once, in order: an id of the engine's own (`shift`, `flow`, `produces`, `uses`, `belongs`, `opposes`, `refers`, `represents`, `other`), or a mapping `{id, label: {ru, en}}` for any other kind (an engine id takes no label). `smd graph` and `smd vault` name and filter links by these labels; a kind the engine does not colour is drawn grey |
+| `hints` | ids of the hints enabled, each once, among the hints the engine has (`src/smd_engine/validate/hints.py`, `src/smd_engine/validate/management.py`). `situation-halves` reports an empty half as "small situation not laid out" or "big situation not laid out", the method's names for the halves, so a profile that halves a board without situations leaves it off |
 | `compare_groups` | name to kinds matched against each other by `smd compare`; a kind in no group is matched in `other` |
 | `compare_skip` | kinds `smd compare` leaves out (the program's: `entry`, `note`) |
 | `reading` | reading steps of `smd frames`; see Reading steps |
@@ -43,6 +43,12 @@ Boards whose regions overlap vertically form a row. When a region's content runs
 
 The map beside a step of `smd frames --zoom` follows the screen: the three triangles for `triangles`, the rectangles of the regions for `regions`. A board's count of elements in the step stands in its outline: centred in a rectangle, at a fixed point inside a triangle. A step cut to a board takes that board's rectangle, or to a half the part up to 10 past `split`.
 
+## Board templates
+
+A board with `per_record: true` is a template: it is not drawn itself, and each record makes its own boards of it (`boards` in the record, `docs/data-model.md`, Record boards). Keys: `id`, `label: {ru, en}`, `colour`, `kinds` (the kinds its boards take; an element of another kind on such a board is an error), `unfolds` (optional: the kinds of the element a record board of it may `unfold`; any kind when absent), and the flags `object` and `needs_position` (a record board with no `seen_from` is warned). It takes no `region`, `halves` or `split`. A kind whose `home` is the template must be among its `kinds`; on a record board the template's kinds are never warned off their home. The `triangles` screen takes no templates.
+
+The record's boards stand below the profile's boards, in the record's order: rows of as many boards as the widest row of the profile, across the span of its boards, as close as the drawing margins allow (40 side by side, 60 one above the other), each region 300 tall (`screen.record_regions`). They grow like any row. A reading step whose `board` is the template (`{step: process, board: process, pick: {board: process}}`) is repeated for each record board of it, its filter narrowed to that board; the frame takes the id `<step>-<board id>` and the board's label as its title.
+
 Limit: a screen shape other than rectangles around regions or the program's triangles needs a new `screen` value, drawn in `render/svg.py` and `render/frames_page.py`.
 
 ## Ids every profile defines
@@ -51,21 +57,41 @@ The engine names a few kinds by id; the parser refuses a profile without them ("
 
 | Kind | Where the engine names it |
 |---|---|
-| `position` | `seen_from`, `reflected_from`, `performed_by`, `shift` and `represents` links, ontology `valid_for` and `subjects`, the hint on positions, `seen_from` kept by a `smd compare` merge |
+| `position` | `seen_from`, `reflected_from`, `performed_by`, `shift` and `represents` links, ontology `valid_for` and `subjects`, the hint on positions, `seen_from` kept by a `smd compare` merge; `acts_as` and the hint `position-without-object`; `assigned_by` |
 | `place_for_others` | `performed_by` and ontology `valid_for` may name it; the hint on positions; the frames switch "places" |
 | `function` | `performed_by`; the hint on new frames; the frames switch "functions"; the performer line of SessionFlow |
 | `cooperation` | ontology `cooperation` |
-| `gap` | `of` and `scheme`; the hint on gaps; the frames switch "places"; a board holding only gaps and notes counts as empty |
+| `gap` | `of` and `scheme`; a breakdown in `arises_from` and for the hint `goal-without-breakdown`; the hint on gaps; the frames switch "places"; a board holding only gaps and notes counts as empty |
 | `note` | the counter a folded region becomes (`smd frames --zoom`) |
 | `entry` | only when the profile enables the hint `entry` |
+| `goal` | only when the profile enables the hint `goal-without-breakdown`; takes `goal_source`, `arises_from` and `assigned_by` |
+| others | a hint of one profile's scheme (`src/smd_engine/validate/management.py`) registers the kinds and relation kinds it names; a profile that enables it must define them ("missing kinds the engine names", "missing relation kinds the hints name") |
 
-Other meanings come from attributes, so a profile can name these kinds as it likes: a kind drawn as `frame` takes `frame_state`, holds function chips, is found by the `old-frames` and `new-frames` picks and by the hint on new frames; `heading` draws the bold paragraph; `light_off` kinds leave the lighter screen; a board flagged `object` gets the subject-object warning, which names the home boards of the `role` kinds as the place for such talk. No board id is fixed. The halves are `small` and `big` (the schema's enum for `half`).
+Other meanings come from attributes, so a profile can name these kinds as it likes: a kind drawn as `frame` takes `frame_state`, holds function chips, is found by the `old-frames` and `new-frames` picks and by the hint on new frames; `heading` draws the bold paragraph; `light_off` kinds leave the lighter screen; `stance` kinds take the field `stance`, and `factual` kinds count as facts for `arises_from` and `ought-without-fact`; a board flagged `object` gets the subject-object warning, which names the home boards of the `role` kinds as the place for such talk. No board id is fixed, but `records` and `sources` are refused for any board, template or record board: they are the layers `smd graph` draws above and below the board planes. The halves are `small` and `big` (the schema's enum for `half`).
+
+## The management profile
+
+`management-four-boards` is G.P. Shchedrovitsky's scheme of organisation, leadership and management (ОРУ), gates Ш13 В and Ш15 В: the org-activity board `od` and the upper system of ОРУ `ot` on top, the apparatus of leadership `ap` and the managed polysystem `us` below, `ot` above `us` (GP-T5 p. 239: «Внизу идет естественный процесс изменения объекта, а вверху — процесс преобразования»). `ot` and `us` are flagged `object`. Example: `cases/example_ru/pekarni-oru-c1.board.yaml`. GP-T5 is т. 5 of the Archive (lectures of 1988); where G.P.'s texts of different periods disagree the latest wins, and the earlier view stays as a comment in the profile file, not as a kind or hint.
+
+| Board | Kinds (G.P.'s terms; GP-T5 pages unless marked) |
+|---|---|
+| `od` org-activity | `position` (`acts_as`: организатор, руководитель, управляющий, политик, функционер; `stance`), `reflexive_position`, `goal`, `place_for_others` |
+| `ot` system of ОРУ, upper | `knowledge_retro`, `knowledge_projective` («службы по организации знаний — как ретроспективных, так и прожективных», p. 241), `ideal_state` (the second state, the future, pp. 229, 238), `programme` (pp. 216, 245-246), `means` (рычаги, каналы; организованности, pp. 199, 222-223), `functional_place` (GP-Guide2004 pdf 138), `model` (конфигуратор, p. 151), `concept`, `cooperation` |
+| `process` template: a process board per working process | `function` (its `home`), `cooperation`, `gap`, `note`; `unfolds: [work_process]`; flagged `object` and `needs_position` |
+| `ap` apparatus of leadership | `post` (место; `fillers` = наполнение, pp. 177, 192-193; a role), `group` (неформальная группа, pp. 153-154, 224-225), `club` (where politics is done, p. 254) |
+| `us` managed polysystem | `monosystem` (a container: «реально мы имеем дело с полисистемами», pp. 206-213), `mission` (p. 211, set by `organises`, p. 213), `self_motion` (p. 170), `trajectory` (with `modality`: the natural and the artificial-natural course, pp. 231, 244), `work_process` (рабочий процесс, the object of управление, p. 244), the five planes of the system (p. 201; four in GP-T4, five from p. 205): `work_process` for the processes, `functional_structure`, `link_structure`, `morphology` (организованности материала), `material`; `fact` (flagged `factual`) |
+
+Relations: the engine's, plus `organises`, `leads`, `manages` (pp. 169-175, 241-244), `subordinates` (from the superior place to the subordinate one, pp. 169, 242), `personal` (pp. 166, 224-225), `captures` («захват», pp. 226-227, 236), `knows` (retrospective and projective knowledge of the lower system, p. 241; not «отражение», which p. 181 drops), `contends` (politics: rival systems of ОРУ in a struggle for the capture of the object, an activity built over управление, pp. 225-229, 253), and between monosystems `parasitic`, `symbiotic`, `mechanism_of` (p. 208). A position fills a post by `belongs`.
+
+Hints: the classic set and those of gates Ш8-Ш12, plus the hints of this scheme (`docs/data-model.md`, Checks). There is no `forecast` kind and no hint on management without a forecast: GP-Guide5 ¶7 (1981) has «Управлять без прогноза в принципе невозможно», but GP-T5 p. 251 calls forecasting in оргуправление a substitution by scientistic principles. «Управлять вообще можно только развитием» is G.P.'s own «очень смелая гипотеза» (p. 174); the profile states it here as a hypothesis and checks nothing by it.
+
+G.P. asks that each working process be idealised «на отдельной доске» (GP-T5 p. 245). The template `process` gives each record as many process boards as it has working processes, each a board of its own below the four, labelled «Доска процесса: <label>», naming the `work_process` it `unfolds` and the position it is seen from; its functions lie on it. The reading step `process` follows `upper`, once per process board.
 
 ## Reading steps
 
 `reading` lists the steps of `smd frames --by reading`, each `{step, board, pick}`:
-- `step`: one of `entry`, `positions`, `places`, `small`, `big`, `old-frame`, `new-frame`, `object`, each at most once (the steps `smd frames` has titles and texts for, `render/frames_text.py`);
-- `board`: the board, or the half (`s.small`), a zoomed step is cut to;
+- `step`: one of `entry`, `positions`, `places`, `small`, `big`, `old-frame`, `new-frame`, `object`, `upper`, `process`, `apparatus`, `managed` (the last four for the boards of G.P.'s management scheme), each at most once (the steps `smd frames` has titles and texts for, `render/frames_text.py`);
+- `board`: the board, or the half (`s.small`), a zoomed step is cut to; or a template, for a step read once per record board of it;
 - `pick`: what the step adds, either a filter or `old-frames` / `new-frames` (frames and their contents, by `frame_state`).
 
 A filter is a mapping of at least one of `kinds` (a list of kind ids), `board`, `half` (a half of that board; of any board when `board` is absent) and `frame_state` (`old` or `new`). An element passes when it matches every key given. A step adds only what earlier steps did not show; an empty step is skipped. The SessionFlow picks are filters of the same form.
@@ -73,10 +99,11 @@ A filter is a mapping of at least one of `kinds` (a list of kind ids), `board`, 
 ## Checks of a profile file
 
 A malformed profile is an error of every record that names it (`error: profile: <id>: ...`), and like a schema error it stops the checks of that record:
-- a section of the wrong type, a key outside the tables above (at the top, in a board, kind, reading step or filter), a flag other than `true` or `false`, `relations` or `hints` other than a list of strings;
+- a section of the wrong type, a key outside the tables above (at the top, in a board, kind, reading step or filter), a flag other than `true` or `false`, `hints` other than a list of strings, `relations` other than a list of ids and `{id, label}` mappings;
 - a duplicate board, kind or reading step id; a missing kind of the table above;
 - no boards; `halves` other than `none` or a list of distinct halves; a board off the screen or overlapping another as drawn, a row whose boards do not overlap vertically, a `split` on a board without two halves or outside its region, a colour other than `#rrggbb`, a `screen` other than `regions` or `triangles`, a `triangles` screen with other than its three boards or with a board outside its part;
-- a duplicate relation kind or hint id, a hint id the engine does not have;
-- a `home` that is not a board; a `shape` outside the list; a kind in `compare_groups` or `compare_skip` that is not in `kinds`;
+- a duplicate relation kind or hint id, a hint id the engine does not have, a relation kind outside the engine's without a label, a relation kind an enabled hint names and the profile lacks;
+- a `home` that is neither a board nor a template; a `shape` outside the list;
+- a template with a key outside its list (`region`, `halves`), `per_record` other than `true`, no kinds or an unknown kind in `kinds` or `unfolds`, a kind homed on it but not among its `kinds`, or on the `triangles` screen; a reading step on a template whose filter has `half` or another `board`; a board or template id `records` or `sources`; a kind in `compare_groups` or `compare_skip` that is not in `kinds`;
 - a reading step other than the ids above, a step `board` that is neither a board nor a half of one, a filter with an unknown kind, board or half, `kinds` written as a string;
 - a SessionFlow block other than `who`, `where`, `what_for`, or a pick that is not a valid filter; an empty filter `{}`, which would match every element.

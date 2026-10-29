@@ -176,6 +176,32 @@ def compare_qualifications(
     return out
 
 
+def compare_boards(a: dict[str, Any], b: dict[str, Any]) -> list[str]:
+    """The boards the records make of their profile's templates, matched by id:
+    one line each, in both or in one, with a changed template or label and the
+    elements on it in A and in B. Empty when neither record has such boards."""
+    in_a = {x["id"]: x for x in a.get("boards", [])}
+    in_b = {x["id"]: x for x in b.get("boards", [])}
+
+    def count(record: dict[str, Any], bid: str) -> int:
+        return sum(1 for e in record["elements"] if e["board"] == bid)
+
+    out = []
+    for bid in [*in_a, *(i for i in in_b if i not in in_a)]:
+        x, y = in_a.get(bid), in_b.get(bid)
+        side = "both" if x and y else "only A" if x else "only B"
+        label = (y or x or {})["label"]
+        line = (
+            f"- {side} `{bid}` {label} (elements: A {count(a, bid)}, B {count(b, bid)})"
+        )
+        if x and y:
+            for field in ("template", "label", "unfolds", "seen_from"):
+                if x.get(field) != y.get(field):
+                    line += f"; {field} {x.get(field)} / {y.get(field)}"
+        out.append(line)
+    return out
+
+
 def lenses(record: dict[str, Any]) -> set[str]:
     """Lenses a board set used, read from elements, theses, hypotheses, ontology."""
     items = (
@@ -221,6 +247,9 @@ def report(a: dict[str, Any], b: dict[str, Any]) -> str:
             cell_b = f"`{p.b}` {label_b[p.b]}" if p.b else ""
             out.append(f"| {p.kind} | {cell_a} | {cell_b} | {p.score:.2f} | {p.note} |")
         out.append("")
+    boards = compare_boards(a, b)
+    if boards:
+        out += ["## boards", ""] + boards + [""]
     lenses_a, lenses_b = lenses(a), lenses(b)
     if lenses_a | lenses_b:
         out += [
@@ -268,16 +297,23 @@ def merge(a: dict[str, Any], b: dict[str, Any], new_id: str) -> dict[str, Any]:
         el["epistemic"] = "hypothesis"
         el["lineage"] = sorted(set(el.get("lineage", [])) | {f"from-{a['id']}"[:60]})
         el.pop("geom", None)
-        if "seen_from" in el:
-            target = rename.get(el["seen_from"])
-            if target and kinds.get(target) == "position":
-                el["seen_from"] = target
-            else:
-                del el["seen_from"]
-        if "in" in el:
-            el["in"] = [rename[c] for c in el["in"] if c in rename]
-            if not el["in"]:
-                del el["in"]
+        for field, allowed in (
+            ("seen_from", ("position",)),
+            ("assigned_by", ("position", "place_for_others")),
+            ("performed_by", ("position", "place_for_others")),
+        ):
+            if field in el:
+                target = rename.get(el[field])
+                if target and kinds.get(target) in allowed:
+                    el[field] = target
+                else:
+                    del el[field]
+        # Element links only; a's thesis ids say nothing in b.
+        for field in ("in", "arises_from"):
+            if field in el:
+                el[field] = [rename[c] for c in el[field] if c in rename]
+                if not el[field]:
+                    del el[field]
         el.pop("move", None)
         imported.append(el)
     ks = list(b.get("qualifications", []))
@@ -315,7 +351,47 @@ def merge(a: dict[str, Any], b: dict[str, Any], new_id: str) -> dict[str, Any]:
         lineage=sorted(set(b.get("lineage", [])) | set(a.get("lineage", []))),
     )
     merged.pop("reflected_from", None)
+    merged = _with_boards_of_a(merged, a, b, rename, kinds)
     merged["sources"] = sorted(set(b.get("sources", [])) | set(a.get("sources", [])))
     if not merged["lineage"]:
         del merged["lineage"]
     return merged
+
+
+def _with_boards_of_a(
+    merged: dict[str, Any],
+    a: dict[str, Any],
+    b: dict[str, Any],
+    rename: dict[str, str],
+    kinds: dict[str, str],
+) -> dict[str, Any]:
+    """The merge with a's record boards that b lacks (by id), so that the
+    elements imported onto them keep a board; their links are remapped like
+    an element's, and dropped when they point nowhere or, for `unfolds`, to a
+    kind the template does not unfold."""
+    have = {x["id"] for x in b.get("boards", [])}
+    profile = profile_of(b)
+    extra = []
+    for raw in a.get("boards", []):
+        if raw["id"] in have:
+            continue
+        board = dict(raw)
+        template = profile.template(board["template"])
+        unfolds = template.unfolds if template and template.unfolds else None
+        for field, allowed in (("seen_from", ("position",)), ("unfolds", unfolds)):
+            if field in board:
+                target = rename.get(board[field])
+                if target and (allowed is None or kinds.get(target) in allowed):
+                    board[field] = target
+                else:
+                    del board[field]
+        extra.append(board)
+    if not extra:
+        return merged
+    out: dict[str, Any] = {}
+    for key, value in merged.items():
+        if key == "elements":
+            out["boards"] = list(b.get("boards", [])) + extra
+        if key != "boards":
+            out[key] = value
+    return out

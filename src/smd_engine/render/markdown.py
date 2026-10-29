@@ -34,6 +34,17 @@ def _line(el: dict[str, Any]) -> str:
     return "- " + " ".join(bits)
 
 
+def _board_line(board: dict[str, Any]) -> str:
+    bits = [f"`{board['id']}` board of `{board['template']}`"]
+    if board.get("unfolds"):
+        bits.append(f"unfolds `{board['unfolds']}`")
+    if board.get("seen_from"):
+        bits.append(f"seen from `{board['seen_from']}`")
+    if board.get("cites"):
+        bits.append("— " + ", ".join(board["cites"]))
+    return " ".join(bits)
+
+
 def render_markdown(data: dict[str, Any], lang: str = "ru") -> str:
     lab = LABELS[lang]
     out = [f"# {data['title']}", ""]
@@ -50,16 +61,20 @@ def render_markdown(data: dict[str, Any], lang: str = "ru") -> str:
         for b in profile.boards
         for half in (b.halves or (None,))
     ]
+    made = {b["id"]: b for b in data.get("boards", [])}
     for board, name, half in sections:
         items = [
             e
             for e in data["elements"]
             if e["board"] == board and (half is None or e.get("half") == half)
         ]
-        if not items:
+        if not items and board not in made:  # a record board is always listed
             continue
         title = name + (f" — {lab[half]}" if half else "")
-        out += [f"## {title}", ""] + [_line(e) for e in items] + [""]
+        out += [f"## {title}", ""]
+        if board in made:  # a board the record makes of a template
+            out += [_board_line(made[board]), ""]
+        out += [_line(e) for e in items] + ([""] if items else [])
     tables = [e for e in data["elements"] if e.get("detail")]
     if tables:
         out += [f"## {lab['details']}", ""]

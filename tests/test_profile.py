@@ -298,6 +298,8 @@ def test_default_profile_equals_the_old_tables() -> None:
     assert profile.kinds_where("scheme") == SCHEME_KINDS
     assert profile.kinds_where("skeleton") == SKELETON_KINDS
     assert profile.kinds_where("light_off") == {"fact", "signal", "note"}
+    assert profile.kinds_where("stance") == {"position"}
+    assert profile.kinds_where("factual") == {"fact"}
     assert profile.compare_skip == ("entry", "note")
     assert {k.id: k.shape for k in profile.kinds} == {
         k: SHAPE_OF.get(k, "paragraph" if k in PARAGRAPH_KINDS else "box")
@@ -333,7 +335,7 @@ def test_unknown_kind_or_board_is_an_error(
     errors = [str(f) for f in validate_record(two_boards) if f.level == "error"]
     assert errors == [
         "error: profile: unknown profile 'no-such-profile'; known: "
-        "classic-two-boards, program-three-boards"
+        "classic-two-boards, management-four-boards, program-three-boards"
     ]
 
 
@@ -589,3 +591,75 @@ def test_vault_takes_colours_and_screen_name_from_the_profile(
     assert [g["color"]["rgb"] for g in graph["colorGroups"][:2]] == inks
     assert (tmp_path / "Screen — two boards.canvas").exists()
     assert "two boards in the screen layout" in (tmp_path / "Start.md").read_text()
+
+
+TEMPLATE = {
+    "id": "detail",
+    "per_record": True,
+    "label": {"ru": "Деталь", "en": "Detail"},
+    "colour": ["#ffffff", "#333333"],
+    "kinds": ["function", "note"],
+}
+
+
+def _template(**values: Any) -> Callable[[dict[str, Any]], None]:
+    def change(data: dict[str, Any]) -> None:
+        data["boards"].append({**TEMPLATE, **values})
+        data["reading"].append(
+            {"step": "process", "board": "detail", "pick": {"board": "detail"}}
+        )
+
+    return change
+
+
+def _home_on_template(data: dict[str, Any]) -> None:
+    _template(kinds=["note"])(data)
+    function = next(k for k in data["kinds"] if k["id"] == "function")
+    function["home"] = "detail"
+
+
+@pytest.mark.parametrize(
+    "change, message",
+    [
+        (_template(kinds=["nope"]), "template detail: unknown kinds ['nope']"),
+        (_template(kinds=[]), "template detail: a template takes at least one kind"),
+        (_template(per_record=False), "template detail: per_record must be true"),
+        (_template(region=[60, 150, 700, 450]), "template detail: unknown keys"),
+        (_template(id="od"), "duplicate board ids ['od']"),
+        (_home_on_template, "template detail: kinds ['function'] live on it"),
+        (_template(unfolds=["nope"]), "template detail: unfolds: unknown kinds"),
+        (_template(id="records"), "board ids ['records'] are the layers of smd graph"),
+        (
+            lambda data: (
+                _template()(data),
+                data["reading"][-1]["pick"].update(board="od"),
+            ),
+            "reading step process: a step on a template takes a filter without half",
+        ),
+    ],
+)
+def test_board_templates_are_checked(
+    broken: Callable[..., list[str]],
+    change: Callable[[dict[str, Any]], None],
+    message: str,
+) -> None:
+    [error] = broken(change)
+    assert error.startswith(f"error: profile: broken: {message}")
+
+
+def test_a_template_of_any_profile_gives_record_boards(
+    broken: Callable[..., list[str]], two_boards: dict[str, Any]
+) -> None:
+    record = copy.deepcopy(two_boards)
+    record["boards"] = [{"id": "d1", "template": "detail", "label": "one"}]
+    record["elements"].append(
+        {"id": "fn-d1", "board": "d1", "kind": "function", "label": "step"}
+    )
+    assert broken(_template(), record) == []
+    record["profile"] = "broken"
+    profile = profile_module.profile_of(record)
+    assert [b.id for b in profile.boards] == ["od", "oo", "d1"]
+    # one column per board of the widest row: the classic screen has two
+    assert profile.board("d1").region == (60, 910, 780, 1210)
+    frames = reading_frames(record, "en")
+    assert [f.title for f in frames if f.id == "process-d1"] == ["Detail: one"]

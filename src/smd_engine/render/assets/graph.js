@@ -7,6 +7,8 @@ const EDGE_COLOR = {flow:'#1f77b4', shift:'#d62728', opposes:'#ff7f0e', produces
   belongs:'#8c564b', represents:'#9467bd', refers:'#a3a39c', other:'#7f7f7f', in:'#bcbd22', transition:'#e377c2',
   tests:'#c0392b', qualifies:'#d68910', feeds:'#7a4fa0', valid_for:'#1f8a9a', cooperation:'#1f8a9a',
   tested_by:'#c0392b', cites:'#c9c7c0'};
+// relation kinds a profile adds (graph.py edge_kinds) are drawn grey
+const edgeColor = k => EDGE_COLOR[k] || '#7f7f7f';
 const CAMERA = 2600;
 // boards top down from M.boards, centred on 0; records above, sources below (graph.py planes)
 const PLANE_Z = {records: 520, sources: -520};
@@ -75,7 +77,7 @@ function buildControls() {
   for (const [k, name] of Object.entries(M.edge_kinds)) {
     if (!counts[k]) continue;
     left.append(check(`${name} (${counts[k]})`, () => state.kinds[k], v => state.kinds[k] = v,
-      el('span', {class: 'sw', style: `background:${EDGE_COLOR[k]}`})));
+      el('span', {class: 'sw', style: `background:${edgeColor(k)}`})));
   }
   left.append(el('p', {class: 'help'}, U.help));
 }
@@ -180,7 +182,7 @@ function draw() {
     if (!edgeVisible(e)) return;
     const a = proj.get(e.s), b = proj.get(e.t);
     const lit = !keep || (keep.has(e.s) && keep.has(e.t) && (e.s === state.sel || e.t === state.sel || state.depth2));
-    ctx.strokeStyle = EDGE_COLOR[e.k] + (lit ? (keep ? 'ee' : (DASHED.has(e.k) ? '30' : '88')) : '18');
+    ctx.strokeStyle = edgeColor(e.k) + (lit ? (keep ? 'ee' : (DASHED.has(e.k) ? '30' : '88')) : '18');
     ctx.lineWidth = lit && keep ? 2 : 1;
     ctx.setLineDash(DASHED.has(e.k) ? [4, 3] : []);
     ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
@@ -190,7 +192,7 @@ function draw() {
       ctx.moveTo(b.x - 6 * Math.cos(ang), b.y - 6 * Math.sin(ang));
       ctx.lineTo(b.x - (6 + r) * Math.cos(ang - 0.4), b.y - (6 + r) * Math.sin(ang - 0.4));
       ctx.lineTo(b.x - (6 + r) * Math.cos(ang + 0.4), b.y - (6 + r) * Math.sin(ang + 0.4));
-      ctx.closePath(); ctx.fillStyle = EDGE_COLOR[e.k]; ctx.fill();
+      ctx.closePath(); ctx.fillStyle = edgeColor(e.k); ctx.fill();
     }
   });
   ctx.setLineDash([]);

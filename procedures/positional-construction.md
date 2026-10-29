@@ -2,7 +2,7 @@
 id: positional-construction
 title: Positional construction, shifts and a common object
 step: 3
-version: 0.2.3
+version: 0.2.4
 role: визионер
 profile: any
 inputs:
@@ -16,7 +16,7 @@ outputs:
   - per-position representations and, where justified, a `cooperation` element, an ontology record O and a realizability hypothesis H
   - candidate moves (adjoin) and the list of decisions the human must take
 next: functional-plan
-sources: [PG1987 (self-determination questions), GP1981 (positions, cooperation, ontology valid for a set of positions, realizability), GP-OP (position, object, subject), GP1975 (reflexive position), GP-PP (empty places), PG-GT (game technician functions), Girenko day 4 (positional set, K4, typical errors), Khaprov (ontology test), Schukin (position versus operation), Fliamer (own voice and counterpart's voice), doi:10.5281/zenodo.21653102 (adjoin)]
+sources: [PG1987 (self-determination questions), GP1981 (positions, cooperation, ontology valid for a set of positions, realizability), GP-OP (position, object, subject), GP1975 (reflexive position), GP-Guide11 (three positions), GP-Guide10 (организатор, руководитель, управляющий), GP-T5 (politics as a fourth level), GP-PP (empty places), PG-GT (game technician functions), Girenko day 4 (positional set, K4, typical errors), Khaprov (ontology test), Schukin (position versus operation), Fliamer (own voice and counterpart's voice), doi:10.5281/zenodo.21653102 (adjoin)]
 ---
 
 # Positional construction, shifts and a common object
@@ -69,6 +69,8 @@ A position is organised by objects, tools, ways of thinking, norms and relations
 Rules:
 - `label`: the human's words where they exist. Where there is no human to ask, the label is your wording and the element is `voice: ai`. `voice: ai` on every position or place you add. `epistemic: hypothesis` for a position nobody has confirmed.
 - One person can occupy several positions in turn. Record each move from one to the other as a relation `shift` between the two positions (both must be positions). A position the human takes only to look back at the previous cycle is a reflexive position (GP1975); it is the value of `reflected_from` in the new cycle.
+- Where the human says from where a position works, record it in `stance`: `inside` (a place in the structure it acts in), `reflexive`, or `external` (outside the structure, drawing it as an object; GP-Guide11 ¶35). A structure a position works inside is a condition of its action, not its object (¶36): the hint `object-from-inside` flags an object-board element seen from an `inside` position. The lens `three-positions` asks the questions; offer it in one line.
+- Where the human says which place a position takes, record it in `acts_as`: `organiser` (организатор), `leader` (руководитель), `manager` (управляющий), `politician` (политик; т. 5 puts politics above управление, GP-T5 pp. 242-243), or `functionary` (функционер, GP-Guide10 ¶7). A position with `acts_as` other than `functionary` needs an object of its own: section 4 gives it a `represents` relation, and the hint `position-without-object` lists the ones without.
 - When an AI position says what an actor would want or say, label it as your hypothesis. If the real counterpart's voice is known, keep both statements: what we insist on, and what the counterpart insists on (Fliamer, question 3 of the four questions).
 - Add a `cites` address to anything that comes from a source. The human's typed answers may be registered in the manifest and cited; if they are not, the elements rest on the reply only, and you say so.
 
@@ -96,6 +98,7 @@ For each position in the set, write the representation of the object as it sees 
 
 - an element of kind `model` or `concept` on `oo`, `seen_from` that position;
 - a relation `represents` from the position to it;
+- seen from a position that works outside the structure it draws: a position with `stance: inside` draws a condition, not an object (GP-Guide11 ¶36; lens `three-positions`, questions 1, 2, 5, 6);
 - the position's subject (предмет) in one line, for the ontology record below: an organisation of its means, knowledge, methods and problems, not a point of view (GP-OP).
 
 Do not compare the representations for truth. Representations from different positions are not checked against each other, because they are simply different (GP1981). The four positions around a cow give four representations. Do not average them, and do not add a "shared" one without a cooperation (next section).

@@ -67,7 +67,7 @@ Examples with options are in `docs/commands.md`; `smd <command> --help` lists th
 | `eval` | Compares a procedure run with an expected record; exit 1 below the thresholds |
 | `revise` | Opens the next cycle of a board set and applies the human's sign-offs |
 | `apply` | Applies a patch (add, set and remove by id or by transition number `n`, `board_notes`, state) to a board set as its next sub-version, then validates |
-| `pack` | One Markdown file with a procedure, its roles, lenses, the data model and the records, for any model |
+| `pack` | One Markdown file with a procedure, its roles, lenses, the data model, the cells to fill and the records, for any model |
 
 ## Data model on one screen
 
@@ -102,6 +102,7 @@ A profile (`profiles/*.yaml`) holds the boards, the element kinds, the relation 
 |---|---|
 | `program-three-boards` (default) | org-activity `od`, object `oo`, situation `s` with a small and a big half |
 | `classic-two-boards` | org-activity `od` and object-ontological `oo` side by side; no situation board |
+| `management-four-boards` | G.P.'s scheme of organisation, leadership and management: org-activity `od` and the upper system `ot` on top, the apparatus of leadership `ap` and the managed polysystem `us` below |
 
 An unknown profile, board or kind is an error naming the element. Format and the keys of a profile: `docs/data-model.md`, section Profiles.
 

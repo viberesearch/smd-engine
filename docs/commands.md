@@ -11,6 +11,7 @@ uv run smd validate path/to/case --taxonomies path/to/taxonomies.yaml   # check 
 uv run smd migrate path/to/case   # report what moving the records to schema v0.3 changes; --write edits the changed lines in place, comments kept
 uv run smd render cases/example/bakeries-c1.board.yaml -o out/screen.svg
 uv run smd render cases/example/two-boards-c1.board.yaml -o out/two-boards.svg   # a record on the classic-two-boards profile: two boards side by side
+uv run smd render cases/example_ru/pekarni-oru-c1.board.yaml -o out/oru.svg   # a record on the management-four-boards profile: G.P.'s scheme of ОРУ on four boards
 uv run smd render cases/example/bakeries-c1.board.yaml --format html -o out/screen.html
 uv run smd render cases/example/bakeries-c1.board.yaml --format md --lang en
 uv run smd render cases/example/bakeries-c1.board.yaml --format mermaid
@@ -23,7 +24,7 @@ uv run smd graph cases/example/bakeries-c2.board.yaml --sources cases/example/so
 uv run smd index cases/example/bakeries-c2.board.yaml --sources cases/example/sources.yaml --archive /local/sources -o out/index.html   # every K, thesis, hypothesis, O, sign-off and element with its YAML line; a cite links to its file only when the file is in --archive, otherwise the source title is shown
 uv run smd publish cases/example/bakeries-c2.board.yaml --sources cases/example/sources.yaml --out out/pub   # validate, then write <id>_frames, <id>_cycle_frames, <id>_index, <id>_graph and <id> as HTML; nothing is written if validation fails; takes --lang, --light, --zoom, --notes, --archive, --strict, --taxonomies
 uv run smd vault cases/example/bakeries-c2.board.yaml out/vault --sources cases/example/sources.yaml   # Obsidian vault: a note per element, thesis, hypothesis, K and source; links as typed properties; the screen as a canvas
-uv run smd pack solo-session cases/example/bakeries-c2.board.yaml --sources cases/example/sources.yaml -o out/pack.md   # attach to any model; --sources carries the manifest, --taxonomies the taxonomy file
+uv run smd pack solo-session cases/example/bakeries-c2.board.yaml --sources cases/example/sources.yaml -o out/pack.md   # attach to any model; --sources carries the manifest, --taxonomies the taxonomy file; with board sets, the skeleton of the latest cycle as "Cells to fill"
 uv run smd sources cases/example/sources.yaml --clean-room --deny-lineage earlier-concept
 uv run smd sources path/to/sources.yaml --folder /local/folder
 uv run smd sources path/to/sources.yaml --folder /local/folder --refresh [ids]   # recompute sha256 of the named sources (default: every decision_log) and edit only the sha256 lines of the manifest

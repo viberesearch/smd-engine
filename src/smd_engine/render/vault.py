@@ -15,7 +15,7 @@ from typing import Any
 
 import yaml
 
-from smd_engine.profile import profile_of
+from smd_engine.profile import Profile, profile_of
 from smd_engine.render.graph import graph_model
 from smd_engine.render.layout import plan
 from smd_engine.render.text import cut
@@ -129,6 +129,29 @@ def _name(node: dict[str, Any]) -> str:
     return base[:90].rstrip(" .")
 
 
+def _safe(text: str) -> str:
+    return " ".join(_BAD.sub(" ", text).split())
+
+
+def _folders(labels: dict[str, str], profile: Profile) -> dict[str, str]:
+    """A folder name per board, from its label: a record board's label is free
+    text, so what a path or an Obsidian link cannot hold is dropped (no profile
+    board label has any). A record board whose own label leaves nothing, or
+    whose name an earlier board of the profile already has, gets its id after
+    the name. The names are returned in the order of `labels`."""
+    named: dict[str, str] = {}
+    for board in profile.boards:
+        name = _safe(labels[board.id])
+        template = profile.template(board.template)
+        bare = template is not None and name in {
+            _safe(f"{text}:") for text in template.label.values()
+        }
+        if not name or bare or name in named.values():
+            name = f"{name} {board.id}".strip()
+        named[board.id] = name
+    return {bid: named[bid] for bid in labels}
+
+
 def _folder(node: dict[str, Any], lang: str, boards: dict[str, str]) -> str:
     if node["g"] == "element":
         return boards[node["b"]]
@@ -149,10 +172,13 @@ def export_vault(
     model = graph_model(data, lang, manifest)
     txt = dict(TEXT[lang])
     profile = profile_of(data)
-    n = len(profile.boards)
+    made = len(profile.record_boards)  # the boards the record makes of templates
+    n = len(profile.boards) - made
     n_boards = BOARDS_N[lang].get(n, f"{n} досок" if lang == "ru" else f"{n} boards")
+    if made:
+        n_boards += f" и ещё {made}" if lang == "ru" else f" and {made} more"
     txt["canvas"] = txt["canvas"].format(boards=n_boards)
-    boards = model["boards"]
+    boards = _folders(model["boards"], profile)
     rgb = {b: int(c[1:], 16) for b, c in model["board_colours"].items()}
     kinds = model["edge_kinds"]
     nodes = {n["id"]: n for n in model["nodes"]}

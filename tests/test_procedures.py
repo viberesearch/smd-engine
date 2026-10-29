@@ -4,6 +4,8 @@ from pathlib import Path
 
 import yaml
 
+from smd_engine.validate.hints import INGESTION
+
 PROCEDURES = Path(__file__).resolve().parents[1] / "procedures"
 KEYS = {
     "id",
@@ -40,3 +42,9 @@ def test_procedures_have_front_matter() -> None:
         if "next" in meta:
             first = str(meta["next"]).split(",")[0].strip()
             assert first in ids, f"{path.name}: next names unknown procedure {first}"
+
+
+def test_ingestion_hint_names_procedures() -> None:
+    """cells-from-information reads `run.procedure` against these ids."""
+    ids = {p.stem for p in PROCEDURES.glob("*.md")} - {"README"}
+    assert set(INGESTION) <= ids

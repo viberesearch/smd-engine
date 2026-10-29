@@ -54,6 +54,35 @@ def test_merge_is_a_valid_new_cycle(
     assert [f for f in validate_record(proposal) if f.level == "error"] == []
 
 
+def test_merge_remaps_the_links_of_a_goal(
+    board: dict[str, Any], board2: dict[str, Any]
+) -> None:
+    goal = {"id": "g-1", "board": "od", "kind": "goal", "label": "a plant in a year"}
+    goal |= {"seen_from": "p-owner", "arises_from": ["s-small-fact", "T1"]}
+    goal |= {"goal_source": "assigned", "assigned_by": "place-bank"}
+    board["elements"].append(goal)
+    board["elements"].append(dict(goal, id="g-2", label="x", assigned_by="f-old"))
+    proposal = merge(board, board2, "bakeries-m3")
+    els = {e["id"]: e for e in proposal["elements"]}
+    assert els["g-1"]["arises_from"] == ["s-small-fact"]
+    assert els["g-1"]["assigned_by"] == "place-bank" and "assigned_by" not in els["g-2"]
+    assert [f for f in validate_record(proposal) if f.level == "error"] == []
+
+
+def test_merge_remaps_performed_by_of_a_function(
+    board: dict[str, Any], board2: dict[str, Any]
+) -> None:
+    fn = {"id": "fn-x", "board": "oo", "kind": "function", "label": "winter leasing"}
+    fn |= {"performed_by": "place-bank"}
+    board["elements"].append(fn)
+    board["elements"].append(dict(fn, id="fn-y", label="zzz", performed_by="f-old"))
+    proposal = merge(board, board2, "bakeries-m3")
+    els = {e["id"]: e for e in proposal["elements"]}
+    assert els["fn-x"]["performed_by"] == "place-bank"
+    assert "performed_by" not in els["fn-y"]
+    assert [f for f in validate_record(proposal) if f.level == "error"] == []
+
+
 def test_merge_turns_conflicts_into_open_k(board: dict[str, Any]) -> None:
     other = copy.deepcopy(board)
     next(e for e in other["elements"] if e["id"] == "f-old")["frame_state"] = "new"

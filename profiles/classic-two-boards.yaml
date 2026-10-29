@@ -20,8 +20,8 @@ boards:
     object: true
 # In layout order: a region places its items kind by kind in this order.
 kinds:
-  - {id: position, label: {ru: позиции, en: positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true}
-  - {id: reflexive_position, label: {ru: рефлексивные позиции, en: reflexive positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true}
+  - {id: position, label: {ru: позиции, en: positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true, stance: true}
+  - {id: reflexive_position, label: {ru: рефлексивные позиции, en: reflexive positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true, stance: true}
   - {id: goal, label: {ru: цели, en: goals}, home: od, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
   - {id: place_for_others, label: {ru: места для других, en: places for others}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: ellipse, skeleton: false}
   - {id: frame, label: {ru: рамки, en: frames}, home: oo, needs_position: true, container: true, role: false, scheme: true, shape: frame, skeleton: true}
@@ -51,6 +51,15 @@ hints:
   - ai-drafts
   - ai-variants
   - no-new-scheme
+  # Gates Ш8-Ш12 (GP-Guide11 «Программа действий»; GP-T5)
+  - object-from-inside
+  - external-without-reflection
+  - goal-without-breakdown
+  - position-without-object
+  - ought-without-fact
+  - design-the-natural
+  - information-without-cell
+  - cells-from-information
 # Not matched by smd compare.
 compare_skip: [note]
 compare_groups:

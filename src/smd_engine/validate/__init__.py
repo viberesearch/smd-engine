@@ -17,7 +17,12 @@ from typing import Any
 
 from jsonschema import Draft202012Validator
 
-from smd_engine.profile import ProfileError, profile_of
+from smd_engine.profile import (
+    RESERVED_BOARD_IDS,
+    Profile,
+    ProfileError,
+    profile_of,
+)
 from smd_engine.records import load_schema, schema_version
 from smd_engine.validate.context import (
     AI_VOICES,
@@ -36,16 +41,33 @@ from smd_engine.validate.hints import (
     hint_empty_boards,
     hint_gaps,
     hint_belts,
+    hint_cells_from_information,
+    hint_design_the_natural,
+    hint_external_without_reflection,
+    hint_goal_without_breakdown,
+    hint_information_without_cell,
     hint_new_frames,
     hint_no_new_scheme,
+    hint_object_from_inside,
     hint_ontology,
     hint_open_qualifications,
+    hint_ought_without_fact,
+    hint_position_without_object,
     hint_positions,
     hint_problems,
     hint_revise_if,
     hint_situation_halves,
 )
 from smd_engine.validate.hypotheses import check_hypotheses
+from smd_engine.validate.management import (
+    hint_development_step,
+    hint_lead_vs_manage,
+    hint_leads_outside_organisation,
+    hint_manage_via_organizedness,
+    hint_manage_without_knowledge,
+    hint_polysystem,
+    hint_representation_fit,
+)
 from smd_engine.validate.manifest import check_manifest
 from smd_engine.validate.ontology import check_ontology
 from smd_engine.validate.signoffs import (
@@ -57,6 +79,7 @@ from smd_engine.validate.structure import (
     SUBJECT_OBJECT,
     check_elements,
     check_qualifications,
+    check_record_boards,
     check_record_level,
     check_relations,
     check_transitions,
@@ -82,6 +105,7 @@ __all__ = [
 # Run in this order; each check returns nothing for a record kind it does not cover.
 REGISTRY: list[Check] = [
     check_elements,
+    check_record_boards,
     check_relations,
     check_transitions,
     check_qualifications,
@@ -108,6 +132,21 @@ REGISTRY: list[Check] = [
     hint_ai_drafts,
     hint_ai_variants,
     hint_no_new_scheme,
+    hint_object_from_inside,
+    hint_external_without_reflection,
+    hint_goal_without_breakdown,
+    hint_position_without_object,
+    hint_ought_without_fact,
+    hint_design_the_natural,
+    hint_information_without_cell,
+    hint_cells_from_information,
+    hint_lead_vs_manage,
+    hint_manage_via_organizedness,
+    hint_manage_without_knowledge,
+    hint_leads_outside_organisation,
+    hint_representation_fit,
+    hint_development_step,
+    hint_polysystem,
     check_manifest,
 ]
 
@@ -145,8 +184,26 @@ def _profile_findings(data: dict[str, Any]) -> list[Finding]:
         profile = profile_of(data)
     except ProfileError as exc:
         return [Finding("error", "profile", str(exc))]
-    out: list[Finding] = []
+    out = _record_board_findings(data, profile)
     for el in _items(data, "elements"):
+        board, kind = el.get("board"), el.get("kind")
+        # an unknown kind is reported below, once
+        if (
+            isinstance(board, str)
+            and isinstance(kind, str)
+            and profile.has_board(board)
+            and profile.has_kind(kind)
+        ):
+            template = profile.template(profile.board(board).template)
+            if template and kind not in template.kinds:
+                out.append(
+                    Finding(
+                        "error",
+                        str(el.get("id")),
+                        f"kind '{kind}' is not taken by board '{board}' "
+                        f"(template '{template.id}': {', '.join(template.kinds)})",
+                    )
+                )
         for what, known in (
             ("board", profile.has_board),
             ("kind", profile.has_kind),
@@ -170,6 +227,40 @@ def _profile_findings(data: dict[str, Any]) -> list[Finding]:
                     f"unknown relation kind '{kind}' in profile '{profile.id}'",
                 )
             )
+    return out
+
+
+def _record_board_findings(data: dict[str, Any], profile: Profile) -> list[Finding]:
+    """The boards a record makes of its profile's templates (`boards`): each
+    of a known template, with an id that no profile board or template and no
+    other record board has, and that is not a layer of `smd graph`.
+    profile_of leaves such a board out, so an element on it is also reported
+    as on an unknown board."""
+    taken = {b.id for b in profile.boards if not b.template}
+    taken |= {t.id for t in profile.templates}
+    known = ", ".join(t.id for t in profile.templates) or "none"
+    out: list[Finding] = []
+    seen: set[str] = set()
+    for raw in _items(data, "boards"):
+        bid, tid = raw.get("id"), raw.get("template")
+        if not isinstance(bid, str) or not isinstance(tid, str):
+            continue
+        where = f"board {bid}"
+        if profile.template(tid) is None:
+            message = (
+                f"unknown board template '{tid}' in profile '{profile.id}'; "
+                f"known: {known}"
+            )
+        elif bid in RESERVED_BOARD_IDS:
+            message = f"board id '{bid}' is a layer of smd graph"
+        elif bid in taken:
+            message = f"board id '{bid}' is a board or template of the profile"
+        elif bid in seen:
+            message = "duplicate board id"
+        else:
+            seen.add(bid)
+            continue
+        out.append(Finding("error", where, message))
     return out
 
 

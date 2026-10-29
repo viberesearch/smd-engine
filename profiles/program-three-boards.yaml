@@ -29,7 +29,7 @@ boards:
 # In layout order: a region places its items kind by kind in this order.
 kinds:
   - {id: entry, label: {ru: вход, en: entry}, home: null, needs_position: false, container: false, role: false, scheme: false, shape: marker, skeleton: true}
-  - {id: position, label: {ru: позиции, en: positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true}
+  - {id: position, label: {ru: позиции, en: positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true, stance: true}
   - {id: goal, label: {ru: цели, en: goals}, home: od, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
   - {id: place_for_others, label: {ru: места для других, en: places for others}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: ellipse, skeleton: false}
   - {id: frame, label: {ru: рамки, en: frames}, home: oo, needs_position: true, container: true, role: false, scheme: true, shape: frame, skeleton: true}
@@ -40,7 +40,7 @@ kinds:
   - {id: cooperation, label: {ru: кооперации, en: cooperations}, home: oo, needs_position: false, container: false, role: false, scheme: true, shape: box, skeleton: false}
   - {id: situation, label: {ru: ситуации, en: situations}, home: s, needs_position: true, container: true, role: false, scheme: false, shape: heading, skeleton: true}
   - {id: normality_boundary, label: {ru: границы нормальности, en: boundaries of normality}, home: s, needs_position: true, container: false, role: false, scheme: false, shape: paragraph, skeleton: false}
-  - {id: fact, label: {ru: факты, en: facts}, home: s, needs_position: true, container: false, role: false, scheme: false, shape: paragraph, skeleton: false, light_off: true}
+  - {id: fact, label: {ru: факты, en: facts}, home: s, needs_position: true, container: false, role: false, scheme: false, shape: paragraph, skeleton: false, light_off: true, factual: true}
   - {id: signal, label: {ru: сигналы, en: signals}, home: s, needs_position: true, container: false, role: false, scheme: false, shape: paragraph, skeleton: false, light_off: true}
   - {id: garland, label: {ru: серии связанных событий, en: series of linked events}, home: s, needs_position: true, container: true, role: false, scheme: false, shape: paragraph, skeleton: false}
   - {id: vision, label: {ru: визионеры, en: visionaries}, home: s, needs_position: true, container: false, role: false, scheme: false, shape: paragraph, skeleton: false}
@@ -65,6 +65,15 @@ hints:
   - ai-drafts
   - ai-variants
   - no-new-scheme
+  # Gates Ш8-Ш12 (GP-Guide11 «Программа действий»; GP-T5)
+  - object-from-inside
+  - external-without-reflection
+  - goal-without-breakdown
+  - position-without-object
+  - ought-without-fact
+  - design-the-natural
+  - information-without-cell
+  - cells-from-information
 # Not matched by smd compare.
 compare_skip: [entry, note]
 compare_groups:

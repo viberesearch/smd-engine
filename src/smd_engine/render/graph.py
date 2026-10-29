@@ -306,7 +306,9 @@ def graph_model(
         "boards": {b: profile.board_label(b, lang) for b in boards},
         # each board's ink colour, as on the screen and in the vault
         "board_colours": {b: profile.board(b).colour[1] for b in boards},
-        "edge_kinds": EDGE_KINDS[lang],
+        # the engine's link kinds, then the relation kinds the profile labels
+        "edge_kinds": EDGE_KINDS[lang]
+        | {k: label[lang] for k, label in profile.relation_labels.items()},
         "flow_kinds": FLOW_KINDS,
         "nodes": nodes,
         "edges": edges,

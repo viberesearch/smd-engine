@@ -237,10 +237,26 @@ class _Index:
             ]
             for x in d["elements"]
         ]
+        boards = [
+            [
+                anchor(x["id"]),
+                e(x["template"]),
+                (
+                    e(profile.board_label(x["id"], self.lang))
+                    if profile.has_board(x["id"])
+                    else e(x["label"])
+                ),
+                refs([x.get("seen_from")]),
+                refs([x.get("unfolds")]),
+                cites(x.get("cites")),
+            ]
+            for x in d.get("boards", [])
+        ]
         used = sorted(
             {
                 c.partition("#")[0]
                 for key in (
+                    "boards",
                     "elements",
                     "theses",
                     "hypotheses",
@@ -260,12 +276,15 @@ class _Index:
             ]
             for sid in used
         ]
+        # the boards a record makes of templates, only in a record that has them
+        made = [("b", lab["record_boards"], idx["b_columns"], boards)] if boards else []
         return [
             ("k", lab["qualifications"], idx["k_columns"], qualifications),
             ("t", lab["theses"], idx["t_columns"], theses),
             ("h", lab["hypotheses"], idx["h_columns"], hypotheses),
             ("o", lab["ontology"], idx["o_columns"], ontology),
             ("s", lab["signoffs"], idx["s_columns"], signoffs),
+            *made,
             ("e", lab["elements"], idx["e_columns"], elements),
             ("src", idx["src_title"], idx["src_columns"], sources),
         ]
