@@ -1,7 +1,7 @@
 ---
 id: three-positions
 title: Three positions, inside, reflexive and external
-version: 0.1.0
+version: 0.1.1
 source: "G.P. Shchedrovitsky, «Путеводитель по методологии организации, руководства и управления» (М.: Дело, 2003; lectures of 1981), section 11 «Программа действий» ¶35-36, ¶46-47 (GP-Guide11, https://gtmarket.ru/library/basis/3344/3356; the same text in «Из архива Г.П. Щедровицкого», т. 4, М., 2000, pp. 116-117), section 10 ¶10 (GP-Guide10), section 8 ¶8-10 (GP-Guide8); checked against т. 5, «Организация, руководство, управление (2)» (lectures of 1988; GP-T5), pp. 150-151, 240. Paragraphs are counted on the gtmarket pages, headings included"
 route: smd
 offered_by: [reflexive-protocol, positional-construction]
@@ -54,7 +54,7 @@ The validator reads the slots [ANALYSIS]: an object-board element seen from a po
 
 ## Limits
 
-- `reflected_from` must be an element of kind `position`. In the classic profile a `reflexive_position` element can carry `stance` but cannot be `reflected_from`; the lens writes the reflexive position as a `position` with `stance: reflexive`.
+- `reflected_from` must be an element of kind `position` or, where the profile has that kind (`classic-two-boards`, `management-four-boards`), `reflexive_position` (gate Г5а Б). The lens writes the reflexive position as a `position` with `stance: reflexive`, which every profile takes.
 - The record has no field for the language of the external position; `label_note` keeps it as text [ANALYSIS].
 - The sequence "breakdown, reflexive, external" is G.P.'s order for one exit. The lens does not check that the three positions were taken in that order within a session; only the record's fields are checked.
 - Paragraph numbers follow the gtmarket pages of the 2003 хрестоматия; the т. 4 and т. 5 pages are the book pages.

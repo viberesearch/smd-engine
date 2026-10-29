@@ -2,7 +2,7 @@
 id: theses-to-board
 title: Theses to board updates and a state line
 step: 2
-version: 0.3.4
+version: 0.3.5
 role: игротехник
 profile: any
 inputs:
@@ -27,7 +27,7 @@ The board set is the record; drawings are generated from it. You turn theses int
 - A previous record: copy its elements, relations, qualifications, hypotheses, ontology and sign-offs forward. Set `cycle` to n+1, `revises` to its id, and a new `id`. Transitions belong to one cycle: number this cycle's transitions afresh from 1. A participant's name in a copied item becomes the position the person holds, recorded in the record's `notes` (`reflexive-protocol`, section 8, step 2, which also says where the boundary of "we" goes when a position is copied). Change nothing else in a copied item.
 - A change to the current cycle, such as a decision taken after the record was written, is a patch applied with `smd apply` (`docs/data-model.md`, Patches); a new cycle is `smd revise`.
 - A carried element that the talk describes differently stays one element when it is the same thing: keep its id, update `label`, put the previous label in `label_note`. When the talk moves it to another board or half, move it and say so in the reply; the change is material for the group, not a silent edit. When the talk contradicts the previous record outright, keep both readings as two theses and raise a K.
-- `reflected_from`: the position the group took when it looked back at the previous cycle. It must be a `position` element on `od`. If the talk shows the group reflecting, from organisers' qualification or from its own review, add or reuse that position and cite it. If the talk does not show it, leave the field out; the validator will warn, which is the honest result.
+- `reflected_from`: the position the group took when it looked back at the previous cycle. It must be a `position` element on `od`, or a `reflexive_position` where the profile has that kind. If the talk shows the group reflecting, from organisers' qualification or from its own review, add or reuse that position and cite it. If the talk does not show it, leave the field out; the validator will warn, which is the honest result.
 - In a thinking session the same rule applies as in `solo-session`, section 2: with a human, gate 0 is the reflexive answers (`reflexive-protocol`, sections 2 and 3) and the record has `reflected_from` and `state.difficulty`. In proposal mode (`solo-session`, section 11, "Proposal mode"), open the record without `reflected_from` and `difficulty`, with the reflexive questions first in `state.open`. Do not invent a position or a difficulty to silence the warning.
 - `state.difficulty`: what failed in the previous cycle, in the group's words, if the talk says it.
 - `state.version`: set by `reflexive-protocol` when it opens the record. When the record is opened without it, the opener sets `n.0` for cycle n.

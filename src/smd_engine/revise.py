@@ -118,7 +118,10 @@ def revise(
 
     todo.append("edit title and notes for this cycle")
     if "reflected_from" not in new:
-        todo.append("set reflected_from: the position this cycle was made from")
+        todo.append(
+            "set reflected_from: the position or reflexive position this cycle was "
+            "made from"
+        )
     if "difficulty" not in new_state:
         todo.append("set state.difficulty: what failed in the previous cycle")
     todo.append(

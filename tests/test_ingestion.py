@@ -125,7 +125,7 @@ def test_ingestion_hints(board2: dict[str, Any]) -> None:
 def test_markdown_lists_theses_with_sessionflow_labels(board2: dict[str, Any]) -> None:
     md = render_markdown(board2, "ru")
     assert "**T3** [Вариант формулировки от ИИ]" in md
-    assert "## Подписи" in md and "close_k `K2`: group" in md
+    assert "## Подписи" in md and "закрыть квалификацию `K2`: group" in md
 
 
 def hyp(board: dict[str, Any], hid: str) -> dict[str, Any]:

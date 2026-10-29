@@ -14,17 +14,9 @@ from __future__ import annotations
 from typing import Any
 
 from smd_engine.profile import ProfileError, matches, profile_of
-from smd_engine.render.text import LABELS
+from smd_engine.render.text import LABELS, value_word
 
 EMPTY = "в записи не приведено"
-VOICE_RU = {
-    "group": "группа",
-    "participant": "участник",
-    "moderator": "модератор",
-    "expert": "эксперт",
-    "organisers": "организаторы",
-    "ai": "ИИ",
-}
 MAX_MOVES = 3  # SessionFlow, station Б: at most three moves per iteration
 
 
@@ -201,7 +193,7 @@ def render_sessionflow(data: dict[str, Any], lang: str = "ru") -> str:
             status_t = LABELS["ru"]["thesis_status"][t["status"]]
             claim = t["claim"].replace("|", "/")
             out.append(
-                f"| {t['id']}. {claim} | {addr} | {VOICE_RU[t['voice']]} | {status_t} |"
+                f"| {t['id']}. {claim} | {addr} | {value_word('voice', t['voice'], 'ru')} | {status_t} |"
             )
         out.append("")
         proposals = [t for t in theses if t["status"] == "proposal"]

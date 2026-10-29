@@ -27,6 +27,10 @@ Plan approved 2026-10-25 (`docs/plan.md`). Each step is a branch and a PR. The s
 | Бир3 | Beer layer of the management profile (Beer, «Мозг фирмы»): `vsm_system`, `algedonic_channel`, `escalates`, `filters`, three hints, the lens `beer-viable-system`, the example `pekarnya-holding-c1` | done in v0.5.4 |
 | Г2 | Model of the whole (Beer, Гл. 13): field `of_whole` on `model` in the management profile, held through `uses`; hints `no-model-of-whole` and `model-of-whole-one-filler`; the lens `beer-viable-system` 0.2.0 | done in v0.5.6 |
 | Г3 | `seen_from` accepts a reflexive position as well as a position | done in v0.5.6 |
+| Г5а | `reflected_from` accepts a reflexive position as well as a position | done in v0.5.7 |
+| Г5б | A written-down model of the whole: field `written` on kinds flagged `of_whole`; `model-of-whole-one-filler` passes such a model by; the lens `beer-viable-system` 0.3.0 | done in v0.5.7 |
+| Г5в | Russian on the pages: the digest's own words, move names by language, singular kind labels `label_one` in the profiles | done in v0.5.7 |
+| Г6 | Russian words for the fixed values on the Russian pages: relation kinds, epistemic, move and record status, frame state, a thesis's voice, belt and kind, sign-off functions; board labels in the page's element table | done in v0.5.7 |
 
 ## Structural moves (Invention as a Structural Operation)
 

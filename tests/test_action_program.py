@@ -99,6 +99,18 @@ def test_external_without_reflection(board2: dict[str, Any]) -> None:
         "(p-organiser) and the cycle names no reflexive exit: for G.P. the external "
         "position is taken after reflection (GP-Guide11 ¶35, ¶47; GP-T5 p. 150)"
     ]
+    # a reflexive position as the reflexive exit silences it too (gate Г5а Б)
+    board2["elements"].append(
+        {
+            "id": "p-refl",
+            "board": el(board2, "p-organiser")["board"],
+            "kind": "reflexive_position",
+            "label": "x",
+        }
+    )
+    board2["reflected_from"] = "p-refl"
+    assert not [h for h in found(board2, "hint") if "external position" in h]
+    assert not [h for h in found(board2, "error") if "reflected_from" in h]
 
 
 def test_goal_without_breakdown(board: dict[str, Any]) -> None:

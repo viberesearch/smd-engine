@@ -22,7 +22,9 @@ line is recorded as one), and the relations `escalates` and `captures`.
 Gate Г2 В adds `no-model-of-whole` and `model-of-whole-one-filler`: they read
 the field `of_whole` of models (the firm's model of itself and its
 environment, kept by system 4, Гл. 13) and the relation `uses` from the post
-or position that holds such a model.
+or position that holds such a model. Gate Г5б Б adds the field `written` of
+such a model: written down and kept apart from the people, it does not leave
+with its one holder, so `model-of-whole-one-filler` passes it by.
 """
 
 from __future__ import annotations
@@ -553,9 +555,12 @@ def hint_model_of_whole_one_filler(ctx: Ctx) -> list[Finding]:
     """A model of the whole whose holders all resolve to one named filler
     (`_filler`); a reflexive position counts by its fillers too; a holder of
     another kind (a group, a place for others), or a shared one, makes it held
-    by more than one."""
+    by more than one. A model with `written: true` is kept apart from the
+    people (gate Г5б Б): the person leaves, the record stays."""
     out: list[Finding] = []
     for m in _models_of_whole(ctx):
+        if m.get("written") is True:
+            continue
         holders = _holders(ctx, m["id"])
         who = {
             (

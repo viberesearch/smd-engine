@@ -5,8 +5,11 @@ engine's own strings."""
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from xml.sax.saxutils import escape
+
+if TYPE_CHECKING:
+    from smd_engine.profile import Profile
 
 CHAR_WIDTH = 0.56  # average glyph width as a share of font size, Latin and Cyrillic
 SCREEN_CHARS = 60  # a screen label longer than this is cut unless `short` is given
@@ -38,6 +41,7 @@ LABELS: dict[str, dict[str, Any]] = {
             "threshold": "порог",
             "recovery_time": "срок восстановления",
             "of_whole": "модель целого (Бир)",
+            "written": "записана",
             "acts_as": "занимает место",
             "stance": "позиция",
             "lives_in": "живёт в",
@@ -49,7 +53,12 @@ LABELS: dict[str, dict[str, Any]] = {
             "revise_if": "что пересмотрим",
             "competes": "что с чем конкурирует",
             "test": "проверяется гипотезой",
+            "cooperation": "кооперация",
+            "result": "результат",
+            "changes": "что меняет на досках",
         },
+        # Words of the fixed values of a record, by field (value_word); a value
+        # with no word here is shown as recorded.
         "values": {
             "acts_as": {
                 "organiser": "организатор",
@@ -63,6 +72,41 @@ LABELS: dict[str, dict[str, Any]] = {
                 "reflexive": "рефлексивная",
                 "external": "внешняя",
             },
+            # who brought an element or a thesis in (`voice`)
+            "voice": {
+                "group": "группа",
+                "participant": "участник",
+                "moderator": "модератор",
+                "expert": "эксперт",
+                "organisers": "организаторы",
+                "ai": "ИИ",
+            },
+            "epistemic": {
+                "stated": "заявлено",
+                "hypothesis": "гипотеза",
+                "unverified": "не проверено",
+                "checked": "проверено",
+            },
+            "frame_state": {"old": "старая", "new": "новая"},
+            "move_status": {
+                "candidate": "кандидат",
+                "accepted": "принят",
+                "rejected": "отклонён",
+            },
+            "record_status": {
+                "draft": "черновик",
+                "extracted": "извлечено",
+                "verified": "сверено",
+            },
+            # a thesis: its belt (GP1987) and its kind
+            "belt": {"md": "мД", "mk": "М-К", "m": "М"},
+            "thesis_kind": {
+                "statement": "утверждение",
+                "difficulty": "затруднение",
+                "task": "задача",
+                "problem": "проблема",
+                "question": "вопрос",
+            },
         },
         # words of the Markdown digest's element line
         "line": {
@@ -73,6 +117,14 @@ LABELS: dict[str, dict[str, Any]] = {
             "move": "ход",
             "from": "из",
             "via": "через",
+        },
+        # other words of the Markdown digest; record fields (`action`,
+        # `cooperation`, `test`, ...) take their labels from "fields"
+        "digest": {
+            "board_of": "доска по шаблону",
+            "unfolds": "развёртывает",
+            "revises": "пересматривает",
+            "version": "версия",
         },
         "details": "Таблицы элементов",
         "relations": "Связи",
@@ -196,6 +248,7 @@ LABELS: dict[str, dict[str, Any]] = {
             "threshold": "threshold",
             "recovery_time": "recovery time",
             "of_whole": "model of the whole (Beer)",
+            "written": "written down",
             "acts_as": "acts as",
             "stance": "stance",
             "lives_in": "lives in",
@@ -207,6 +260,9 @@ LABELS: dict[str, dict[str, Any]] = {
             "revise_if": "revise if",
             "competes": "competes",
             "test": "tested by hypothesis",
+            "cooperation": "cooperation",
+            "result": "result",
+            "changes": "changes",
         },
         "values": {
             "acts_as": {
@@ -221,6 +277,8 @@ LABELS: dict[str, dict[str, Any]] = {
                 "reflexive": "reflexive",
                 "external": "external",
             },
+            # the other fixed values (voice, epistemic status, move status,
+            # ...) are shown by their ids on the English pages
         },
         "line": {
             "in": "in",
@@ -230,6 +288,16 @@ LABELS: dict[str, dict[str, Any]] = {
             "move": "move",
             "from": "from",
             "via": "via",
+        },
+        # the English digest names `action` and `test` by the field names, as
+        # it always has; the page labels them "test" and "tested by hypothesis"
+        "digest": {
+            "board_of": "board of",
+            "unfolds": "unfolds",
+            "revises": "revises",
+            "version": "version",
+            "action": "action",
+            "test": "test",
         },
         "details": "Element tables",
         "relations": "Relations",
@@ -323,12 +391,42 @@ LABELS: dict[str, dict[str, Any]] = {
     },
 }
 
-MOVE_NAMES = {
-    "adjoin": "adjoin a dimension (α)",
-    "rescale": "rescale (ρ)",
-    "respecify": "re-specify (τ)",
-    "glue": "glue across domains (γ)",
+# The Russian pages name the sign-off functions by the words of "signoff".
+LABELS["ru"]["values"]["function"] = LABELS["ru"]["signoff"]
+
+# Names of the structural moves (docs/method/structural-moves.md) by language.
+MOVE_NAMES: dict[str, dict[str, str]] = {
+    "ru": {
+        "adjoin": "добавить измерение (α)",
+        "rescale": "сменить масштаб (ρ)",
+        "respecify": "переопределить связи (τ)",
+        "glue": "склеить с другой областью (γ)",
+    },
+    "en": {
+        "adjoin": "adjoin a dimension (α)",
+        "rescale": "rescale (ρ)",
+        "respecify": "re-specify (τ)",
+        "glue": "glue across domains (γ)",
+    },
 }
+
+
+def value_word(field: str, value: str, lang: str) -> str:
+    """A fixed value of a record (`voice`, `epistemic`, `move.status` as
+    `move_status`, the record's `status` as `record_status`, a thesis's `belt`
+    and `kind` as `thesis_kind`, a sign-off's `function`) as its word in the
+    language; a value the language has no word for is shown as recorded, as
+    the English pages show the ids."""
+    words: dict[str, str] = LABELS[lang]["values"].get(field, {})
+    return words.get(value, value)
+
+
+def board_text(profile: Profile, el: dict[str, Any], lang: str) -> str:
+    """The board an element stands on, by its label, and its half in the
+    language: `Ситуация / малая`."""
+    half = el.get("half")
+    label = profile.board_label(el["board"], lang)
+    return label + (f" / {LABELS[lang][half]}" if half else "")
 
 
 def title_line(data: dict[str, Any], lang: str = "ru") -> str:
@@ -465,7 +563,8 @@ def days_text(n: float, lang: str) -> str:
 def beer_parts(el: dict[str, Any], lang: str = "en") -> dict[str, str]:
     """The Beer fields of an element as plain text, by field: `vsm_system`
     joined by commas, `threshold` as written, `recovery_time` as "<n days>",
-    `of_whole` as yes when true; fields the element lacks are left out."""
+    `of_whole` and `written` as yes when true; fields the element lacks are
+    left out."""
     out: dict[str, str] = {}
     if el.get("vsm_system"):
         out["vsm_system"] = ", ".join(str(n) for n in el["vsm_system"])
@@ -475,6 +574,8 @@ def beer_parts(el: dict[str, Any], lang: str = "en") -> dict[str, str]:
         out["recovery_time"] = days_text(el["recovery_time"], lang)
     if el.get("of_whole") is True:
         out["of_whole"] = "да" if lang == "ru" else "yes"
+    if el.get("written") is True:
+        out["written"] = "да" if lang == "ru" else "yes"
     return out
 
 

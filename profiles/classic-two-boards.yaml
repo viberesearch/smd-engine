@@ -20,20 +20,20 @@ boards:
     object: true
 # In layout order: a region places its items kind by kind in this order.
 kinds:
-  - {id: position, label: {ru: позиции, en: positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true, stance: true}
-  - {id: reflexive_position, label: {ru: рефлексивные позиции, en: reflexive positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true, stance: true}
-  - {id: goal, label: {ru: цели, en: goals}, home: od, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
-  - {id: place_for_others, label: {ru: места для других, en: places for others}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: ellipse, skeleton: false}
-  - {id: frame, label: {ru: рамки, en: frames}, home: oo, needs_position: true, container: true, role: false, scheme: true, shape: frame, skeleton: true}
-  - {id: standard, label: {ru: стандарты, en: standards}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
-  - {id: norm, label: {ru: нормы, en: norms}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
-  - {id: model, label: {ru: модели, en: models}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
-  - {id: concept, label: {ru: понятия, en: concepts}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
-  - {id: function, label: {ru: функции, en: functions}, home: oo, needs_position: false, container: true, role: false, scheme: true, shape: box, skeleton: true}
-  - {id: cooperation, label: {ru: кооперации, en: cooperations}, home: oo, needs_position: false, container: false, role: false, scheme: true, shape: box, skeleton: false}
-  - {id: other, label: {ru: прочее, en: other}, home: null, needs_position: false, container: true, role: false, scheme: false, shape: box, skeleton: false}
-  - {id: note, label: {ru: заметки, en: notes}, home: null, needs_position: false, container: false, role: false, scheme: false, shape: box, skeleton: false, light_off: true}
-  - {id: gap, label: {ru: разрывы, en: gaps}, home: null, needs_position: false, container: false, role: true, scheme: false, shape: question, skeleton: false}
+  - {id: position, label: {ru: позиции, en: positions}, label_one: {ru: позиция, en: position}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true, stance: true}
+  - {id: reflexive_position, label: {ru: рефлексивные позиции, en: reflexive positions}, label_one: {ru: рефлексивная позиция, en: reflexive position}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true, stance: true}
+  - {id: goal, label: {ru: цели, en: goals}, label_one: {ru: цель, en: goal}, home: od, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: place_for_others, label: {ru: места для других, en: places for others}, label_one: {ru: место для других, en: place for others}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: ellipse, skeleton: false}
+  - {id: frame, label: {ru: рамки, en: frames}, label_one: {ru: рамка, en: frame}, home: oo, needs_position: true, container: true, role: false, scheme: true, shape: frame, skeleton: true}
+  - {id: standard, label: {ru: стандарты, en: standards}, label_one: {ru: стандарт, en: standard}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: norm, label: {ru: нормы, en: norms}, label_one: {ru: норма, en: norm}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: model, label: {ru: модели, en: models}, label_one: {ru: модель, en: model}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: concept, label: {ru: понятия, en: concepts}, label_one: {ru: понятие, en: concept}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: function, label: {ru: функции, en: functions}, label_one: {ru: функция, en: function}, home: oo, needs_position: false, container: true, role: false, scheme: true, shape: box, skeleton: true}
+  - {id: cooperation, label: {ru: кооперации, en: cooperations}, label_one: {ru: кооперация, en: cooperation}, home: oo, needs_position: false, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: other, label: {ru: прочее, en: other}, label_one: {ru: прочее, en: other}, home: null, needs_position: false, container: true, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: note, label: {ru: заметки, en: notes}, label_one: {ru: заметка, en: note}, home: null, needs_position: false, container: false, role: false, scheme: false, shape: box, skeleton: false, light_off: true}
+  - {id: gap, label: {ru: разрывы, en: gaps}, label_one: {ru: разрыв, en: gap}, home: null, needs_position: false, container: false, role: true, scheme: false, shape: question, skeleton: false}
 relations: [shift, flow, produces, uses, belongs, opposes, refers, represents, other]
 # No entry kind, no situation board: the hints on them are off.
 hints:

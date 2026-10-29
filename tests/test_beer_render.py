@@ -81,7 +81,7 @@ def test_index_shows_the_fields_under_the_label(case: dict[str, Any]) -> None:
 def test_markdown_line_shows_the_fields(case: dict[str, Any]) -> None:
     md = render_markdown(case, "ru")
     assert (
-        "- `ch-flour` algedonic_channel: запас муки ниже нормы "
+        "- `ch-flour` алгедонический канал: запас муки ниже нормы "
         "порог: мука меньше чем на 4 дня выпечки срок восстановления: 2 дня "
         "с позиции `p-map`"
     ) in md
@@ -98,3 +98,13 @@ def test_model_of_whole_is_shown(case: dict[str, Any]) -> None:
             e["of_whole"] = False
     nodes = {n["id"]: n for n in graph_model(case, "ru")["nodes"]}
     assert "extra" not in nodes["m-bakery"]
+
+
+def test_written_model_of_whole_is_shown(case: dict[str, Any]) -> None:
+    for e in case["elements"]:
+        if e["id"] == "m-bakery":
+            e["written"] = True
+    nodes = {n["id"]: n for n in graph_model(case, "ru")["nodes"]}
+    assert nodes["m-bakery"]["extra"] == {"of_whole": "да", "written": "да"}
+    assert "записана: да" in render_html(case, lang="ru")
+    assert "written down: yes" in render_markdown(case, lang="en")

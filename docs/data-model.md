@@ -12,7 +12,7 @@ Top level: `id`, `case`, `title`, `date`, `cycle` (1, 2, ...), `revises` (id of 
 - `run`: the procedure run that produced the record: `{procedure, version, model, date}`; `procedure` (a procedure id) is required. `model` is free text, what the runner reports about itself. Each procedure writes it at hand-over and replaces an earlier one; `smd eval` compares two records (`cases/example/golden/README.md`).
 - `applied`: the ids of the patches applied to the record, in order (`smd apply`, see Patches below).
 
-`reflected_from` is the position element a new cycle was made from. A cycle is a reflexive exit, not a time slice: the group leaves the actor's position, describes the past cycle and projects the next one (GP1975; `docs/method/reconciliation.md` section 4).
+`reflected_from` is the position element a new cycle was made from: a `position`, or a `reflexive_position` where the profile has that kind (gate Г5а Б); a `place_for_others` or any other kind is an error. `smd compare --merge` drops it, since the merge is a new cycle whose reflexive exit is still to be named. A cycle is a reflexive exit, not a time slice: the group leaves the actor's position, describes the past cycle and projects the next one (GP1975; `docs/method/reconciliation.md` section 4).
 
 ### Boards
 
@@ -61,6 +61,7 @@ Fields: `id` (no dot, since a dot separates a board from its half), `template`, 
 | `pace` | years, a number > 0: the characteristic period of change of what the element stands for (a tier, a technology); any element. The hint `ontology-outlives-pace` compares it with an ontology's `horizon` |
 | `vsm_system` | kinds the profile flags `vsm` only (`position` and `post` of `management-four-boards`): the systems 1-5 of Beer's viable system model that the place or position fills, a list of distinct numbers, e.g. `[3, 4, 5]`. A list, because one person often fills several systems (BEER1972 Гл. 9), and the hint `single-node-metasystem` reads them together |
 | `of_whole` | kinds the profile flags `of_whole` only (`model` of `management-four-boards`): `true` when the model is the firm's model of itself and its environment, the model Beer's system 4 keeps (BEER1972 Гл. 13). The post or position that holds it has a `uses` relation to it; the hints `no-model-of-whole` and `model-of-whole-one-filler` read both |
+| `written` | kinds the profile flags `of_whole` only, as `of_whole` is (gate Г5б Б): `true` when the model is written down and kept apart from the people who hold it. A model of the whole with `written: true` gets no `model-of-whole-one-filler`: the person leaves, the record stays. `no-model-of-whole` does not read it, since a written model still needs a place that `uses` it. On a model without `of_whole: true` nothing reads it |
 | `threshold` | `algedonic_channel` only: the limit of the index past which the channel signals, as text. A stakeholder's red line is recorded as such a channel (BEER1972 Гл. 17) |
 | `recovery_time` | `algedonic_channel` only: days, a number > 0, that the unit has to bring the index back before the signal goes up by `escalates` (BEER1972 Гл. 17) |
 | `modality` | `fact` or `ought` (модальность фактического и должного, GP-Guide11 ¶7); theses carry it too |
@@ -94,12 +95,12 @@ A thesis can carry a move too; there `from` may name theses as well as elements.
 
 `op` is one of the four structural operations of Zharnikov (2026), *Invention as a Structural Operation*, doi:10.5281/zenodo.21653102:
 
-| op | Operation | On a board |
-|---|---|---|
-| `adjoin` | adjoin a dimension (α) | add an axis the picture held fixed: time, observer, scale |
-| `rescale` | rescale or requantize (ρ) | change grain: one deal, a flow of deals, rules of the field |
-| `respecify` | re-topologize or re-specify (τ) | change admissible links, or identify two elements kept apart |
-| `glue` | glue across domains (γ) | build on a shared substructure with another domain |
+| op | Operation | On the Russian pages | On a board |
+|---|---|---|---|
+| `adjoin` | adjoin a dimension (α) | добавить измерение (α) | add an axis the picture held fixed: time, observer, scale |
+| `rescale` | rescale or requantize (ρ) | сменить масштаб (ρ) | change grain: one deal, a flow of deals, rules of the field |
+| `respecify` | re-topologize or re-specify (τ) | переопределить связи (τ) | change admissible links, or identify two elements kept apart |
+| `glue` | glue across domains (γ) | склеить с другой областью (γ) | build on a shared substructure with another domain |
 
 `status` is `candidate`, `accepted` or `rejected`. Candidates are listed as hints until the group decides.
 

@@ -5,13 +5,16 @@ from __future__ import annotations
 
 from typing import Any
 
+from smd_engine.profile import profile_of
 from smd_engine.render.svg import render_svg
 from smd_engine.render.text import (
     LABELS,
+    board_text,
     continuum_lines,
     element_lines,
     esc,
     pace_text,
+    value_word,
 )
 
 CSS = """
@@ -70,6 +73,7 @@ def render_html(
     """The page; `screen` draws a different view of the record (the lighter
     screen) above the full tables."""
     lab = LABELS[lang]
+    profile = profile_of(data)
     rows_k = "".join(
         f"<tr><td><b>{esc(q['id'])}</b></td><td>{esc(lab['status'][q['status']])}</td>"
         f"<td>{esc(q['text'])}</td><td>{esc(q.get('by', ''))}</td>"
@@ -77,8 +81,9 @@ def render_html(
         for q in data.get("qualifications", [])
     )
     rows_e = "".join(
-        f"<tr><td><code>{esc(e['id'])}</code></td><td>{esc(e['board'])}"
-        f"{'/' + esc(e['half']) if e.get('half') else ''}</td><td>{esc(e['kind'])}</td>"
+        f"<tr><td><code>{esc(e['id'])}</code></td>"
+        f"<td>{esc(board_text(profile, e, lang))}</td>"
+        f"<td>{esc(profile.kind_label_one(e['kind'], lang))}</td>"
         f"<td>{esc(e['label'])}{_fillers(e, lab)}{_pace(e, lang)}"
         f"{_fields(e, lang)}</td>"
         f"<td><code>{esc(', '.join(e.get('cites', [])))}</code></td></tr>"
@@ -106,7 +111,7 @@ def render_html(
             [
                 f"<b>{esc(t['id'])}</b> {esc(t['claim'])}",
                 f"<code>{esc(', '.join(t.get('cites', [])))}</code>",
-                esc(t["voice"]),
+                esc(value_word("voice", t["voice"], lang)),
                 esc(lab["thesis_status"][t["status"]]),
             ]
             for t in data.get("theses", [])
@@ -145,7 +150,7 @@ def render_html(
         lab["s_columns"],
         [
             [
-                esc(s["function"]),
+                esc(value_word("function", s["function"], lang)),
                 f"<code>{esc(s.get('target', ''))}</code>",
                 esc(s["by"]),
                 esc(s.get("note", "")),

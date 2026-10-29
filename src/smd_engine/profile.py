@@ -72,7 +72,9 @@ BOARD_FLAGS = ("object",)
 # boards take; each record declares its own boards of it (`boards` in a record).
 TEMPLATE_KEYS = {"id", "label", "colour", "kinds", "unfolds", "per_record"}
 TEMPLATE_FLAGS = ("object", "needs_position")
-KIND_KEYS = {"id", "label", "home", "shape"}
+# `label` is plural, for counters, legends and groups; `label_one` singular,
+# where one element's kind is named (the digest line, the tables, the panels).
+KIND_KEYS = {"id", "label", "label_one", "home", "shape"}
 KIND_FLAGS = (
     "needs_position",
     "container",
@@ -121,6 +123,9 @@ HINT_KINDS = {"entry": "entry", "goal-without-breakdown": "goal"}
 # The kinds `seen_from` may name (gate Г3 Б): a position, or a reflexive
 # position where the profile has that kind; never a place for others.
 SEEN_FROM_KINDS = ("position", "reflexive_position")
+# The kinds `reflected_from` may name (gate Г5а Б): the same, so that the
+# reflexive exit of a cycle may be recorded on a reflexive position.
+REFLECTED_FROM_KINDS = SEEN_FROM_KINDS
 # The SessionFlow questions render/sessionflow.py fills from the profile.
 SESSIONFLOW_BLOCKS = ("who", "where", "what_for")
 # Reading steps `smd frames` has a title and lead for: the step texts of
@@ -167,7 +172,8 @@ class Template:
 @dataclass(frozen=True)
 class Kind:
     id: str
-    label: dict[str, str]
+    label: dict[str, str]  # plural: «позиции»
+    label_one: dict[str, str]  # singular: «позиция»
     home: str | None
     needs_position: bool
     container: bool
@@ -179,7 +185,9 @@ class Kind:
     stance: bool = False  # takes the field `stance`: a position (GP-Guide11 ¶35)
     factual: bool = False  # records a fact: a breakdown a goal can arise from
     vsm: bool = False  # takes the field `vsm_system`: Beer's systems 1-5
-    of_whole: bool = False  # takes the field `of_whole`: a model of the whole
+    of_whole: bool = (
+        False  # takes the fields of_whole and written: a model of the whole
+    )
 
 
 @dataclass(frozen=True)
@@ -278,6 +286,10 @@ class Profile:
     def kind_label(self, kind_id: str, lang: str) -> str:
         return self.kind(kind_id).label[lang]
 
+    def kind_label_one(self, kind_id: str, lang: str) -> str:
+        """The singular label of a kind, for one element of it."""
+        return self.kind(kind_id).label_one[lang]
+
 
 def rows_of(boards: tuple[Board, ...]) -> list[list[Board]]:
     """The boards in rows, top down, in profile order within a row: a board
@@ -315,9 +327,9 @@ def profile_ids() -> list[str]:
     return sorted(p.stem for p in profiles_dir().glob("*.yaml"))
 
 
-def _labels(raw: Any, where: str) -> dict[str, str]:
+def _labels(raw: Any, where: str, key: str = "label") -> dict[str, str]:
     if not isinstance(raw, dict) or not {"ru", "en"} <= raw.keys():
-        raise ProfileError(f"{where}: label needs ru and en")
+        raise ProfileError(f"{where}: {key} needs ru and en")
     return {"ru": str(raw["ru"]), "en": str(raw["en"])}
 
 
@@ -470,6 +482,7 @@ def _kind(raw: dict[str, Any], boards: set[str], where: str) -> Kind:
     return Kind(
         _id(raw, where),
         _labels(raw.get("label"), where),
+        _labels(raw.get("label_one"), where, "label_one"),
         raw.get("home"),
         shape=str(raw["shape"]),
         **flags,

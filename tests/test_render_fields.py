@@ -85,7 +85,7 @@ def test_graph_and_vault_label_the_extra_keys(tmp_path: Path) -> None:
 def test_markdown_element_line_follows_the_language(oru: dict[str, Any]) -> None:
     md = render_markdown(oru, "ru")
     assert (
-        "- `g-plant` goal: тесто из общего цеха к весне с позиции `p-organiser`" in md
+        "- `g-plant` цель: тесто из общего цеха к весне с позиции `p-organiser`" in md
     )
     lines = [x for x in md.splitlines() if x.startswith("- `")]
     assert not any("seen from" in x or "fillers:" in x for x in lines)

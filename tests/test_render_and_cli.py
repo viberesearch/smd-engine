@@ -370,9 +370,11 @@ def test_every_signoff_function_has_labels_and_renders(
     for f in functions:
         assert LABELS["ru"]["signoff"][f] in flow
     for lang in ("ru", "en"):
+        # the Russian pages name a function by its words, the English by its id
+        shown = [LABELS["ru"]["signoff"][f] if lang == "ru" else f for f in functions]
         for page in (
             render_markdown(board2, lang),
             render_html(board2, lang),
             render_index(board2, record, lang),
         ):
-            assert all(f in page for f in functions)
+            assert all(s in page for s in shown)

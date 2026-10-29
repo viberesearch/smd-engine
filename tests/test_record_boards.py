@@ -240,6 +240,49 @@ def test_seen_from_refuses_a_place_for_others(oru: dict[str, Any]) -> None:
     ]
 
 
+def test_reflected_from_takes_a_reflexive_position(oru: dict[str, Any]) -> None:
+    """Gate Г5а Б: the reflexive exit of a cycle may be recorded on a reflexive
+    position; `smd revise` sets it, and the stance warning reads it too."""
+    oru["reflected_from"] = "p-reflexive"
+    assert found(oru) == [] and found(oru, "warning") == []
+    el(oru, "p-reflexive")["stance"] = "inside"
+    assert found(oru, "warning") == [
+        "warning: reflected_from: 'p-reflexive' has stance inside: the reflexive "
+        "exit is made from outside the place one acts in (GP-Guide11 ¶35)"
+    ]
+    del oru["reflected_from"]
+    new, todo = revise(
+        oru, date="2026-11-01", decisions={"reflected_from": "p-reflexive"}
+    )
+    assert new["reflected_from"] == "p-reflexive"
+    assert not any("reflected_from" in t for t in todo)
+    assert not [f for f in found(new) if "reflected_from" in f]
+
+
+def test_reflected_from_refuses_a_place_for_others(oru: dict[str, Any]) -> None:
+    oru["reflected_from"] = "place-mills"
+    assert found(oru) == [
+        "error: reflected_from: reflected_from must be a position or a reflexive "
+        "position"
+    ]
+
+
+def test_merge_drops_reflected_from_and_keeps_the_reflexive_position(
+    oru: dict[str, Any],
+) -> None:
+    """A merge is a new cycle on top of B: B's reflexive exit is not the
+    merge's, so `reflected_from` is dropped whatever its kind, and the
+    reflexive position stays on the board for the next exit to name."""
+    oru["reflected_from"] = "p-reflexive"
+    a = copy.deepcopy(oru)
+    a["id"] = "pekarni-oru-a"
+    merged = merge(a, oru, "pekarni-oru-c2")
+    assert "reflected_from" not in merged
+    assert el(merged, "p-reflexive")["kind"] == "reflexive_position"
+    merged["reflected_from"] = "p-reflexive"
+    assert not [f for f in found(merged) if "reflected_from" in f]
+
+
 def test_frames_read_and_cut_each_record_board(oru: dict[str, Any]) -> None:
     frames = reading_frames(oru, "ru")
     step = next(f for f in frames if f.id == "process-pb-delivery")

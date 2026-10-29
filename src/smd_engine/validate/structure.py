@@ -6,7 +6,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from smd_engine.profile import SEEN_FROM_KINDS
+from smd_engine.profile import REFLECTED_FROM_KINDS, SEEN_FROM_KINDS
 from smd_engine.render.text import SCREEN_CHARS
 from smd_engine.validate.context import Ctx, Finding, board_set, cite_findings
 
@@ -28,7 +28,8 @@ SUBJECT_OBJECT = re.compile(
 # Fields of gates Ш9-Ш10 and the kind that takes them, by id: `position` as
 # everywhere, `goal` as the kind of the hint goal-without-breakdown
 # (profile.HINT_KINDS). `stance` goes to the kinds a profile flags `stance`,
-# `vsm_system` to those it flags `vsm`, `of_whole` to those it flags `of_whole`.
+# `vsm_system` to those it flags `vsm`, `of_whole` and `written` to those it
+# flags `of_whole`.
 KIND_FIELDS = {
     "acts_as": ("position", "positions"),
     "arises_from": ("goal", "goals"),
@@ -40,6 +41,7 @@ KIND_FIELDS = {
     "recovery_time": ("algedonic_channel", "algedonic channels"),
 }
 SEEN_FROM_ERROR = "seen_from must be a position or a reflexive position"
+REFLECTED_FROM_ERROR = "reflected_from must be a position or a reflexive position"
 # What a goal may arise from: a breakdown on the board or in the talk
 # (GP-Guide11 ¶43): a gap, a kind flagged `factual`, or such a thesis.
 BREAKDOWN_THESES = ("difficulty", "problem")
@@ -120,21 +122,23 @@ def _element_findings(ctx: Ctx, el: dict[str, Any], out: list[Finding]) -> None:
                 ),
             )
         )
+    # `written` (gate Г5б Б) is gated as `of_whole` is: by the kind's flag.
     whole = profile.kinds_where("of_whole")
-    if "of_whole" in el and kind not in whole:
-        out.append(
-            Finding(
-                "error",
-                eid,
-                "'of_whole' is only for "
-                + (
-                    "kinds: " + ", ".join(sorted(whole))
-                    if whole
-                    else f"kinds a profile flags of_whole, and profile '{profile.id}' "
-                    "has none"
-                ),
+    for field in ("of_whole", "written"):
+        if field in el and kind not in whole:
+            out.append(
+                Finding(
+                    "error",
+                    eid,
+                    f"'{field}' is only for "
+                    + (
+                        "kinds: " + ", ".join(sorted(whole))
+                        if whole
+                        else "kinds a profile flags of_whole, and profile "
+                        f"'{profile.id}' has none"
+                    ),
+                )
             )
-        )
     if "nature" in el and not board.object:
         objects = [b.label["en"].lower() for b in profile.boards if b.object]
         where = (
@@ -426,14 +430,12 @@ def check_record_level(ctx: Ctx) -> list[Finding]:
             out.append(Finding("error", "sources", f"unknown source '{sid}'"))
 
     if "reflected_from" in data:
-        if _ref_ok(ctx, out, data["reflected_from"], "reflected_from", "position"):
+        if _ref_ok(
+            ctx, out, data["reflected_from"], "reflected_from", "reflected_from"
+        ):
             reflexive = ctx.by_id[data["reflected_from"]]
-            if reflexive["kind"] != "position":
-                out.append(
-                    Finding(
-                        "error", "reflected_from", "reflected_from must be a position"
-                    )
-                )
+            if reflexive["kind"] not in REFLECTED_FROM_KINDS:
+                out.append(Finding("error", "reflected_from", REFLECTED_FROM_ERROR))
             elif reflexive.get("stance") == "inside":
                 out.append(
                     Finding(

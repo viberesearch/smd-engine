@@ -22,7 +22,14 @@ from typing import Any
 
 from smd_engine.profile import Board, Profile, profile_of
 from smd_engine.render.layout import Box, Geometry, plan
-from smd_engine.render.text import LABELS, MOVE_NAMES, esc, text_width, wrap
+from smd_engine.render.text import (
+    LABELS,
+    MOVE_NAMES,
+    esc,
+    text_width,
+    value_word,
+    wrap,
+)
 from smd_engine.screen import BOARD_TOP, CENTER, WIDTH, outline
 from smd_engine.validate import AI_VOICES
 
@@ -345,8 +352,9 @@ def _legend(data: dict[str, Any], lang: str, top: float) -> tuple[str, float]:
         rows.append(("k", f"{q['id']} [{status}] {q.get('short') or q['text']}"))
     moves = [e for e in data["elements"] if e.get("move")]
     if moves:
+        names = MOVE_NAMES[lang]
         parts = [
-            f"{e['id']}: {MOVE_NAMES[e['move']['op']]} ← {', '.join(e['move']['from'])}"
+            f"{e['id']}: {names[e['move']['op']]} ← {', '.join(e['move']['from'])}"
             for e in moves
         ]
         rows.append(("b", f"{lab['moves']}: " + " · ".join(parts)))
@@ -674,7 +682,7 @@ def render_svg(
         for v in (
             data.get("case"),
             f"{lab['cycle']} {data['cycle']}",
-            data["status"],
+            value_word("record_status", data["status"], lang),
             data.get("date"),
         )
         if v

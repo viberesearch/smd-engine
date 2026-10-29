@@ -2,7 +2,7 @@
 id: reflexive-protocol
 title: Reflexive protocol, close a cycle and open the next
 step: 3
-version: 0.3.0
+version: 0.3.1
 role: игротехник
 profile: any
 inputs:
@@ -141,7 +141,7 @@ Create a new record, status `draft`. `smd revise <closed record> --decisions <fi
 1. `id` new, same `case`, `cycle` n+1, `revises` the closed record's id, `date` of today, `sources` and `lineage` as before.
 2. Copy forward `elements`, `relations`, `qualifications`, `theses`, `hypotheses`, `ontology` and `signoffs`, unchanged, with one allowed change: a participant's name in a label, note or claim becomes the position the person holds (`roles/README.md`, rule 8: no participant names). Say in the record's `notes` that names were anonymised on carry-forward, and which ids changed. Change nothing else in a copied item, including its `voice`, `seen_from` and `status`. A closed K, a refined thesis or an accepted move needs its sign-off in the new record too. Do not copy `transitions`; the new cycle numbers its own from 1, in the order of moves between boards in the session, whoever made them (AI moves carry `voice: ai`).
    - The boundary of "we" does not move when a position is copied. A copied or anonymised position stays the element it was, with its own voice; do not relabel it as an element of the human now working. If you propose that it is inside or outside "we", write a thesis with `voice: ai`, `status: ai_variant` and `about: [<position id>]`. The human fixes the boundary at gate 1 of `solo-session`.
-3. With a human: add the reflexive position (`stance: reflexive`) and set `reflected_from` to it; add the external position of the fourth question (`stance: external`). In proposal mode: add neither; leave `reflected_from` out.
+3. With a human: add the reflexive position (`stance: reflexive`; on a profile that has the kind `reflexive_position`, that kind may be used instead) and set `reflected_from` to it; add the external position of the fourth question (`stance: external`). In proposal mode: add neither; leave `reflected_from` out.
 4. `state`: with a human, the new `version`, `difficulty` from section 2, `accepted` and `open` as closed, `next_move` as projected. In proposal mode: `version` `n.0` for cycle n (the opener sets it when the opening skips this protocol's answers); no `difficulty`; `accepted` as in the closing record; `open` starts with the questions of section 2 as gate 0, then the items open in the closing record; `next_move` is "the human answers gate 0, then the other entries of `state.open` in order".
 
 ```yaml

@@ -82,6 +82,16 @@ EDGE_KINDS: dict[str, dict[str, str]] = {
         "cites": "source",
     },
 }
+
+
+def relation_words(profile: Profile, lang: str) -> dict[str, str]:
+    """The words of the relation kinds: the engine's (EDGE_KINDS) and those
+    the profile labels."""
+    return EDGE_KINDS[lang] | {
+        k: label[lang] for k, label in profile.relation_labels.items()
+    }
+
+
 # Links of an ontology record's continuum, listed in edge_kinds only when a
 # record draws them, so a record without them gives the same page.
 CONTINUUM_EDGE_KINDS: dict[str, dict[str, str]] = {
@@ -184,7 +194,7 @@ def graph_model(
                 "id": e["id"],
                 "g": "element",
                 "b": e["board"],
-                "kind": profile.kind_label(e["kind"], lang),
+                "kind": profile.kind_label_one(e["kind"], lang),
                 "short": screen_label(e),
                 "label": e["label"],
                 "note": e.get("label_note", ""),

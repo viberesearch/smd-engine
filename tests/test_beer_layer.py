@@ -401,6 +401,38 @@ def test_model_of_whole_one_filler(case: dict[str, Any]) -> None:
     assert found(case, "hint", "m-bakery") == []  # held by nobody
 
 
+def test_written_model_of_whole_does_not_leave_with_its_holder(
+    case: dict[str, Any],
+) -> None:
+    """Gate Г5б Б: a model of the whole written down and kept apart from the
+    people stays when its one holder leaves; the other hints still read it."""
+    assert len(found(case, "hint", "m-bakery")) == 1
+    el(case, "m-bakery")["written"] = True
+    assert found(case, "error") == []
+    assert found(case, "hint", "m-bakery") == []
+    assert len(found(case, "hint", "post-holding")) == 2  # no-model-of-whole stays
+    el(case, "m-bakery")["written"] = False
+    assert len(found(case, "hint", "m-bakery")) == 1
+
+
+def test_written_is_gated_as_of_whole(case: dict[str, Any]) -> None:
+    el(case, "post-owner")["written"] = True
+    assert found(case, "error") == ["post-owner: 'written' is only for kinds: model"]
+    el(case, "post-owner").pop("written")
+    el(case, "m-bakery")["written"] = "yes"
+    assert any(
+        "written: 'yes' is not of type 'boolean'" in e for e in found(case, "error")
+    )
+    other = copy.deepcopy(
+        load_record(ROOT / "cases" / "example_ru" / "pekarni-c1.board.yaml")
+    )
+    el(other, "m-coop")["written"] = True
+    assert found(other, "error") == [
+        "m-coop: 'written' is only for kinds a profile flags of_whole, and profile "
+        "'program-three-boards' has none"
+    ]
+
+
 def test_profile_refuses_model_of_whole_hints_without_the_flag() -> None:
     data = yaml.safe_load(
         (profiles_dir() / "management-four-boards.yaml").read_text(encoding="utf-8")
@@ -415,3 +447,10 @@ def test_profile_refuses_model_of_whole_hints_without_the_flag() -> None:
     )
     data["hints"] = [h for h in data["hints"] if h not in profile_module.OF_WHOLE_HINTS]
     assert profile_module._parse(data, "management-four-boards").hints
+
+
+def test_written_without_of_whole_is_read_by_nothing(case: dict[str, Any]) -> None:
+    el(case, "m-bakery")["of_whole"] = False
+    el(case, "m-bakery")["written"] = True
+    assert found(case, "error") == []
+    assert found(case, "hint", "m-bakery") == []

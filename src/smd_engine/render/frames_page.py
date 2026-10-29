@@ -18,6 +18,7 @@ from smd_engine.render.text import (
     esc,
     pace_text,
     title_line,
+    value_word,
 )
 from smd_engine.screen import outline, triangle_parts, triangle_shapes
 
@@ -109,12 +110,14 @@ def _details(frames: list[Frame], lang: str) -> dict[str, Any]:
                 k_of.setdefault(target, []).append(text)
         for e in f.record["elements"]:
             meta = [
-                profile.kind_label(e["kind"], lang),
+                profile.kind_label_one(e["kind"], lang),
                 profile.board_label(e["board"], lang),
             ]
             if origin(e) != "group":
                 meta.append(st["switches"][origin(e)])
-            meta += [e[k] for k in ("voice", "epistemic") if e.get(k)]
+            meta += [
+                value_word(k, e[k], lang) for k in ("voice", "epistemic") if e.get(k)
+            ]
             meta += e.get("lineage", [])
             d = rec["el"].setdefault(
                 e["id"],

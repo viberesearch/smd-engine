@@ -2,6 +2,32 @@
 
 Dates are those of the tag. All tags v0.2.1 to v0.3.5 were made on 2026-10-29. The version in `pyproject.toml` stayed at 0.2.0 through v0.2.4 and at 0.3.0 from v0.3.0 to v0.3.5; 0.3.6 is the first release whose package version equals its tag.
 
+## 0.5.7 - 2026-10-29
+
+A reflexive position for `reflected_from` and a written-down model of the whole (gates Г5а and Г5б), and Russian on the Russian pages: the digest's own words, move names and singular kind labels (gate Г5в), then the fixed values of a record (gate Г6), each by option Б; schema 0.3 stays and its one new field, `written`, is optional.
+
+Gates Г5а and Г5б:
+
+- `reflected_from` accepts a `reflexive_position` as well as a `position`, as `seen_from` does since 0.5.6 (constant `REFLECTED_FROM_KINDS` in `profile.py`); a `place_for_others` or any other kind is an error ("reflected_from must be a position or a reflexive position"). The warning on a `reflected_from` with `stance: inside` reads a reflexive position too. `smd revise --decisions` takes such a position; `smd compare --merge` still drops `reflected_from`, whatever its kind, because the merge is a new cycle; `smd apply` drops it with a removed element, as before. Docs (`checks.md`, `data-model.md`, `profiles.md`, `stages.md`), the schema description, the lens `three-positions` 0.1.1 and the procedure `theses-to-board` 0.3.5 follow.
+- A written-down model of the whole (gate Г5б, option Б): element field `written` (a boolean) on the kinds a profile flags `of_whole` (`model` of `management-four-boards`), gated as `of_whole` is, by the kind's flag; elsewhere it is an error. `true` means the model is written down and kept apart from the people who hold it. `model-of-whole-one-filler` passes such a model by: the person leaves, the record stays. `no-model-of-whole` does not read it. The renderers show it as «записана: да» / "written down: yes" (`LABELS[lang]["fields"]`, `beer_parts`). The lens `beer-viable-system` 0.3.0 adds the slot `written: true` to question 2 and quotes Beer's scheme of the model (Гл. 13); docs (`checks.md`, `data-model.md`, `profiles.md`, `stages.md`), the schema and the profile comment follow. The teaching case `pekarnya-holding-c1` is unchanged.
+- `smd revise` asks for "the position or reflexive position this cycle was made from"; procedure `reflexive-protocol` 0.3.1 names `reflexive_position` as an option where the profile has it.
+
+Russian on the pages, gate Г5в. No change to the schema or the records.
+
+- The Markdown digest writes its own words in the record's language with `--lang ru`, normal and `--light`: the record board line («`pb-dough` доска по шаблону `process` развёртывает `wp-dough` с позиции `p-organiser`»), «пересматривает» in the header, the hypothesis fields («чем проверяем», «результат», «что меняет на досках»), the ontology fields («кооперация», «проверяется гипотезой», «что с чем конкурирует») and «версия» in the state. The record fields take their labels from `LABELS[lang]["fields"]` (now also `cooperation`, `result`, `changes`); the other words are in `LABELS[lang]["digest"]`. The English digest keeps its words.
+- Move names follow the language in the SVG legend and the Markdown digest: «добавить измерение (α)», «сменить масштаб (ρ)», «переопределить связи (τ)», «склеить с другой областью (γ)». `MOVE_NAMES` is keyed by language; the English names are unchanged.
+- Kinds take a singular label, `label_one: {ru, en}`, in every profile; a kind without it, or with one lacking `ru` or `en`, is a profile error. `label` stays plural for counters, legends and groups.
+- Where one element's kind is named, it is named by the singular label in the record's language: the Markdown element line («`p-owner` позиция: …», "`p-owner` position: …"), the page's element table (until now the raw kind id), the index's element table, the graph's element details, the frames panel and the `вид`/`kind` property of the vault notes (until now the plural label). The English outputs change here only.
+- Kept as ids: element, board, template and position ids in code spans, and `data-kind` in the SVG. The fixed values that Г5в still showed as ids are named in Russian by Г6, below.
+
+Fixed values in Russian, gate Г6. No change to the schema or the records.
+
+- With `--lang ru` the fixed values of a record are named by words, normal and `--light`. Relation kinds by the graph's words and the profile's labels («сдвиг позиции», «ссылается», «управляет»); epistemic status «заявлено», «гипотеза», «не проверено», «проверено»; move status «кандидат», «принят», «отклонён»; `frame_state` «старая», «новая»; record status «черновик», «извлечено», «сверено»; a thesis's voice («группа», «участник», «модератор», «эксперт», «организаторы», «ИИ»), belt («мД», «М-К», «М») and kind («утверждение», «затруднение», «задача», «проблема», «вопрос»); sign-off functions by `LABELS["ru"]["signoff"]` («принять ход»).
+- Where: the Markdown digest (the header, the element line, relations, theses, sign-offs), the subtitle of the SVG (and so of the page and the frames), the page's theses and sign-offs tables, the index's theses and sign-offs tables, and the frames panel, which names an AI voice once («ИИ», no longer «ИИ · ai»).
+- The page's element table names the board by its label and the half in the language, as the index does («Ситуационная доска / малая», "Situation board / small"; until now `s/small`). This is the only change to the English outputs. The index names the half in Russian too («малая», until now `small`).
+- `value_word` and `board_text` in `render/text.py`, `relation_words` in `render/graph.py`; the words are in `LABELS["ru"]["values"]`, where the SessionFlow export's voice words now live (its output is unchanged). A value with no word in the language is shown as recorded, which is how the English pages keep the ids.
+- Kept as ids: ids in code spans, the vault's YAML properties (`status`, `voice`, `epistemic`, which its Dataview queries read), the graph's data and its details panel, and the `data-*` attributes of the SVG.
+
 ## 0.5.6 - 2026-10-29
 
 Model of the whole and `seen_from` from a reflexive position (gates Г2, option В, and Г3, option Б), renderer follow-ups to 0.5.5 (gate Г4, option В). Schema 0.3 stays: the new field is optional, and records without it give the same validation output.

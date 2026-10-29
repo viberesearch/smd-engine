@@ -19,11 +19,13 @@ from urllib.parse import quote
 from smd_engine.profile import profile_of
 from smd_engine.render.text import (
     LABELS,
+    board_text,
     continuum_lines,
     element_lines,
     esc,
     pace_text,
     title_line,
+    value_word,
 )
 
 CSS = """body{font:14px/1.45 -apple-system,Helvetica,Arial,sans-serif;margin:0;color:#1d2433;background:#fff}
@@ -212,7 +214,8 @@ class _Index:
             [
                 anchor(t["id"]),
                 e(
-                    f"{t['voice']}, {lab['thesis_status'].get(t['status'], t['status'])}"
+                    f"{value_word('voice', t['voice'], self.lang)}, "
+                    f"{lab['thesis_status'].get(t['status'], t['status'])}"
                 ),
                 e(t["claim"]),
                 refs(t.get("feeds"))
@@ -257,7 +260,8 @@ class _Index:
         ]
         signoffs = [
             [
-                f"{e(s['function'])}<br>{self._yaml(_signoff_line(self.lines, s))}",
+                e(value_word("function", s["function"], self.lang))
+                + f"<br>{self._yaml(_signoff_line(self.lines, s))}",
                 refs([s.get("target")]),
                 e(f"{s['by']}, {s.get('date', '')}"),
                 e(s.get("note", "")),
@@ -268,11 +272,8 @@ class _Index:
         elements = [
             [
                 anchor(x["id"]),
-                e(
-                    profile.board_label(x["board"], self.lang)
-                    + (f" / {x['half']}" if x.get("half") else "")
-                ),
-                e(profile.kind_label(x["kind"], self.lang)),
+                e(board_text(profile, x, self.lang)),
+                e(profile.kind_label_one(x["kind"], self.lang)),
                 e(x.get("short", x["label"])),
                 e(x["label"])
                 + (

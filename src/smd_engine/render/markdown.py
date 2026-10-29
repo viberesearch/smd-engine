@@ -4,23 +4,34 @@ from __future__ import annotations
 
 from typing import Any
 
-from smd_engine.profile import profile_of
+from smd_engine.profile import Profile, profile_of
+from smd_engine.render.graph import relation_words
 from smd_engine.render.text import (
     LABELS,
     MOVE_NAMES,
     continuum_lines,
     element_parts,
     field_lines,
+    value_word,
 )
 
 
-def _line(el: dict[str, Any], lang: str) -> str:
-    """One element: its words in the language; ids, the kind id and enum values
-    (frame state, epistemic status) as recorded."""
+def _words(lang: str) -> dict[str, str]:
+    """Words of the digest outside the element line: the field labels, with
+    the digest's own words over them."""
+    words: dict[str, str] = LABELS[lang]["fields"] | LABELS[lang]["digest"]
+    return words
+
+
+def _line(el: dict[str, Any], lang: str, profile: Profile) -> str:
+    """One element: its kind by the singular label of the profile, its words
+    and fixed values (frame state, epistemic status, move status) in the
+    language (value_word); ids as recorded."""
     w = LABELS[lang]["line"]
-    bits = [f"`{el['id']}` {el['kind']}: {el['label']}"]
+    kind = profile.kind_label_one(el["kind"], lang)
+    bits = [f"`{el['id']}` {kind}: {el['label']}"]
     if el.get("frame_state"):
-        bits.append(f"({el['frame_state']})")
+        bits.append(f"({value_word('frame_state', el['frame_state'], lang)})")
     if el.get("in"):
         bits.append(f"{w['in']} " + ", ".join(f"`{i}`" for i in el["in"]))
     if el.get("fillers"):
@@ -29,27 +40,35 @@ def _line(el: dict[str, Any], lang: str) -> str:
     if el.get("seen_from"):
         bits.append(f"{w['seen_from']} `{el['seen_from']}`")
     if el.get("epistemic"):
-        bits.append(f"[{el['epistemic']}]")
+        bits.append(f"[{value_word('epistemic', el['epistemic'], lang)}]")
     if el.get("lineage"):
         bits.append(f"{w['lineage']}: " + ", ".join(el["lineage"]))
     if el.get("move"):
         m = el["move"]
         bits.append(
-            f"{w['move']}: {MOVE_NAMES[m['op']]} {w['from']} {', '.join(m['from'])}"
+            f"{w['move']}: {MOVE_NAMES[lang][m['op']]} {w['from']} "
+            f"{', '.join(m['from'])}"
             + (f" {w['via']} {m['via']}" if m.get("via") else "")
-            + (f" ({m['status']})" if m.get("status") else "")
+            + (
+                f" ({value_word('move_status', m['status'], lang)})"
+                if m.get("status")
+                else ""
+            )
         )
     if el.get("cites"):
         bits.append("— " + ", ".join(el["cites"]))
     return "- " + " ".join(bits)
 
 
-def _board_line(board: dict[str, Any]) -> str:
-    bits = [f"`{board['id']}` board of `{board['template']}`"]
+def _board_line(board: dict[str, Any], lang: str) -> str:
+    """A record board: its template, the element it unfolds, the position it
+    is seen from; ids as recorded."""
+    w = _words(lang)
+    bits = [f"`{board['id']}` {w['board_of']} `{board['template']}`"]
     if board.get("unfolds"):
-        bits.append(f"unfolds `{board['unfolds']}`")
+        bits.append(f"{w['unfolds']} `{board['unfolds']}`")
     if board.get("seen_from"):
-        bits.append(f"seen from `{board['seen_from']}`")
+        bits.append(f"{LABELS[lang]['line']['seen_from']} `{board['seen_from']}`")
     if board.get("cites"):
         bits.append("— " + ", ".join(board["cites"]))
     return " ".join(bits)
@@ -57,10 +76,15 @@ def _board_line(board: dict[str, Any]) -> str:
 
 def render_markdown(data: dict[str, Any], lang: str = "ru") -> str:
     lab = LABELS[lang]
+    words = _words(lang)
     out = [f"# {data['title']}", ""]
-    meta = [f"id `{data['id']}`", f"{lab['cycle']} {data['cycle']}", data["status"]]
+    meta = [
+        f"id `{data['id']}`",
+        f"{lab['cycle']} {data['cycle']}",
+        value_word("record_status", data["status"], lang),
+    ]
     if data.get("revises"):
-        meta.append(f"revises `{data['revises']}`")
+        meta.append(f"{words['revises']} `{data['revises']}`")
     if data.get("date"):
         meta.append(data["date"])
     out += [" · ".join(meta), ""]
@@ -83,8 +107,8 @@ def render_markdown(data: dict[str, Any], lang: str = "ru") -> str:
         title = name + (f" — {lab[half]}" if half else "")
         out += [f"## {title}", ""]
         if board in made:  # a board the record makes of a template
-            out += [_board_line(made[board]), ""]
-        out += [_line(e, lang) for e in items] + ([""] if items else [])
+            out += [_board_line(made[board], lang), ""]
+        out += [_line(e, lang, profile) for e in items] + ([""] if items else [])
     tables = [e for e in data["elements"] if e.get("detail")]
     if tables:
         out += [f"## {lab['details']}", ""]
@@ -96,9 +120,13 @@ def render_markdown(data: dict[str, Any], lang: str = "ru") -> str:
         out += ["| " + " | ".join(row) + " |" for row in d["rows"]] + [""]
     if data.get("relations"):
         out += [f"## {lab['relations']}", ""]
+        # relation kinds by their words in Russian; the English digest keeps
+        # the ids, as it always has
+        kinds = relation_words(profile, lang) if lang == "ru" else {}
         for r in data["relations"]:
             label = f" — {r['label']}" if r.get("label") else ""
-            out.append(f"- `{r['from']}` → `{r['to']}` ({r['kind']}){label}")
+            kind = kinds.get(r["kind"], r["kind"])
+            out.append(f"- `{r['from']}` → `{r['to']}` ({kind}){label}")
         out.append("")
     if data.get("transitions"):
         out += [f"## {lab['transitions']}", ""]
@@ -126,9 +154,16 @@ def render_markdown(data: dict[str, Any], lang: str = "ru") -> str:
                 if t.get("feeds")
                 else ""
             )
+            said = ", ".join(
+                (
+                    value_word("voice", t["voice"], lang),
+                    value_word("belt", t["belt"], lang),
+                    value_word("thesis_kind", t["kind"], lang),
+                )
+            )
             out.append(
                 f"- **{t['id']}** [{lab['thesis_status'][t['status']]}] "
-                f"{t['voice']}, {t['belt']}, {t['kind']}: {t['claim']}{feeds}{cites}"
+                f"{said}: {t['claim']}{feeds}{cites}"
             )
         out.append("")
     if data.get("hypotheses"):
@@ -139,7 +174,7 @@ def render_markdown(data: dict[str, Any], lang: str = "ru") -> str:
             ]
             for key in ("action", "result", "changes"):
                 if h.get(key):
-                    bits.append(f"{key}: {h[key]}")
+                    bits.append(f"{words[key]}: {h[key]}")
             if h.get("artefacts"):
                 bits.append("— " + ", ".join(h["artefacts"]))
             out.append(" ".join(bits))
@@ -150,14 +185,14 @@ def render_markdown(data: dict[str, Any], lang: str = "ru") -> str:
             positions = ", ".join(f"`{p}`" for p in o["valid_for"])
             line = f"- **{o['id']}** {o['object']} ({lab['valid_for']} {positions})"
             if o.get("cooperation"):
-                line += f"; cooperation `{o['cooperation']}`"
+                line += f"; {words['cooperation']} `{o['cooperation']}`"
             if o.get("test"):
-                line += f"; test {o['test']}"
+                line += f"; {words['test']} {o['test']}"
             out.append(line)
             for sub in o.get("subjects", []):
                 out.append(f"  - `{sub['position']}`: {sub['subject']}")
             if o.get("competes"):
-                out.append(f"  - competes: {o['competes']}")
+                out.append(f"  - {words['competes']}: {o['competes']}")
             out += [f"  - {line}" for line in continuum_lines(o, lang)]
         out.append("")
     if data.get("signoffs"):
@@ -165,13 +200,14 @@ def render_markdown(data: dict[str, Any], lang: str = "ru") -> str:
         for s in data["signoffs"]:
             target = f" `{s['target']}`" if s.get("target") else ""
             note = f" — {s['note']}" if s.get("note") else ""
-            out.append(f"- {s['function']}{target}: {s['by']}{note}")
+            function = value_word("function", s["function"], lang)
+            out.append(f"- {function}{target}: {s['by']}{note}")
         out.append("")
     state = data.get("state")
     if state:
         out += [f"## {lab['state']}", ""]
         if state.get("version"):
-            out.append(f"- version: {state['version']}")
+            out.append(f"- {words['version']}: {state['version']}")
         if state.get("difficulty"):
             out.append(f"- {lab['difficulty']}: {state['difficulty']}")
         for key in ("accepted", "open"):
