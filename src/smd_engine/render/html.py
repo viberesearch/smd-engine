@@ -6,7 +6,12 @@ from __future__ import annotations
 from typing import Any
 
 from smd_engine.render.svg import render_svg
-from smd_engine.render.text import LABELS, esc
+from smd_engine.render.text import (
+    LABELS,
+    continuum_lines,
+    esc,
+    pace_text,
+)
 
 CSS = """
 :root{--bg:#fff;--ink:#1d1d1f;--muted:#5b5b60;--line:#e3e3e8;--navy:#12235a}
@@ -32,6 +37,17 @@ def _fillers(el: dict[str, Any], lab: dict[str, Any]) -> str:
     return f"<br><small>{esc(lab['fillers'])}: {esc(', '.join(el['fillers']))}</small>"
 
 
+def _pace(el: dict[str, Any], lang: str) -> str:
+    text = pace_text(el, lang)
+    return f"<br><small>{esc(text)}</small>" if text else ""
+
+
+def _continuum(o: dict[str, Any], lang: str) -> str:
+    """Lives in, tempos, horizon and covers of an ontology record."""
+    shown = continuum_lines(o, lang)
+    return f"<br><small>{esc('; '.join(shown))}</small>" if shown else ""
+
+
 def _table(title: str, cols: list[str], rows: list[list[str]]) -> str:
     """A titled table; cells are already escaped. Empty when there are no rows."""
     if not rows:
@@ -55,7 +71,7 @@ def render_html(
     rows_e = "".join(
         f"<tr><td><code>{esc(e['id'])}</code></td><td>{esc(e['board'])}"
         f"{'/' + esc(e['half']) if e.get('half') else ''}</td><td>{esc(e['kind'])}</td>"
-        f"<td>{esc(e['label'])}{_fillers(e, lab)}</td>"
+        f"<td>{esc(e['label'])}{_fillers(e, lab)}{_pace(e, lang)}</td>"
         f"<td><code>{esc(', '.join(e.get('cites', [])))}</code></td></tr>"
         for e in data["elements"]
     )
@@ -107,7 +123,7 @@ def render_html(
         [
             [
                 f"<b>{esc(o['id'])}</b>",
-                esc(o["object"]),
+                esc(o["object"]) + _continuum(o, lang),
                 f"<code>{esc(', '.join(o['valid_for']))}</code>",
                 f"<code>{esc(o.get('cooperation', ''))}</code>",
                 esc(o.get("test", "")),

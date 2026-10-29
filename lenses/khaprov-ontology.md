@@ -1,24 +1,26 @@
 ---
 id: khaprov-ontology
 title: Three scales, the ontology test and managing not-knowing
-version: 0.1.0
-source: "Khaprov, expert lecture on the entrepreneur as organizer of complexity, program day 4, read through a local digest of the automatic transcript and the Q&A file (digest sections 2.4, 3, 4 items 3-4 and 11, Q&A 6, 8 and 9; the digest is not in the repo); reconciliation of the test with the classic method: docs/method/reconciliation.md section 2 (GP1981)"
+version: 0.2.0
+source:
+  - "Khaprov, expert lecture on the entrepreneur as organizer of complexity, program day 4, read through a local digest of the automatic transcript and the Q&A file (digest sections 2.4, 3, 4 items 3-4 and 11, Q&A 6, 8 and 9; the digest is not in the repo); reconciliation of the test with the classic method: docs/method/reconciliation.md section 2 (GP1981)"
+  - "Khaprov, podcast on ontology, his Telegram channel, 28.10.2026 (https://t.me/sergeykhaprov/339), read through its automatic transcript (202 lines; the transcript is not in the repo); l.N = line N of that transcript"
 route: smd
 offered_by: [small-situation, visionary-tract, positional-construction, problematization, qualification-pass]
 ---
 
 # Khaprov: scales, ontology test, not-knowing
 
-A lens for the step "view of oneself" and for the ontology records of a case. It asks at which scale the group works and which scale its target needs, what the group says it makes and what competes with it, and what the group does not know. Output goes to the `ontology` list of the record (fields `object`, `valid_for`, `subjects`, `competes`, `test`) and to a few elements.
+A lens for the step "view of oneself" and for the ontology records of a case. It asks at which scale the group works and which scale its target needs, what the group says it makes and what competes with it, and what the group does not know. Since 0.2.0 it also asks in what space and time the system is to live, from the podcast: which systems and coming events it must fit into, at which tempos, and for how long the picture holds. Output goes to the `ontology` list of the record (fields `object`, `valid_for`, `subjects`, `competes`, `test`, `lives_in`, `tempos`, `horizon`, `covers`), to the element field `pace` and to a few elements.
 
-Terms are Khaprov's, from a lecture heard through an automatic transcript. Items marked **[unverified]** must be checked against the recording or slides before being quoted.
+Terms are Khaprov's, from a lecture and a podcast, both read through automatic transcripts. Items marked **[unverified]** must be checked against the recording or slides before being quoted.
 
 ## When to use
 
 - At step 5, "view of oneself", of `visionary-tract`, as the grain options of the `rescale` move (questions 1-4).
-- In `positional-construction` section 5, when two or more positions describe one object differently and the group wants one record of what is built and for whom (questions 5-11). The procedure already names the ontology test for `competes`.
+- In `positional-construction` section 5, when two or more positions describe one object differently and the group wants one record of what is built and for whom (questions 5-11). The procedure already names the ontology test for `competes`. Questions 16-21 follow when the picture is meant to hold for a period, or when the case buys or takes over objects (equipment, software, a firm).
 - In `small-situation` section 2, only question 1 (the scale the group works at), and only if the human is unsure of it. The answer goes into the label of the fragment element; the procedure writes no other element from this lens.
-- In `problematization` section 2, questions 12-14, when a difficulty may be a wrongly posed problem. The output is a thesis, not new board elements.
+- In `problematization` section 2, questions 12-14, when a difficulty may be a wrongly posed problem; question 18 when the group keeps rearranging objects and nothing changes. The output is a thesis, not new board elements.
 - In `qualification-pass`, as questions behind a K, with no elements written: criterion C7 (scale and the reason for the concept) takes questions 1-4; the realizability row takes questions 9-11. The K text names the lens id.
 - When the group says "our competitors" without saying what competes.
 - Do not use it to decide which ontology is true. The engine's reading, from the classic method, is that a picture is checked for realizability in activity, not for truth (docs/method/reconciliation.md section 2). Khaprov's own position is stronger: a wrong ontology is fatal. Reading "fatal" as "fails the realizability test" reconciles them, but that is the engine's reading **(own extrapolation)**; Khaprov does not say it.
@@ -54,6 +56,15 @@ Terms are Khaprov's, from a lecture heard through an automatic transcript. Items
 
 **Managing not-knowing (управление незнанием).** A stage zero before knowledge management: "Do I have knowledge of all the levels of complexity I need? Maybe I formulate the problem wrongly?" The source says ontology-level thinking is hard for adults to learn, suggests a bridge through technical and mathematical language, and mentions AI simulators in which a founder loads projects, staff and tasks and gets variants of decisions. It gives no further method.
 
+**Podcast: the space-time continuum (пространственно-временной континуум).** Points the podcast makes, by transcript line:
+- ontology is the seventh, top level of his complexity pyramid, made a tool of management rather than of philosophy (l.168, 180-182);
+- one level of an ontology is "the space-time continuum in which the system will live" (l.172); an ontology covers the space and the continuum "of its exhaustion" (l.158-161, a garbled passage) **[unverified]**;
+- the education example (l.154-166): a firm's life cycle fell from 100-200 to 30 years, technologies live about 15 years, business models built on them change 80% in 5 years; yet a course takes years to write and approve, five years to teach, and is planned for 11 cycles, as if the technology lived 60-90 years. His verdict: the continuum no longer fits; "however you rearrange the objects, nothing will change" (l.158); what must change is the continuum. The figures are from the automatic transcript **[unverified]**;
+- an ontology must be fitted into the ontologies of other systems and of coming events: the iPhone fitted its ontology into that of coming events (l.64); aircraft built by the thousand must fit airports and the rest (l.70); the ontology of one object is a building block for the next level (l.92);
+- the cost of an ontology error: decisions worth tens of billions to trillions of dollars (l.14-16, 24); an error costs hundreds of millions times thousands of person-hours, "when you make something and it is not needed" (l.170); the typical error is buying objects into an old ontology: imported numerically controlled machines of the 1970s stood in their crates because nobody held the ontology of programmed machining (l.26-34); people defend themselves by the industrial ontology while fraudsters live in the networked one (l.50-56);
+- an ontology "decides 100% of uncertainty": the world will be this way, so investment, retraining and suppliers move together (l.48);
+- horizontal specialization (l.100-148): firms that held thinking, communication and activity in one vertical gave way to platforms (App Store, Google Play, Amazon) that take the communication layer (payments, deal tracking, logistics) for hundreds of millions of people, and technoparks below that produce to order; the platform passes the risk of guessing a product's ontology to many developers (l.126-130). He reads Gosplan and Gossnab as such platforms, Soviet enterprises as technoparks (l.144-148).
+
 ## Questions
 
 Scale (view of oneself):
@@ -77,6 +88,14 @@ Not-knowing (stage zero):
 14. Which ontology is the group acting in without having named it? Is any management system or tool in the case taken from another picture?
 15. What is the next step that reduces not-knowing the most, and who takes it?
 
+Continuum (from the podcast; the wording is the engine's **(own extrapolation)**):
+16. What world does the system live in? Name the systems, infrastructures and coming events it must fit into. Which of them are already on the boards?
+17. Which tempos does the picture assume? How long do the technologies, business models, tiers or rules it rests on last, and how long is the system's own cycle (to build, launch and pay back)?
+18. For how many years should the picture hold? Is any tempo from 17 shorter? If so, does the group rearrange objects, or change the continuum, and which would the next tempo change undo?
+19. Which objects (equipment, software, staff, a firm) does the case buy or take over? Does the picture they need exist in the case, and who would run them in it?
+20. What would an error in this picture cost: money, person-hours, a lost market window or generation? Who bears it?
+21. Which layer would a platform take here: communication (sales, payments, logistics, deal tracking), production, or none? What stays the group's own, and under whose rules?
+
 ## Output slots
 
 Every element, thesis, hypothesis and ontology record it produces carries `lens: khaprov-ontology`; `smd compare` reads all four. The table applies where the procedure writes elements (`visionary-tract`, `positional-construction`). In `small-situation`, `problematization` and `qualification-pass` see "When to use".
@@ -96,8 +115,27 @@ Every element, thesis, hypothesis and ontology record it produces carries `lens:
 | Not-knowing (Q12, Q13) | thesis with `kind: question` or `problem`, `belt: m`, `lens: khaprov-ontology`; the hypothesis behind it, if testable, as an `H` |
 | What is not known and where (Q12, Q14) | `gap` with `of` set; or `note` with `epistemic: unverified` when no scheme block fits |
 | The next step against not-knowing (Q15) | `goal` on `od`, `seen_from` the position that takes it |
+| What the system lives in and must fit into (Q16) | `ontology.lives_in`: `{id: <element>}` for what is on the boards (a big `situation`, a `place_for_others`, a `position`), `{text: "..."}` for the rest |
+| Tempos (Q17) | `ontology.tempos`: `{id: <element>, years}` or `{text: "...", years}`; on an element that stands for the changing thing (a tier, a technology), also `pace` in years |
+| Horizon (Q18) | `ontology.horizon` in years; `ontology.covers` for elements the picture covers besides those `lives_in` names. The hint `ontology-outlives-pace` then names every pace (of the elements in `lives_in` and `covers`) or tempo shorter than the horizon |
+| Rearranging objects instead of changing the continuum (Q18) | thesis `kind: problem`, `belt: m`, `lens: khaprov-ontology` |
+| An object without its picture (Q19) | `gap` with `of: method` (no one knows how to run it) or `of: position` (no one to run it); a hypothesis `H` if the group can test whether the object is used |
+| Cost of an error (Q20) | `ontology.note`; a figure with no source goes into a `note` on `oo` with `epistemic: unverified` |
+| The platform's layer (Q21) | `place_for_others` on `od` for the platform, with `fillers`; the `function` it takes, `performed_by` that place; the place in `ontology.lives_in` as `{id: <place>}` |
 
-Example for the invented bakeries case (`cases/example/`): the record `O1` there has object "shared production as an asset owned by the bakeries that use it", `valid_for` the owner and the organiser, one subject per position, a cooperation element, a `competes` statement and the test `H1`. Use it as the shape of a finished record.
+Example for the invented bakeries case (`cases/example/`): the record `O1` there has object "shared production as an asset owned by the bakeries that use it", `valid_for` the owner and the organiser, one subject per position, a cooperation element, a `competes` statement and the test `H1`. Use it as the shape of a finished record. With the continuum it might read (invented figures):
+
+```yaml
+  - {id: fn-logistics, board: oo, kind: function, label: "night logistics, run by the plant", pace: 5}
+ontology:
+  - id: O1
+    lives_in: [{id: s-big}, {text: "Региональные сети и мельницы"}]
+    tempos: [{text: "delivery business models", years: 5}]
+    horizon: 10
+    covers: [fn-dough, fn-logistics]
+```
+
+`smd validate --hints` then gives two hints on `O1`: `fn-logistics` and the delivery business models change every 5 years, before the 10-year horizon.
 
 ## Limits
 
@@ -108,3 +146,7 @@ Example for the invented bakeries case (`cases/example/`): the record `O1` there
 - Scale is read from the evidence the group brings. The lens gives no thresholds.
 - Managing not-knowing is a title and a first question in the source, not a method. The questions in the third group above are the engine's way of using it **(own extrapolation)**.
 - Figures and company data in the lecture come from an automatic transcript and are not to be quoted without the recording.
+- The podcast gives no method for naming tempos or setting a horizon. The fields `lives_in`, `tempos`, `horizon`, `covers` and `pace`, and the rule of the hint (a pace or tempo shorter than the horizon), are the engine's reading of "the continuum is exhausted" **(own extrapolation)**.
+- "An ontology decides 100% of uncertainty" (l.48) is the podcast's claim. The engine still records a picture as valid for positions and tested for realizability, and reads the claim as a projective decision, not a forecast **(own extrapolation)**.
+- Horizontal specialization is given through examples. Mapping a platform to a `place_for_others` that performs a function is the engine's reading **(own extrapolation)**.
+- Names and figures of the podcast come from an automatic transcript and are not to be quoted without the recording.

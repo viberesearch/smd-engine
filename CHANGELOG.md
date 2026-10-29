@@ -2,6 +2,17 @@
 
 Dates are those of the tag. All tags v0.2.1 to v0.3.5 were made on 2026-10-29. The version in `pyproject.toml` stayed at 0.2.0 through v0.2.4 and at 0.3.0 from v0.3.0 to v0.3.5; 0.3.6 is the first release whose package version equals its tag.
 
+## 0.5.3 - 2026-10-29
+
+The space-time continuum of an ontology (Khaprov, podcast on ontology, 28.10.2026; gate Х1, option В). Schema 0.3 stays: every new field is optional, and records without them give the same output.
+
+- Ontology records take `lives_in` (what the system lives in and must fit into: entries `{id: <element id>}` or `{text: "..."}`, no entry twice), `tempos` (`{id, years}` or `{text, years}`), `horizon` (years the picture is expected to hold) and `covers` (element ids, no id twice). Every `id` entry and every id in `covers` must be an element of the record (error). The entries are explicit: an earlier draft of this change told an id from a text by its shape.
+- Elements take `pace`: years, the characteristic period of change of what the element stands for.
+- Hint `ontology-outlives-pace`, enabled in the three shipped profiles: an ontology with a `horizon` longer than the `pace` of an element in `lives_in` or `covers` (`covers` adds to `lives_in`) or than a `tempos` entry; the continuum is exhausted before the horizon. The message cites the transcript of 202 lines (l.154-172), which now opens with three header lines (link, date, blank line); every podcast citation in the lens moved by three lines.
+- `smd apply` sets the fields by id; a removed element leaves `covers` and the `{id}` entries of `lives_in` and `tempos`. `smd revise` carries them. The Markdown digest and `smd index` show `lives_in`, `tempos` and `horizon`; `smd compare` adds a section `ontology: continuum` when a record has them.
+- `smd graph`, `smd vault` and `smd render --format html` show `lives_in`, `tempos`, `horizon` and `covers` where they show `competes` and `test`, and an element's `pace` with its other fields (the Markdown digest and `smd index` too; `covers` is now also shown there). The graph draws `covers` and the element ids of `lives_in` as links `covers` and `lives_in` (grey: `graph.js` is unchanged, so pages without them stay byte for byte the same), and lists them as link kinds only when a record has them. `smd frames` does not show `pace`, which would need a change to `frames.js`. Russian pages and digests label the four fields in Russian (`covers` as «охватывает») and write years with their plural (1 год, 2 года, 5 лет).
+- Lens `khaprov-ontology` 0.2.0: the podcast as a second source; questions 16-21 on what the system fits into, its tempos and horizon, objects bought into an old picture, the cost of an error and a platform's layer, with their output slots.
+
 ## 0.5.2 - 2026-10-29
 
 - The public export leaves out `tests/test_export_public.py`, which tests the maintainer tool that the export also leaves out; 0.5.1 was not released publicly for this reason.

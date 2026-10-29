@@ -60,6 +60,7 @@ hints:
   - problems
   - belts
   - ontology
+  - ontology-outlives-pace
   - difficulty
   - revise-if
   - ai-drafts

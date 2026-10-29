@@ -11,7 +11,7 @@ One Markdown file per lens, `lenses/<id>.md`. The checks are in `tests/test_lens
 | `id` | the file name without `.md`, lowercase-hyphen; the value of `lens:` on elements and theses |
 | `title` | one line |
 | `version` | semver; bump on any change of the questions or the output slots |
-| `source` | who and where: lecture or slides, or the primary-text keys of `docs/method/sources.md` |
+| `source` | who and where: lecture or slides, or the primary-text keys of `docs/method/sources.md`; a list when the lens has more than one source |
 | `route` | `smd`, `triz` or `both`: the way of thinking the lens belongs to (`docs/method/reconciliation.md` section 8) |
 | `offered_by` | procedure ids that offer the lens; must agree with the selection table below |
 
@@ -38,7 +38,7 @@ Elements, theses, hypotheses and ontology records carry `lens: <id>`; `smd compa
 | Lens | Route | Source | What it asks |
 |---|---|---|---|
 | `khaprov-levels` | smd | Khaprov, lecture | at which of seven levels of management complexity a problem is decided; the three kinds of complexity |
-| `khaprov-ontology` | smd | Khaprov, lecture; GP1981 | three scales; the ontology test; managing not-knowing |
+| `khaprov-ontology` | smd | Khaprov, lecture and podcast; GP1981 | three scales; the ontology test; managing not-knowing; the space-time continuum: what the system fits into, its tempos and horizon, objects bought into an old picture, a platform's layer |
 | `schukin-boundaries` | smd | Schukin, written talk | five grounds of a cut between functions; four families of change; capability probes |
 | `schukin-interface-tax` | smd | Schukin, written talk | the function of each human touchpoint; achievement and balancing metrics; the engine's own sign-offs |
 | `fliamer-diamond` | smd | Fliamer, module-1 slides | complexes of the big situation: functions, products, consumption, new technical solutions |
@@ -63,7 +63,7 @@ Rows are procedure and step. "Q" is the question number in the lens file. Where 
 | `positional-construction` | 2 Positional set | `khaprov-levels` | Q1-Q3, Q10 | Asks whether a position acts at the level its task needs, and whether the missing one is a gap or missing knowledge |
 | `positional-construction` | 2 Positional set, 4 Representations | `three-positions` | Q1, Q2, Q5, Q6 | A position that draws the structure it works inside draws a condition, not an object (GP-Guide11 ¶36); `stance` on the positions |
 | `positional-construction` | 3 The construction | `design-chain` | Q1-Q5, Q9 | The `flow` relations label what passes, from whom, to whom; the chain asks what stays behind |
-| `positional-construction` | 5 One common object | `khaprov-ontology` | Q5-Q11 | The ontology record's `subjects`, `valid_for`, `competes`, `cooperation` and `test` |
+| `positional-construction` | 5 One common object | `khaprov-ontology` | Q5-Q11, Q16-Q21 | The ontology record's `subjects`, `valid_for`, `competes`, `cooperation` and `test`; when the picture is to hold for a period, `lives_in`, `tempos`, `horizon` and `covers` |
 | `functional-plan` | 2 Draft the chain, 5 Align | `fliamer-diamond` | Q3-Q5 | Functions in a chain, products, consumers; material on how the chain is arranged elsewhere |
 | `functional-plan` | 3 Performs, pays, receives | `design-chain` | Q6, Q9 | Instruments with performer and payer; empty links of the chain |
 | `functional-plan` | 4 Empty places | `khaprov-levels` | Q2, Q3 | A function with no performer: is the performer missing at a higher or lower level, or is knowledge missing |
@@ -72,7 +72,7 @@ Rows are procedure and step. "Q" is the question number in the lens file. Where 
 | `functional-plan` | 6 | `triz-contradictions` | Q0 first | Only when one function carries two opposed demands; Q0 sends a paradox between positions back to the SMD route |
 | `functional-plan` | 7 Hypotheses | `schukin-boundaries` | Q9-Q13 | Capability probes are ready-made hypotheses `assumes`, `action`, `observe`, `revise_if` |
 | `functional-plan` | 9 Hand over | `schukin-interface-tax` | Q11 | As above |
-| `problematization` | 2 Sort what is on the table | `khaprov-ontology` | Q12-Q14 | A difficulty may be a wrongly posed problem; output is a thesis |
+| `problematization` | 2 Sort what is on the table | `khaprov-ontology` | Q12-Q14, Q18 | A difficulty may be a wrongly posed problem, or objects rearranged where the continuum must change; output is a thesis |
 | `problematization` | 6 Pointer to the other route | `triz-contradictions` | all | The procedure flags a contradiction inside the object and writes no TRIZ terms; the lens is a separate pass |
 | `qualification-pass` | 3.1 C7, 3.3 realizability | `khaprov-ontology` | Q1-Q4, Q9-Q11 | Questions only: the scale and the stated reason; the test and the cooperation. No elements |
 | `qualification-pass` | 6 Hand over | `schukin-interface-tax` | Q11 | As above |

@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Any
 
 from smd_engine.validate.context import Ctx, Finding, hint, is_ai
+from smd_engine.render.text import years_text
 
 # Kinds by id are those every profile defines (profile.REQUIRED_KINDS; `entry`
 # and `goal` when the profile enables the hint that needs them, HINT_KINDS);
@@ -207,6 +208,47 @@ def hint_ontology(ctx: Ctx) -> list[Finding]:
                     o["id"],
                     "one object for several positions exists only as a construction "
                     "of their cooperation: none named",
+                )
+            )
+    return out
+
+
+@hint("ontology-outlives-pace")
+def hint_ontology_outlives_pace(ctx: Ctx) -> list[Finding]:
+    """An ontology expected to hold longer than what it covers keeps its pace:
+    the space-time continuum is exhausted before the horizon (Khaprov,
+    podcast 28.10.2026, l.154-172). Covered elements are the element ids of
+    `lives_in` and, added to them, those of `covers`; `tempos` count too."""
+    out: list[Finding] = []
+    for o in ctx.record.get("ontology", []):
+        horizon = o.get("horizon")
+        if horizon is None:
+            continue
+        ids = [x["id"] for x in o.get("lives_in", []) if "id" in x]
+        ids += [i for i in o.get("covers", []) if i not in ids]
+        faster = [
+            (f"'{i}'", ctx.by_id[i]["pace"])
+            for i in ids
+            if "pace" in ctx.by_id.get(i, {})
+        ]
+        faster += [
+            (f"'{t['id'] if 'id' in t else t['text']}'", t["years"])
+            for t in o.get("tempos", [])
+        ]
+        seen: set[tuple[str, float]] = set()
+        for what, years in faster:
+            if years >= horizon or (what, years) in seen:
+                continue
+            seen.add((what, years))
+            out.append(
+                Finding(
+                    "hint",
+                    o["id"],
+                    "the ontology is expected to hold "
+                    f"{years_text(horizon, 'en')}, but {what} changes every "
+                    f"{years_text(years, 'en')}: the continuum is "
+                    "exhausted before the horizon "
+                    "(Khaprov, podcast 28.10.2026, l.154-172)",
                 )
             )
     return out

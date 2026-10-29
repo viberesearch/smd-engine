@@ -3,7 +3,18 @@ for realizability in activity rather than for truth (GP1981)."""
 
 from __future__ import annotations
 
+from typing import Any
+
 from smd_engine.validate.context import Ctx, Finding, board_set, cite_findings
+
+
+def continuum_ids(o: dict[str, Any]) -> list[tuple[str, str]]:
+    """(field, element id) for every id entry of the continuum fields:
+    `lives_in`, `covers` and `tempos` (Khaprov, podcast 28.10.2026)."""
+    out = [("lives_in", x["id"]) for x in o.get("lives_in", []) if "id" in x]
+    out += [("covers", v) for v in o.get("covers", [])]
+    out += [("tempos", t["id"]) for t in o.get("tempos", []) if "id" in t]
+    return out
 
 
 @board_set
@@ -39,5 +50,14 @@ def check_ontology(ctx: Ctx) -> list[Finding]:
             out.append(Finding("error", oid, f"'{coop}' is not a cooperation element"))
         if "test" in o and o["test"] not in ctx.hyps:
             out.append(Finding("error", oid, f"test '{o['test']}' is not a hypothesis"))
+        for field, ref in continuum_ids(o):
+            if ref not in by_id:
+                out.append(
+                    Finding(
+                        "error",
+                        oid,
+                        f"{field} '{ref}' is not an element",
+                    )
+                )
         out += cite_findings(o.get("cites", []), oid, ctx.source_ids)
     return out

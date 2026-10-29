@@ -16,7 +16,13 @@ from smd_engine.profile import Profile, profile_of
 from smd_engine.render import asset_text
 from smd_engine.render.graph_ui import UI
 from smd_engine.render.layout import plan, region_of
-from smd_engine.render.text import cut, esc, screen_label
+from smd_engine.render.text import (
+    continuum_parts,
+    cut,
+    esc,
+    screen_label,
+    pace_text,
+)
 
 SPAN = 1000.0  # width of a board plane in graph units
 LAYER = 260.0  # distance between planes
@@ -74,6 +80,12 @@ EDGE_KINDS: dict[str, dict[str, str]] = {
         "tested_by": "tested by hypothesis",
         "cites": "source",
     },
+}
+# Links of an ontology record's continuum, listed in edge_kinds only when a
+# record draws them, so a record without them gives the same page.
+CONTINUUM_EDGE_KINDS: dict[str, dict[str, str]] = {
+    "ru": {"lives_in": "живёт в", "covers": "охватывает"},
+    "en": {"lives_in": "lives in", "covers": "covers"},
 }
 # Kinds shown by the "flows and shifts" view.
 FLOW_KINDS = ["flow", "shift", "opposes", "produces", "uses", "transition"]
@@ -185,6 +197,8 @@ def graph_model(
                 "z": z,
             }
         )
+        if "pace" in e:
+            nodes[-1]["extra"] = {"pace": pace_text(e, lang)}
         for parent in e.get("in", []):
             if parent in by_id:
                 edge(e["id"], parent, "in")
@@ -237,6 +251,8 @@ def graph_model(
             for key in ("action", "observe", "revise_if", "competes", "test")
             if rec.get(key)
         }
+        if group == "ontology":
+            extra |= continuum_parts(rec, lang)
         nodes.append(
             {
                 "id": rec["id"],
@@ -263,6 +279,12 @@ def graph_model(
                 edge(rec["id"], rec["cooperation"], "cooperation")
             if rec.get("test"):
                 edge(rec["id"], rec["test"], "tested_by")
+            for entry in rec.get("lives_in", []):
+                if entry.get("id") in by_id:
+                    edge(rec["id"], entry["id"], "lives_in")
+            for ref in rec.get("covers", []):
+                if ref in by_id:
+                    edge(rec["id"], ref, "covers")
 
     # Sources below the boards, under the items that cite them.
     titles = {s["id"]: s for s in (manifest or {}).get("sources", [])}
@@ -300,6 +322,7 @@ def graph_model(
 
     present = {node["id"] for node in nodes}
     edges = [e for e in edges if e["s"] in present and e["t"] in present]
+    drawn = {e["k"] for e in edges}
     return {
         "title": data.get("title", data.get("id", "")),
         "id": data.get("id", ""),
@@ -311,6 +334,7 @@ def graph_model(
         "board_colours": {b: profile.board(b).colour[1] for b in boards},
         # the engine's link kinds, then the relation kinds the profile labels
         "edge_kinds": EDGE_KINDS[lang]
+        | {k: v for k, v in CONTINUUM_EDGE_KINDS[lang].items() if k in drawn}
         | {k: label[lang] for k, label in profile.relation_labels.items()},
         "flow_kinds": FLOW_KINDS,
         "nodes": nodes,

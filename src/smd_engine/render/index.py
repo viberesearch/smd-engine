@@ -17,7 +17,13 @@ from typing import Any
 from urllib.parse import quote
 
 from smd_engine.profile import profile_of
-from smd_engine.render.text import LABELS, esc, title_line
+from smd_engine.render.text import (
+    LABELS,
+    continuum_lines,
+    esc,
+    pace_text,
+    title_line,
+)
 
 CSS = """body{font:14px/1.45 -apple-system,Helvetica,Arial,sans-serif;margin:0;color:#1d2433;background:#fff}
 header{position:sticky;top:0;background:#fff;border-bottom:1px solid #ddd;padding:10px 16px;z-index:1}
@@ -151,6 +157,12 @@ class _Index:
     def _refs(self, items: list[str | None] | None) -> str:
         return ", ".join(f'<a href="#{esc(x)}">{esc(x)}</a>' for x in items or [] if x)
 
+    def _continuum(self, o: dict[str, Any]) -> str:
+        """Lives in, tempos, horizon and covers of an ontology record, under its
+        object; empty when it has none of them."""
+        lines = continuum_lines(o, self.lang)
+        return f"<br><small>{esc('; '.join(lines))}</small>" if lines else ""
+
     def _where(self, sid: str) -> str:
         source = self.sources.get(sid)
         if source is None:
@@ -228,7 +240,7 @@ class _Index:
         ontology = [
             [
                 anchor(o["id"]),
-                e(o["object"]),
+                e(o["object"]) + self._continuum(o),
                 refs(o.get("valid_for")),
                 refs([o.get("cooperation")]) + " · " + refs([o.get("test")]),
                 e(o.get("note", "")),
@@ -259,6 +271,11 @@ class _Index:
                 + (
                     f"<br><small>{e(x['label_note'])}</small>"
                     if x.get("label_note")
+                    else ""
+                )
+                + (
+                    f"<br><small>{e(pace_text(x, self.lang))}</small>"
+                    if "pace" in x
                     else ""
                 ),
                 e(", ".join(x.get("fillers", []))),

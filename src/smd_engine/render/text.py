@@ -28,6 +28,7 @@ LABELS: dict[str, dict[str, Any]] = {
         "moves": "Структурные ходы",
         "more": "ещё на доске",
         "fillers": "кто может занять",
+        "pace": "меняется за",
         "details": "Таблицы элементов",
         "relations": "Связи",
         "elements": "Элементы",
@@ -104,6 +105,12 @@ LABELS: dict[str, dict[str, Any]] = {
                 "источники",
             ],
             "src_title": "Источники, на которые ссылается запись",
+            "continuum": {
+                "lives_in": "живёт в",
+                "tempos": "темпы",
+                "horizon": "горизонт",
+                "covers": "охватывает",
+            },
             "src_columns": ["id", "название", "где лежит"],
         },
         # SessionFlow frame 03, the six labels verbatim.
@@ -143,6 +150,7 @@ LABELS: dict[str, dict[str, Any]] = {
         "moves": "Structural moves",
         "more": "more on this board",
         "fillers": "who can occupy",
+        "pace": "changes every",
         "details": "Element tables",
         "relations": "Relations",
         "elements": "Elements",
@@ -212,6 +220,12 @@ LABELS: dict[str, dict[str, Any]] = {
             ],
             "b_columns": ["id", "template", "board", "seen from", "unfolds", "cites"],
             "src_title": "Sources the record cites",
+            "continuum": {
+                "lives_in": "lives in",
+                "tempos": "tempos",
+                "horizon": "horizon",
+                "covers": "covers",
+            },
             "src_columns": ["id", "title", "where it is"],
         },
         "thesis_status": {
@@ -297,3 +311,57 @@ def wrap(text: str, max_width: float, size: float) -> list[str]:
 
 def esc(text: str) -> str:
     return escape(text, {'"': "&quot;"})
+
+
+CONTINUUM = ("lives_in", "tempos", "horizon", "covers")
+
+
+def years_text(n: float, lang: str) -> str:
+    """A number of years with the word in its form: in Russian 1 год, 2 года,
+    5 лет, 21 год, 2.5 года; in English 1 year, 5 years."""
+    if lang != "ru":
+        return f"{n:g} {'year' if n == 1 else 'years'}"
+    if n != int(n):
+        return f"{n:g} года"
+    k = int(n)
+    if k % 10 == 1 and k % 100 != 11:
+        return f"{k} год"
+    if 2 <= k % 10 <= 4 and not 12 <= k % 100 <= 14:
+        return f"{k} года"
+    return f"{k} лет"
+
+
+def _ref(entry: dict[str, Any]) -> str:
+    """An entry of `lives_in` or `tempos`: its element id, else its text."""
+    return str(entry["id"] if "id" in entry else entry["text"])
+
+
+def continuum_parts(o: dict[str, Any], lang: str = "en") -> dict[str, str]:
+    """The continuum fields of an ontology record as plain text, by field:
+    `lives_in` and `covers` joined by commas, `tempos` as "<what> <n years>",
+    `horizon` as "<n years>"; fields the record lacks are left out."""
+    out: dict[str, str] = {}
+    if o.get("lives_in"):
+        out["lives_in"] = ", ".join(_ref(x) for x in o["lives_in"])
+    if o.get("tempos"):
+        out["tempos"] = ", ".join(
+            f"{_ref(t)} {years_text(t['years'], lang)}" for t in o["tempos"]
+        )
+    if "horizon" in o:
+        out["horizon"] = years_text(o["horizon"], lang)
+    if o.get("covers"):
+        out["covers"] = ", ".join(o["covers"])
+    return out
+
+
+def continuum_lines(o: dict[str, Any], lang: str) -> list[str]:
+    """The continuum fields as "<label>: <text>", labels in the language."""
+    words = LABELS[lang]["index"]["continuum"]
+    return [f"{words[k]}: {v}" for k, v in continuum_parts(o, lang).items()]
+
+
+def pace_text(el: dict[str, Any], lang: str) -> str:
+    """An element's `pace` as "<label> <n years>", empty without it."""
+    if "pace" not in el:
+        return ""
+    return f"{LABELS[lang]['pace']} {years_text(el['pace'], lang)}"

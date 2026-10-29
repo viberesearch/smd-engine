@@ -5,7 +5,12 @@ from __future__ import annotations
 from typing import Any
 
 from smd_engine.profile import profile_of
-from smd_engine.render.text import LABELS, MOVE_NAMES
+from smd_engine.render.text import (
+    LABELS,
+    MOVE_NAMES,
+    continuum_lines,
+    years_text,
+)
 
 
 def _line(el: dict[str, Any]) -> str:
@@ -16,6 +21,8 @@ def _line(el: dict[str, Any]) -> str:
         bits.append("in " + ", ".join(f"`{i}`" for i in el["in"]))
     if el.get("fillers"):
         bits.append("fillers: " + ", ".join(el["fillers"]))
+    if "pace" in el:
+        bits.append(f"pace: {years_text(el['pace'], 'en')}")
     if el.get("seen_from"):
         bits.append(f"seen from `{el['seen_from']}`")
     if el.get("epistemic"):
@@ -148,6 +155,7 @@ def render_markdown(data: dict[str, Any], lang: str = "ru") -> str:
                 out.append(f"  - `{sub['position']}`: {sub['subject']}")
             if o.get("competes"):
                 out.append(f"  - competes: {o['competes']}")
+            out += [f"  - {line}" for line in continuum_lines(o, lang)]
         out.append("")
     if data.get("signoffs"):
         out += [f"## {lab['signoffs']}", ""]

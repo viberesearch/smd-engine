@@ -20,6 +20,7 @@ from difflib import SequenceMatcher
 from typing import Any
 
 from smd_engine.profile import ProfileError, profile_of
+from smd_engine.render.text import CONTINUUM, continuum_parts
 
 MATCH = 0.55  # below this, two labels are not the same element
 SAME = 0.85  # at or above this, two labels say the same thing
@@ -217,6 +218,29 @@ def compare_boards(a: dict[str, Any], b: dict[str, Any]) -> list[str]:
     return out
 
 
+def compare_continuum(a: dict[str, Any], b: dict[str, Any]) -> list[str]:
+    """Ontology records matched by id, with `lives_in`, `tempos`, `horizon`
+    and `covers` in A and in B: one line each for a record that has any of
+    them on either side. Empty when no ontology record of either has them."""
+    in_a = {o["id"]: o for o in a.get("ontology", [])}
+    in_b = {o["id"]: o for o in b.get("ontology", [])}
+    out = []
+    for oid in [*in_a, *(i for i in in_b if i not in in_a)]:
+        x, y = in_a.get(oid), in_b.get(oid)
+        px, py = continuum_parts(x or {}), continuum_parts(y or {})
+        if not (px or py):
+            continue
+        side = "both" if x and y else "only A" if x else "only B"
+        line = f"- {side} `{oid}` {(y or x or {})['object']}"
+        for key in CONTINUUM:
+            if x and y and (key in px or key in py):
+                line += f"; {key} {px.get(key, '-')} / {py.get(key, '-')}"
+            elif key in px or key in py:
+                line += f"; {key} {px.get(key) or py.get(key)}"
+        out.append(line)
+    return out
+
+
 def lenses(record: dict[str, Any]) -> set[str]:
     """Lenses a board set used, read from elements, theses, hypotheses, ontology."""
     items = (
@@ -265,6 +289,9 @@ def report(a: dict[str, Any], b: dict[str, Any]) -> str:
     boards = compare_boards(a, b)
     if boards:
         out += ["## boards", ""] + boards + [""]
+    continuum = compare_continuum(a, b)
+    if continuum:
+        out += ["## ontology: continuum", ""] + continuum + [""]
     lenses_a, lenses_b = lenses(a), lenses(b)
     if lenses_a | lenses_b:
         out += [

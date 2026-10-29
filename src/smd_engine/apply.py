@@ -30,6 +30,7 @@ OPTIONAL_LISTS = (
     "raises",
     "qualifications",
     "arises_from",
+    "covers",
 )
 # ...lists the schema requires to be non-empty, left empty for the validator to
 # report, so that a removal never deletes a decision silently...
@@ -276,6 +277,16 @@ def _unlink(item: dict[str, Any], gone: set[str]) -> None:
         ]
         if not item["subjects"]:
             del item["subjects"]
+    # Entries of an ontology's continuum that name the item by id.
+    for key in ("lives_in", "tempos"):
+        if isinstance(item.get(key), list):
+            item[key] = [
+                x
+                for x in item[key]
+                if not (isinstance(x, dict) and _gone(x.get("id"), gone))
+            ]
+            if not item[key]:
+                del item[key]
     move = item.get("move")
     if isinstance(move, dict) and isinstance(move.get("from"), list):
         # An empty `from` stays for the validator to report.
