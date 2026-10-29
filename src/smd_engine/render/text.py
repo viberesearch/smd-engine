@@ -29,6 +29,51 @@ LABELS: dict[str, dict[str, Any]] = {
         "more": "ещё на доске",
         "fillers": "кто может занять",
         "pace": "меняется за",
+        # Field names of elements and records, one table for every renderer:
+        # the page, the index and the frames put them before the value, the
+        # graph and the vault before an `extra` entry, the digest on the line.
+        "fields": {
+            "pace": "темп изменения",
+            "vsm_system": "системы (Бир)",
+            "threshold": "порог",
+            "recovery_time": "срок восстановления",
+            "of_whole": "модель целого (Бир)",
+            "acts_as": "занимает место",
+            "stance": "позиция",
+            "lives_in": "живёт в",
+            "tempos": "темпы",
+            "horizon": "горизонт",
+            "covers": "охватывает",
+            "action": "чем проверяем",
+            "observe": "что наблюдаем",
+            "revise_if": "что пересмотрим",
+            "competes": "что с чем конкурирует",
+            "test": "проверяется гипотезой",
+        },
+        "values": {
+            "acts_as": {
+                "organiser": "организатор",
+                "leader": "руководитель",
+                "manager": "управляющий",
+                "politician": "политик",
+                "functionary": "функционер",
+            },
+            "stance": {
+                "inside": "внутренняя",
+                "reflexive": "рефлексивная",
+                "external": "внешняя",
+            },
+        },
+        # words of the Markdown digest's element line
+        "line": {
+            "in": "в",
+            "fillers": "кто может занять",
+            "seen_from": "с позиции",
+            "lineage": "происхождение",
+            "move": "ход",
+            "from": "из",
+            "via": "через",
+        },
         "details": "Таблицы элементов",
         "relations": "Связи",
         "elements": "Элементы",
@@ -105,12 +150,6 @@ LABELS: dict[str, dict[str, Any]] = {
                 "источники",
             ],
             "src_title": "Источники, на которые ссылается запись",
-            "continuum": {
-                "lives_in": "живёт в",
-                "tempos": "темпы",
-                "horizon": "горизонт",
-                "covers": "охватывает",
-            },
             "src_columns": ["id", "название", "где лежит"],
         },
         # SessionFlow frame 03, the six labels verbatim.
@@ -151,6 +190,47 @@ LABELS: dict[str, dict[str, Any]] = {
         "more": "more on this board",
         "fillers": "who can occupy",
         "pace": "changes every",
+        "fields": {
+            "pace": "pace",
+            "vsm_system": "systems (Beer)",
+            "threshold": "threshold",
+            "recovery_time": "recovery time",
+            "of_whole": "model of the whole (Beer)",
+            "acts_as": "acts as",
+            "stance": "stance",
+            "lives_in": "lives in",
+            "tempos": "tempos",
+            "horizon": "horizon",
+            "covers": "covers",
+            "action": "test",
+            "observe": "observe",
+            "revise_if": "revise if",
+            "competes": "competes",
+            "test": "tested by hypothesis",
+        },
+        "values": {
+            "acts_as": {
+                "organiser": "organiser",
+                "leader": "leader",
+                "manager": "manager",
+                "politician": "politician",
+                "functionary": "functionary",
+            },
+            "stance": {
+                "inside": "inside",
+                "reflexive": "reflexive",
+                "external": "external",
+            },
+        },
+        "line": {
+            "in": "in",
+            "fillers": "fillers",
+            "seen_from": "seen from",
+            "lineage": "lineage",
+            "move": "move",
+            "from": "from",
+            "via": "via",
+        },
         "details": "Element tables",
         "relations": "Relations",
         "elements": "Elements",
@@ -220,12 +300,6 @@ LABELS: dict[str, dict[str, Any]] = {
             ],
             "b_columns": ["id", "template", "board", "seen from", "unfolds", "cites"],
             "src_title": "Sources the record cites",
-            "continuum": {
-                "lives_in": "lives in",
-                "tempos": "tempos",
-                "horizon": "horizon",
-                "covers": "covers",
-            },
             "src_columns": ["id", "title", "where it is"],
         },
         "thesis_status": {
@@ -354,10 +428,16 @@ def continuum_parts(o: dict[str, Any], lang: str = "en") -> dict[str, str]:
     return out
 
 
+def field_lines(parts: dict[str, str], lang: str) -> list[str]:
+    """Fields given as plain text by field name, as "<label>: <text>" with the
+    labels of LABELS[lang]["fields"]."""
+    words = LABELS[lang]["fields"]
+    return [f"{words.get(k, k)}: {v}" for k, v in parts.items()]
+
+
 def continuum_lines(o: dict[str, Any], lang: str) -> list[str]:
     """The continuum fields as "<label>: <text>", labels in the language."""
-    words = LABELS[lang]["index"]["continuum"]
-    return [f"{words[k]}: {v}" for k, v in continuum_parts(o, lang).items()]
+    return field_lines(continuum_parts(o, lang), lang)
 
 
 def pace_text(el: dict[str, Any], lang: str) -> str:
@@ -365,3 +445,58 @@ def pace_text(el: dict[str, Any], lang: str) -> str:
     if "pace" not in el:
         return ""
     return f"{LABELS[lang]['pace']} {years_text(el['pace'], lang)}"
+
+
+def days_text(n: float, lang: str) -> str:
+    """A number of days with the word in its form: in Russian 1 день, 2 дня,
+    5 дней, 21 день, 0.5 дня; in English 1 day, 5 days."""
+    if lang != "ru":
+        return f"{n:g} {'day' if n == 1 else 'days'}"
+    if n != int(n):
+        return f"{n:g} дня"
+    k = int(n)
+    if k % 10 == 1 and k % 100 != 11:
+        return f"{k} день"
+    if 2 <= k % 10 <= 4 and not 12 <= k % 100 <= 14:
+        return f"{k} дня"
+    return f"{k} дней"
+
+
+def beer_parts(el: dict[str, Any], lang: str = "en") -> dict[str, str]:
+    """The Beer fields of an element as plain text, by field: `vsm_system`
+    joined by commas, `threshold` as written, `recovery_time` as "<n days>",
+    `of_whole` as yes when true; fields the element lacks are left out."""
+    out: dict[str, str] = {}
+    if el.get("vsm_system"):
+        out["vsm_system"] = ", ".join(str(n) for n in el["vsm_system"])
+    if el.get("threshold"):
+        out["threshold"] = str(el["threshold"])
+    if "recovery_time" in el:
+        out["recovery_time"] = days_text(el["recovery_time"], lang)
+    if el.get("of_whole") is True:
+        out["of_whole"] = "да" if lang == "ru" else "yes"
+    return out
+
+
+def element_parts(el: dict[str, Any], lang: str = "en") -> dict[str, str]:
+    """The fields of an element that the renderers show beside its label, as
+    plain text by field: `pace` as "<n years>", the Beer fields (beer_parts),
+    `acts_as` and `stance` as their words in the language; fields the element
+    lacks are left out."""
+    out: dict[str, str] = {}
+    if "pace" in el:
+        out["pace"] = years_text(el["pace"], lang)
+    out |= beer_parts(el, lang)
+    values = LABELS[lang]["values"]
+    for key in ("acts_as", "stance"):
+        if el.get(key):
+            out[key] = values[key].get(el[key], str(el[key]))
+    return out
+
+
+def element_lines(el: dict[str, Any], lang: str) -> list[str]:
+    """The fields of element_parts but `pace` as "<label>: <text>"; the page,
+    the index and the frames write `pace` by pace_text."""
+    parts = element_parts(el, lang)
+    parts.pop("pace", None)
+    return field_lines(parts, lang)

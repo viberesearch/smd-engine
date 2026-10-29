@@ -107,7 +107,7 @@ function select(id) {
   if (n.url) info.append(el('div', {class: 'meta'}, /^https?:\/\//i.test(n.url)
     ? el('a', {href: n.url, target: '_blank', rel: 'noopener noreferrer'}, n.url) : n.url));
   if (n.note) info.append(el('div', {class: 'note'}, n.note));
-  if (n.extra) for (const [k, v] of Object.entries(n.extra)) info.append(el('div', {class: 'note'}, `${k}: ${v}`));
+  if (n.extra) for (const [k, v] of Object.entries(n.extra)) info.append(el('div', {class: 'note'}, `${M.extra_labels[k] || k}: ${v}`));
   if (n.fillers && n.fillers.length) info.append(el('div', {class: 'meta'}, `${U.fillers}: ${n.fillers.join('; ')}`));
   if (n.detail) {
     const t = el('table');

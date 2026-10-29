@@ -19,6 +19,10 @@ Beer, «Мозг фирмы» (BEER1972, cited by chapter): `single-node-metasys
 `vsm_system` (Beer's systems 1-5) of posts and positions, the kind
 `algedonic_channel` with `threshold` and `recovery_time` (a stakeholder's red
 line is recorded as one), and the relations `escalates` and `captures`.
+Gate Г2 В adds `no-model-of-whole` and `model-of-whole-one-filler`: they read
+the field `of_whole` of models (the firm's model of itself and its
+environment, kept by system 4, Гл. 13) and the relation `uses` from the post
+or position that holds such a model.
 """
 
 from __future__ import annotations
@@ -485,4 +489,98 @@ def hint_absorbed_into_system_1(ctx: Ctx) -> list[Finding]:
                     "исчезает совсем» (BEER1972 Гл. 15)",
                 )
             )
+    return out
+
+
+# Model of the whole (gate Г2 В): a model flagged `of_whole` is the firm's
+# model of itself and its environment, the model Beer's system 4 keeps
+# (BEER1972 Гл. 13). A post or position holds a model when it `uses` it.
+
+
+def _models_of_whole(ctx: Ctx) -> list[dict[str, Any]]:
+    whole = ctx.profile.kinds_where("of_whole")
+    return [e for e in ctx.by_id.values() if e["kind"] in whole and e.get("of_whole")]
+
+
+def _holders(ctx: Ctx, model: str) -> list[str]:
+    """What holds a model: the sources of `uses` relations to it."""
+    return list(
+        dict.fromkeys(r["from"] for r in _rels(ctx, "uses") if r["to"] == model)
+    )
+
+
+@hint("no-model-of-whole", kinds=("post",), relations=("uses", "belongs"))
+def hint_no_model_of_whole(ctx: Ctx) -> list[Finding]:
+    """A post or position filling system 4 that holds no model of the whole,
+    itself or through its place: a position that `belongs` to it, the post it
+    belongs to, or another position of that post."""
+    vsm = ctx.profile.kinds_where("vsm")
+    models = _models_of_whole(ctx)
+    held = [set(_holders(ctx, m["id"])) for m in models]
+    out: list[Finding] = []
+    for e in ctx.by_id.values():
+        if e["kind"] not in vsm or 4 not in e.get("vsm_system", []):
+            continue
+        posts = _posts(ctx, e["id"])
+        place = _belonging(ctx, e["id"]) | posts
+        place |= set().union(*(_belonging(ctx, p) for p in posts))
+        if any(holders & place for holders in held):
+            continue
+        missing = (
+            "neither it nor a position or post of its place uses a model of the "
+            "whole (on the boards: " + ", ".join(m["id"] for m in models) + ")"
+            if models
+            else "no model of the whole (a model with of_whole: true) is on the "
+            "boards"
+        )
+        out.append(
+            Finding(
+                "hint",
+                e["id"],
+                f"'{e['id']}' fills system 4, but {missing}: where is the firm's "
+                "model of itself and its environment, and who keeps it? For Beer "
+                "system 4 keeps a model of the firm: «тем не менее общая модель "
+                "должна быть у фирмы. Если бы такой модели не было, то высшее "
+                "руководство не имело бы представления о том, какой фирмой оно "
+                "управляет» (BEER1972 Гл. 13)",
+            )
+        )
+    return out
+
+
+@hint("model-of-whole-one-filler", kinds=("post",), relations=("uses", "belongs"))
+def hint_model_of_whole_one_filler(ctx: Ctx) -> list[Finding]:
+    """A model of the whole whose holders all resolve to one named filler
+    (`_filler`); a reflexive position counts by its fillers too; a holder of
+    another kind (a group, a place for others), or a shared one, makes it held
+    by more than one."""
+    out: list[Finding] = []
+    for m in _models_of_whole(ctx):
+        holders = _holders(ctx, m["id"])
+        who = {
+            (
+                _filler(ctx, ctx.by_id[h])
+                if _kind(ctx, h) in ("post", "position", "reflexive_position")
+                else None
+            )
+            for h in holders
+        }
+        if len(who) != 1:
+            continue
+        one = who.pop()
+        if one is None or one[0] != "filler":
+            continue
+        out.append(
+            Finding(
+                "hint",
+                m["id"],
+                f"the model of the whole '{m['id']}' is held by «{one[1]}» alone "
+                f"(used by {', '.join(holders)}): it leaves with the person at "
+                "transfer, and whoever takes the place gets the firm's objects "
+                "without its model of itself. For Beer the model may be spread over "
+                "people: «такая модель может быть скорее распределённой, то есть "
+                "отображающей деятельность достаточно больших обособленных групп "
+                "людей, чем единой и хорошо сформированной» (BEER1972 Гл. 13)",
+            )
+        )
     return out

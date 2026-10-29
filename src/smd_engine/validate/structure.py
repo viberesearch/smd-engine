@@ -6,6 +6,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from smd_engine.profile import SEEN_FROM_KINDS
 from smd_engine.render.text import SCREEN_CHARS
 from smd_engine.validate.context import Ctx, Finding, board_set, cite_findings
 
@@ -27,7 +28,7 @@ SUBJECT_OBJECT = re.compile(
 # Fields of gates Ш9-Ш10 and the kind that takes them, by id: `position` as
 # everywhere, `goal` as the kind of the hint goal-without-breakdown
 # (profile.HINT_KINDS). `stance` goes to the kinds a profile flags `stance`,
-# `vsm_system` to those it flags `vsm`.
+# `vsm_system` to those it flags `vsm`, `of_whole` to those it flags `of_whole`.
 KIND_FIELDS = {
     "acts_as": ("position", "positions"),
     "arises_from": ("goal", "goals"),
@@ -38,6 +39,7 @@ KIND_FIELDS = {
     "threshold": ("algedonic_channel", "algedonic channels"),
     "recovery_time": ("algedonic_channel", "algedonic channels"),
 }
+SEEN_FROM_ERROR = "seen_from must be a position or a reflexive position"
 # What a goal may arise from: a breakdown on the board or in the talk
 # (GP-Guide11 ¶43): a gap, a kind flagged `factual`, or such a thesis.
 BREAKDOWN_THESES = ("difficulty", "problem")
@@ -115,6 +117,21 @@ def _element_findings(ctx: Ctx, el: dict[str, Any], out: list[Finding]) -> None:
                     "kinds: " + ", ".join(sorted(vsm))
                     if vsm
                     else f"kinds a profile flags vsm, and profile '{profile.id}' has none"
+                ),
+            )
+        )
+    whole = profile.kinds_where("of_whole")
+    if "of_whole" in el and kind not in whole:
+        out.append(
+            Finding(
+                "error",
+                eid,
+                "'of_whole' is only for "
+                + (
+                    "kinds: " + ", ".join(sorted(whole))
+                    if whole
+                    else f"kinds a profile flags of_whole, and profile '{profile.id}' "
+                    "has none"
                 ),
             )
         )
@@ -197,8 +214,8 @@ def _element_findings(ctx: Ctx, el: dict[str, Any], out: list[Finding]) -> None:
         out.append(Finding("warning", eid, f"{kind} usually lies on {where}"))
     if "seen_from" in el:
         if _ref_ok(ctx, out, el["seen_from"], eid, "seen_from"):
-            if by_id[el["seen_from"]]["kind"] != "position":
-                out.append(Finding("error", eid, "seen_from must be a position"))
+            if by_id[el["seen_from"]]["kind"] not in SEEN_FROM_KINDS:
+                out.append(Finding("error", eid, SEEN_FROM_ERROR))
     elif profile.kind(kind).needs_position:
         out.append(Finding("warning", eid, "no position it is seen from"))
     containers = profile.kinds_where("container")
@@ -239,8 +256,8 @@ def check_record_boards(ctx: Ctx) -> list[Finding]:
         template = ctx.profile.template(raw["template"])
         if "seen_from" in raw:
             if _ref_ok(ctx, out, raw["seen_from"], where, "seen_from"):
-                if ctx.by_id[raw["seen_from"]]["kind"] != "position":
-                    out.append(Finding("error", where, "seen_from must be a position"))
+                if ctx.by_id[raw["seen_from"]]["kind"] not in SEEN_FROM_KINDS:
+                    out.append(Finding("error", where, SEEN_FROM_ERROR))
         elif template and template.needs_position:
             out.append(Finding("warning", where, "no position it is seen from"))
         if "unfolds" in raw and _ref_ok(ctx, out, raw["unfolds"], where, "unfolds"):

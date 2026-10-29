@@ -1,6 +1,6 @@
 [project]
 name = "smd-engine"
-version = "0.5.4"
+version = "0.5.6"
 description = "Records, checks and renderings for SMD-style thinking sessions (three boards, cycles, qualifications)"
 readme = "README.md"
 license = "MIT AND CC-BY-4.0"

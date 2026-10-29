@@ -12,7 +12,13 @@ from smd_engine.render import asset_text
 from smd_engine.render.frames import Frame
 from smd_engine.render.frames_text import STEPS
 from smd_engine.render.svg import DEFS, origin, render_svg
-from smd_engine.render.text import LABELS, esc, title_line
+from smd_engine.render.text import (
+    LABELS,
+    element_lines,
+    esc,
+    pace_text,
+    title_line,
+)
 from smd_engine.screen import outline, triangle_parts, triangle_shapes
 
 
@@ -119,6 +125,13 @@ def _details(frames: list[Frame], lang: str) -> dict[str, Any]:
                 ("cites", ", ".join(e.get("cites", []))),
                 ("folded", e.get("folded")),
                 ("fillers", ", ".join(e.get("fillers", []))),
+                # pace, the Beer fields, acts_as and stance, as on the page
+                (
+                    "fields",
+                    "; ".join(
+                        filter(None, [pace_text(e, lang), *element_lines(e, lang)])
+                    ),
+                ),
                 ("detail", e.get("detail")),
             ):
                 if value:

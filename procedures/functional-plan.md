@@ -2,7 +2,7 @@
 id: functional-plan
 title: Functional plan inside the new frame
 step: 3
-version: 0.2.3
+version: 0.2.4
 role: визионер
 profile: any
 inputs:
@@ -112,7 +112,7 @@ Run these checks over the chain and over the positional set. Each failed check i
 
 `of` is mandatory: a gap with no scheme block gets the hint "gap names no scheme block it is missing from". The scheme here is the functional structure, and the number of gaps depends on it (GP-PP): another scheme gives other gaps. Say so in the reply.
 
-On the profile `management-four-boards`, the lens `beer-viable-system` (questions 2, 3, 6) adds three checks: who keeps the model of the firm (system 4) after the transfer; whether each red line, an `algedonic_channel`, has a `threshold`, a `recovery_time` and an `escalates` relation to the place that must act (the hint `line-without-recovery` names those without); what each place passes up (`filters`). A missing holder or address is a gap with `of: position`. Offer the lens in one line.
+On the profile `management-four-boards`, the lens `beer-viable-system` (questions 2, 3, 6) adds three checks: who keeps the model of the firm (system 4) after the transfer: a `model` with `of_whole: true`, held by the places that `uses` it (the hint `no-model-of-whole` names a system-4 place that uses none, `model-of-whole-one-filler` a model held by one person alone); whether each red line, an `algedonic_channel`, has a `threshold`, a `recovery_time` and an `escalates` relation to the place that must act (the hint `line-without-recovery` names those without); what each place passes up (`filters`). A missing holder or address is a gap with `of: position`. Offer the lens in one line.
 
 A gap is not yet a problem and not yet a goal. Turning it into a problem, a goal or a theme assignment is the work of `problematization` (GP-PP warns that the formal conversion is not real work). Offer options, and let the human choose.
 

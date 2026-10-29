@@ -208,6 +208,38 @@ def test_seen_from_is_expected_on_a_process_board(oru: dict[str, Any]) -> None:
     ]
 
 
+def test_seen_from_takes_a_reflexive_position(oru: dict[str, Any]) -> None:
+    """Gate Г3 Б: an element or a record board may be seen from a reflexive
+    position, and a merge keeps the link."""
+    el(oru, "k-retro")["seen_from"] = "p-reflexive"
+    oru["boards"][0]["seen_from"] = "p-reflexive"
+    assert found(oru) == []
+    a = copy.deepcopy(oru)
+    a["id"] = "pekarni-oru-a"
+    a["elements"].append(
+        {
+            "id": "m-new",
+            "board": "ot",
+            "kind": "model",
+            "label": "x",
+            "seen_from": "p-reflexive",
+        }
+    )
+    merged = merge(a, oru, "pekarni-oru-c2")
+    assert el(merged, "m-new")["seen_from"] == "p-reflexive"
+    assert merged["boards"][0]["seen_from"] == "p-reflexive"
+
+
+def test_seen_from_refuses_a_place_for_others(oru: dict[str, Any]) -> None:
+    el(oru, "k-retro")["seen_from"] = "place-mills"
+    oru["boards"][0]["seen_from"] = "place-mills"
+    message = "seen_from must be a position or a reflexive position"
+    assert found(oru) == [
+        f"error: k-retro: {message}",
+        f"error: board pb-dough: {message}",
+    ]
+
+
 def test_frames_read_and_cut_each_record_board(oru: dict[str, Any]) -> None:
     frames = reading_frames(oru, "ru")
     step = next(f for f in frames if f.id == "process-pb-delivery")

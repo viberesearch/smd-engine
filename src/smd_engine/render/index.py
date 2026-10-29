@@ -1,11 +1,11 @@
 """Index page of a board record: every K, thesis, hypothesis, ontology record, sign-off
 and element, each linked to its line in the YAML and to the local files it cites.
 
-By default the links hold absolute paths (`file://`, `vscode://file/`), for use on the
-machine that built the page. With `base` (the folder the page is written to, as in
-`smd publish`) they are relative to it, so the folder can be moved or sent: a file that
-shares no folder with `base` but the root is not linked, and YAML lines, which only an
-absolute `vscode://` link opens, are shown as numbers."""
+Without `base` the links hold absolute paths (`file://`, `vscode://file/`), for use on
+the machine that built the page. With `base` (the folder the page is written to; `smd
+index` and `smd publish` always pass it) they are relative to it, so the folder can be
+moved or sent: a file that shares no folder with `base` but the root is not linked, and
+YAML lines, which only an absolute `vscode://` link opens, are shown as numbers."""
 
 from __future__ import annotations
 
@@ -20,6 +20,7 @@ from smd_engine.profile import profile_of
 from smd_engine.render.text import (
     LABELS,
     continuum_lines,
+    element_lines,
     esc,
     pace_text,
     title_line,
@@ -163,6 +164,12 @@ class _Index:
         lines = continuum_lines(o, self.lang)
         return f"<br><small>{esc('; '.join(lines))}</small>" if lines else ""
 
+    def _fields(self, x: dict[str, Any]) -> str:
+        """Beer's systems, threshold, recovery time, the place a position takes
+        and its stance, under the element's label; empty when it has none."""
+        lines = element_lines(x, self.lang)
+        return f"<br><small>{esc('; '.join(lines))}</small>" if lines else ""
+
     def _where(self, sid: str) -> str:
         source = self.sources.get(sid)
         if source is None:
@@ -277,7 +284,8 @@ class _Index:
                     f"<br><small>{e(pace_text(x, self.lang))}</small>"
                     if "pace" in x
                     else ""
-                ),
+                )
+                + self._fields(x),
                 e(", ".join(x.get("fillers", []))),
                 cites(x.get("cites")),
             ]

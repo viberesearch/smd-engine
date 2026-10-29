@@ -512,7 +512,10 @@ def cmd_index(args: argparse.Namespace) -> int:
         return 1
     manifest = _load_manifest(Path(args.sources)) if args.sources else None
     archive = Path(args.archive) if args.archive else None
-    text = render_index(data, Path(args.file), args.lang, manifest, archive)
+    # links relative to the page's folder (the current one when printed), so
+    # that the page holds no absolute path of this machine
+    base = Path(args.output).parent if args.output else Path.cwd()
+    text = render_index(data, Path(args.file), args.lang, manifest, archive, base)
     if args.output:
         Path(args.output).parent.mkdir(parents=True, exist_ok=True)
         Path(args.output).write_text(text, encoding="utf-8")

@@ -68,6 +68,8 @@ from smd_engine.validate.management import (
     hint_line_without_recovery,
     hint_manage_via_organizedness,
     hint_manage_without_knowledge,
+    hint_model_of_whole_one_filler,
+    hint_no_model_of_whole,
     hint_polysystem,
     hint_representation_fit,
     hint_single_node_metasystem,
@@ -155,6 +157,8 @@ REGISTRY: list[Check] = [
     hint_single_node_metasystem,
     hint_line_without_recovery,
     hint_absorbed_into_system_1,
+    hint_no_model_of_whole,
+    hint_model_of_whole_one_filler,
     check_manifest,
 ]
 

@@ -22,6 +22,8 @@ BEER_HINTS = (
     "single-node-metasystem",
     "line-without-recovery",
     "absorbed-into-system-1",
+    "no-model-of-whole",
+    "model-of-whole-one-filler",
 )
 
 
@@ -50,14 +52,24 @@ def classic() -> dict[str, Any]:
 
 
 def test_example_gives_each_beer_hint_once(case: dict[str, Any]) -> None:
-    assert [f.level for f in validate_record(case)] == ["hint"] * 4
+    assert [f.level for f in validate_record(case)] == ["hint"] * 6
     hints = found(case, "hint")
     assert [h.split(":")[0] for h in hints] == [
         "gap-model",
         "post-owner",
         "ch-orders",
         "post-holding",
+        "post-holding",
+        "m-bakery",
     ]
+    assert hints[4].startswith(
+        "post-holding: 'post-holding' fills system 4, but neither it nor a position "
+        "or post of its place uses a model of the whole (on the boards: m-bakery)"
+    )
+    assert hints[5].startswith(
+        "m-bakery: the model of the whole 'm-bakery' is held by «владелец» alone "
+        "(used by post-owner): it leaves with the person at transfer"
+    )
     assert hints[1].startswith(
         "post-owner: «владелец» alone fills systems 3, 4 and 5 (post-owner): the "
         "metasystem is one person, and the transfer will remove it with the person"
@@ -198,6 +210,8 @@ def test_line_without_recovery(case: dict[str, Any]) -> None:
 
 
 def test_absorbed_into_system_1(case: dict[str, Any]) -> None:
+    # the holding uses a model of the whole, so no-model-of-whole gives no hint
+    case["relations"].append({"from": "post-holding", "to": "m-bakery", "kind": "uses"})
     el(case, "post-holding")["vsm_system"] = [4]
     assert found(case, "hint", "post-holding") == []
     el(case, "post-holding")["vsm_system"] = [5]
@@ -287,7 +301,117 @@ def test_profile_refuses_beer_hints_without_a_kind_flagged_vsm() -> None:
         profile_module._parse(copy.deepcopy(data), "management-four-boards")
     assert str(exc.value) == (
         "management-four-boards: the hints ['absorbed-into-system-1', "
-        "'single-node-metasystem'] read vsm_system and need a kind flagged vsm"
+        "'no-model-of-whole', 'single-node-metasystem'] read vsm_system and need a "
+        "kind flagged vsm"
     )
     data["hints"] = [h for h in data["hints"] if h not in profile_module.VSM_HINTS]
+    assert profile_module._parse(data, "management-four-boards").hints
+
+
+def test_of_whole_is_a_flag_of_models(case: dict[str, Any]) -> None:
+    assert load_profile("management-four-boards").kinds_where("of_whole") == {"model"}
+    el(case, "post-owner")["of_whole"] = True
+    assert found(case, "error") == ["post-owner: 'of_whole' is only for kinds: model"]
+    el(case, "post-owner").pop("of_whole")
+    el(case, "m-bakery")["of_whole"] = "yes"
+    assert any(
+        "of_whole: 'yes' is not of type 'boolean'" in e for e in found(case, "error")
+    )
+    other = copy.deepcopy(
+        load_record(ROOT / "cases" / "example_ru" / "pekarni-c1.board.yaml")
+    )
+    el(other, "m-coop")["of_whole"] = True
+    assert found(other, "error") == [
+        "m-coop: 'of_whole' is only for kinds a profile flags of_whole, and profile "
+        "'program-three-boards' has none"
+    ]
+
+
+def test_no_model_of_whole(case: dict[str, Any]) -> None:
+    el(case, "m-bakery")["of_whole"] = False  # a model, but not of the whole
+    assert [h[:60] for h in found(case, "hint", "post-")][1:] == [
+        "post-holding: 'post-holding' fills system 5 and captures sys",
+        "post-owner: 'post-owner' fills system 4, but no model of the",
+        "post-holding: 'post-holding' fills system 4, but no model of",
+    ]
+    el(case, "m-bakery")["of_whole"] = True
+    assert len(found(case, "hint", "post-holding")) == 2
+    # a position that belongs to the post holds it for the post, and the post
+    # for a position that belongs to it
+    case["relations"].append({"from": "p-holding", "to": "m-bakery", "kind": "uses"})
+    assert len(found(case, "hint", "post-holding")) == 1
+    el(case, "p-owner")["vsm_system"] = [4]
+    assert not any("system 4, but" in h for h in found(case, "hint", "p-owner"))
+    # another position of the same post holds it through that post
+    case["elements"].append(
+        {
+            "id": "p-h2",
+            "board": "od",
+            "kind": "position",
+            "label": "x",
+            "vsm_system": [4],
+        }
+    )
+    case["relations"].append({"from": "p-h2", "to": "post-holding", "kind": "belongs"})
+    assert not any("system 4, but" in h for h in found(case, "hint", "p-h2"))
+    el(case, "p-map")["vsm_system"] = [4]
+    assert found(case, "hint", "p-map")[0].startswith(
+        "p-map: 'p-map' fills system 4, but neither it nor"
+    )
+    assert (
+        "«тем не менее общая модель должна быть у фирмы."
+        in found(case, "hint", "p-map")[0]
+    )
+
+
+def test_model_of_whole_one_filler(case: dict[str, Any]) -> None:
+    uses = {"from": "p-owner", "to": "m-bakery", "kind": "uses"}
+    case["relations"].append(uses)  # the owner's position: the same filler
+    assert found(case, "hint", "m-bakery")[0].startswith(
+        "m-bakery: the model of the whole 'm-bakery' is held by «владелец» alone "
+        "(used by post-owner, p-owner):"
+    )
+    # the owner's reflexive position is the same person, an heir's is not
+    case["elements"].append(
+        {
+            "id": "p-refl",
+            "board": "od",
+            "kind": "reflexive_position",
+            "label": "x",
+            "fillers": ["владелец"],
+        }
+    )
+    case["relations"].append({"from": "p-refl", "to": "m-bakery", "kind": "uses"})
+    assert (
+        "(used by post-owner, p-owner, p-refl):" in found(case, "hint", "m-bakery")[0]
+    )
+    el(case, "p-refl")["fillers"] = ["наследник"]
+    assert found(case, "hint", "m-bakery") == []
+    case["relations"].pop()
+    uses["from"] = "post-shift"  # a second person
+    assert found(case, "hint", "m-bakery") == []
+    uses["from"] = "grp-bakers"  # a group is more than one
+    assert found(case, "hint", "m-bakery") == []
+    case["relations"].remove(uses)
+    el(case, "post-owner")["fillers"] = ["владелец", "управляющий"]  # a multinode
+    assert found(case, "hint", "m-bakery") == []
+    del el(case, "post-owner")["fillers"]  # no filler named: no person to name
+    assert found(case, "hint", "m-bakery") == []
+    case["relations"] = [r for r in case["relations"] if r["kind"] != "uses"]
+    assert found(case, "hint", "m-bakery") == []  # held by nobody
+
+
+def test_profile_refuses_model_of_whole_hints_without_the_flag() -> None:
+    data = yaml.safe_load(
+        (profiles_dir() / "management-four-boards.yaml").read_text(encoding="utf-8")
+    )
+    for k in data["kinds"]:
+        k.pop("of_whole", None)
+    with pytest.raises(ProfileError) as exc:
+        profile_module._parse(copy.deepcopy(data), "management-four-boards")
+    assert str(exc.value) == (
+        "management-four-boards: the hints ['model-of-whole-one-filler', "
+        "'no-model-of-whole'] read of_whole and need a kind flagged of_whole"
+    )
+    data["hints"] = [h for h in data["hints"] if h not in profile_module.OF_WHOLE_HINTS]
     assert profile_module._parse(data, "management-four-boards").hints

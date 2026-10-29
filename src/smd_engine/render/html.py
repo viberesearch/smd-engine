@@ -9,6 +9,7 @@ from smd_engine.render.svg import render_svg
 from smd_engine.render.text import (
     LABELS,
     continuum_lines,
+    element_lines,
     esc,
     pace_text,
 )
@@ -42,6 +43,13 @@ def _pace(el: dict[str, Any], lang: str) -> str:
     return f"<br><small>{esc(text)}</small>" if text else ""
 
 
+def _fields(el: dict[str, Any], lang: str) -> str:
+    """Beer's systems of a post or position, threshold and recovery time of an
+    algedonic channel, the place a position takes and its stance."""
+    shown = element_lines(el, lang)
+    return f"<br><small>{esc('; '.join(shown))}</small>" if shown else ""
+
+
 def _continuum(o: dict[str, Any], lang: str) -> str:
     """Lives in, tempos, horizon and covers of an ontology record."""
     shown = continuum_lines(o, lang)
@@ -71,7 +79,8 @@ def render_html(
     rows_e = "".join(
         f"<tr><td><code>{esc(e['id'])}</code></td><td>{esc(e['board'])}"
         f"{'/' + esc(e['half']) if e.get('half') else ''}</td><td>{esc(e['kind'])}</td>"
-        f"<td>{esc(e['label'])}{_fillers(e, lab)}{_pace(e, lang)}</td>"
+        f"<td>{esc(e['label'])}{_fillers(e, lab)}{_pace(e, lang)}"
+        f"{_fields(e, lang)}</td>"
         f"<td><code>{esc(', '.join(e.get('cites', [])))}</code></td></tr>"
         for e in data["elements"]
     )

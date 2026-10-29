@@ -9,31 +9,34 @@ from smd_engine.render.text import (
     LABELS,
     MOVE_NAMES,
     continuum_lines,
-    years_text,
+    element_parts,
+    field_lines,
 )
 
 
-def _line(el: dict[str, Any]) -> str:
+def _line(el: dict[str, Any], lang: str) -> str:
+    """One element: its words in the language; ids, the kind id and enum values
+    (frame state, epistemic status) as recorded."""
+    w = LABELS[lang]["line"]
     bits = [f"`{el['id']}` {el['kind']}: {el['label']}"]
     if el.get("frame_state"):
         bits.append(f"({el['frame_state']})")
     if el.get("in"):
-        bits.append("in " + ", ".join(f"`{i}`" for i in el["in"]))
+        bits.append(f"{w['in']} " + ", ".join(f"`{i}`" for i in el["in"]))
     if el.get("fillers"):
-        bits.append("fillers: " + ", ".join(el["fillers"]))
-    if "pace" in el:
-        bits.append(f"pace: {years_text(el['pace'], 'en')}")
+        bits.append(f"{w['fillers']}: " + ", ".join(el["fillers"]))
+    bits += field_lines(element_parts(el, lang), lang)
     if el.get("seen_from"):
-        bits.append(f"seen from `{el['seen_from']}`")
+        bits.append(f"{w['seen_from']} `{el['seen_from']}`")
     if el.get("epistemic"):
         bits.append(f"[{el['epistemic']}]")
     if el.get("lineage"):
-        bits.append("lineage: " + ", ".join(el["lineage"]))
+        bits.append(f"{w['lineage']}: " + ", ".join(el["lineage"]))
     if el.get("move"):
         m = el["move"]
         bits.append(
-            f"move: {MOVE_NAMES[m['op']]} from {', '.join(m['from'])}"
-            + (f" via {m['via']}" if m.get("via") else "")
+            f"{w['move']}: {MOVE_NAMES[m['op']]} {w['from']} {', '.join(m['from'])}"
+            + (f" {w['via']} {m['via']}" if m.get("via") else "")
             + (f" ({m['status']})" if m.get("status") else "")
         )
     if el.get("cites"):
@@ -81,7 +84,7 @@ def render_markdown(data: dict[str, Any], lang: str = "ru") -> str:
         out += [f"## {title}", ""]
         if board in made:  # a board the record makes of a template
             out += [_board_line(made[board]), ""]
-        out += [_line(e) for e in items] + ([""] if items else [])
+        out += [_line(e, lang) for e in items] + ([""] if items else [])
     tables = [e for e in data["elements"] if e.get("detail")]
     if tables:
         out += [f"## {lab['details']}", ""]

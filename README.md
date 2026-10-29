@@ -40,7 +40,7 @@ The package carries the procedures, roles, lenses, profiles and the data model, 
 
 ## Try it
 
-The repository has two invented teaching cases with the same content: `cases/example` (English labels) and `cases/example_ru` (Russian labels). Three bakeries consider shared production for independent bakeries of a region.
+The repository has invented teaching cases in two folders. In the main case three bakeries consider shared production for independent bakeries of a region. `cases/example` (English labels) holds its two cycles (`bakeries-c1`, `bakeries-c2`), the same case on the classic two boards (`two-boards-c1`), a patch and a golden run. `cases/example_ru` (Russian labels) holds the same two cycles (`pekarni-c1`, `pekarni-c2`) and two records on the profile `management-four-boards` that the English folder does not have: the bakeries on G.P.'s scheme of organisation, leadership and management (`pekarni-oru-c1`), and a regional holding that buys one of the bakeries, on the Beer layer (`pekarnya-holding-c1`).
 
 ```bash
 uv run smd validate cases/example_ru --sources cases/example_ru/sources.yaml --hints

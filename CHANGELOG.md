@@ -2,6 +2,36 @@
 
 Dates are those of the tag. All tags v0.2.1 to v0.3.5 were made on 2026-10-29. The version in `pyproject.toml` stayed at 0.2.0 through v0.2.4 and at 0.3.0 from v0.3.0 to v0.3.5; 0.3.6 is the first release whose package version equals its tag.
 
+## 0.5.6 - 2026-10-29
+
+Model of the whole and `seen_from` from a reflexive position (gates Г2, option В, and Г3, option Б), renderer follow-ups to 0.5.5 (gate Г4, option В). Schema 0.3 stays: the new field is optional, and records without it give the same validation output.
+
+Renderers:
+
+- `acts_as` and `stance` of a position are shown where `pace` and the Beer fields are: under the label in the page and the index, in the graph's element details and the vault notes, on the Markdown element line, in the frames panel. Labels and values in ru and en («занимает место: руководитель; позиция: внутренняя» / "acts as: leader; stance: inside").
+- `smd frames` (and the frames pages of `smd publish`) show `pace`, the Beer fields, `acts_as` and `stance` in the panel an element opens on a click, as one line under the fillers; with `--light` and `--zoom` too.
+- One table of field labels in `render/text.py` (`LABELS[lang]["fields"]`) serves every renderer. The graph and the vault show it instead of the raw field names of `extra` (`pace`, `vsm_system`, `threshold`, `recovery_time`, `acts_as`, `stance`, `lives_in`, `tempos`, `horizon`, `covers`, and `action`, `observe`, `revise_if`, `competes`, `test` of hypotheses and ontology records). The keys of `extra` stay field names, the graph model carries `extra_labels`, and `extra["pace"]` is now the years alone ("25 лет"), shown as «темп изменения: 25 лет».
+- The Markdown digest writes the element line in the record's language with `--lang ru` («кто может занять», «с позиции», «в», «происхождение», «ход … из … через», «темп изменения», the Beer labels, days in Russian). Ids, kind ids, `frame_state`, epistemic status and move names stay as recorded; the English line is unchanged.
+- `smd index` links files relative to the folder of `-o`, or to the current folder when it prints the page, as `smd publish` does: the page holds no absolute local path, and `YAML:N` is a line number, not a VS Code link.
+- The renderers show `of_whole: true` of a model as «модель целого (Бир): да» / "model of the whole (Beer): yes".
+
+Model of the whole and `seen_from`:
+
+- Model of the whole in `management-four-boards` (gate Г2, option В): kind flag `of_whole`, set on `model`; the kinds it is set on take the element field `of_whole` (a boolean), true for the firm's model of itself and its environment, the model Beer's system 4 keeps (BEER1972 Гл. 13). A post or position holds such a model when it `uses` it. `of_whole` on a kind not flagged `of_whole` is an error.
+- Hints `no-model-of-whole` (a post or position filling system 4 holds no model of the whole, itself, through a position that `belongs` to it, through the post it belongs to or through another position of that post) and `model-of-whole-one-filler` (a model of the whole whose holders, posts, positions or reflexive positions, all resolve to one named filler: it leaves with the person at transfer). A profile that enables them with no kind flagged `of_whole`, or `no-model-of-whole` with no kind flagged `vsm`, is refused.
+- Example `pekarnya-holding-c1`: the model `m-bakery` (`of_whole: true`), used by the owner's post only; each of the two new hints fires once (on `m-bakery` and on `post-holding`), and the four earlier hints are unchanged.
+- Lens `beer-viable-system` 0.2.0: question 2 asks which places use the model today and whether the buyer's system 4 holds one; the output slot records the model with `of_whole` and `uses`; a quote on the distributed model (Гл. 13).
+- `seen_from` of an element or a record board may name a `reflexive_position` as well as a `position` (gate Г3, option Б); a `place_for_others` or any other kind is still an error, now "seen_from must be a position or a reflexive position". `smd compare` keeps such a `seen_from` in a merge. Profiles without a `reflexive_position` kind are unaffected.
+- Procedure `functional-plan` 0.2.4: section 4 names the model of the whole (`of_whole`, `uses`) and its two hints; `docs/stages.md` rows Г2 and Г3.
+
+## 0.5.5 - 2026-10-29
+
+Follow-ups to 0.5.4; no change to the schema or the records.
+
+- `smd graph`, `smd vault`, `smd render --format html` and `md`, `smd index` and `smd publish` show the Beer fields of an element where they show `pace`: `vsm_system` of posts and positions, `threshold` and `recovery_time` of algedonic channels. The graph and the vault list them with the element's other fields under their field names; the page and the index put them under the label («системы (Бир)», «порог», «срок восстановления» / "systems (Beer)", "threshold", "recovery time"); the Markdown digest adds them to the element line. Days are written with their plural (2 дня, 5 дней). `smd frames` does not show them, as it does not show `pace`. Records without the fields give the same output byte for byte; of the examples, only `pekarnya-holding-c1` changes.
+- README and README_ru say what each example folder holds: `cases/example_ru` also has the two records on `management-four-boards`, and `cases/example` has `two-boards-c1`, a patch and a golden run.
+- `docs/stages.md`: the row for gate Х1, released in 0.5.3.
+
 ## 0.5.4 - 2026-10-29
 
 A layer from Stafford Beer's viable system model in the profile `management-four-boards` (Beer, «Мозг фирмы», 1972; М., 1993; gate Бир3, option В). Schema 0.3 stays: every new field is optional, and records without them give the same output.

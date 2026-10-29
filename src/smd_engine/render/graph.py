@@ -17,11 +17,12 @@ from smd_engine.render import asset_text
 from smd_engine.render.graph_ui import UI
 from smd_engine.render.layout import plan, region_of
 from smd_engine.render.text import (
+    LABELS,
     continuum_parts,
     cut,
+    element_parts,
     esc,
     screen_label,
-    pace_text,
 )
 
 SPAN = 1000.0  # width of a board plane in graph units
@@ -197,8 +198,9 @@ def graph_model(
                 "z": z,
             }
         )
-        if "pace" in e:
-            nodes[-1]["extra"] = {"pace": pace_text(e, lang)}
+        extra = element_parts(e, lang)
+        if extra:
+            nodes[-1]["extra"] = extra
         for parent in e.get("in", []):
             if parent in by_id:
                 edge(e["id"], parent, "in")
@@ -323,6 +325,8 @@ def graph_model(
     present = {node["id"] for node in nodes}
     edges = [e for e in edges if e["s"] in present and e["t"] in present]
     drawn = {e["k"] for e in edges}
+    used = {k for node in nodes for k in node.get("extra") or {}}
+    fields = LABELS[lang]["fields"]
     return {
         "title": data.get("title", data.get("id", "")),
         "id": data.get("id", ""),
@@ -337,6 +341,8 @@ def graph_model(
         | {k: v for k, v in CONTINUUM_EDGE_KINDS[lang].items() if k in drawn}
         | {k: label[lang] for k, label in profile.relation_labels.items()},
         "flow_kinds": FLOW_KINDS,
+        # labels of the `extra` keys the nodes use; the keys stay field names
+        "extra_labels": {k: v for k, v in fields.items() if k in used},
         "nodes": nodes,
         "edges": edges,
     }

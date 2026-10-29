@@ -9,7 +9,11 @@
 #   ch-flour — та же линия, записанная полностью;
 # - absorbed-into-system-1: сценарий «продажа холдингу» как строка на досках:
 #   место правления холдинга (система 5) захватывает (captures) системы 4 и 5
-#   пекарни (Бир, гл. 15: фирма становится частью системы 1 покупателя).
+#   пекарни (Бир, гл. 15: фирма становится частью системы 1 покупателя);
+# - model-of-whole-one-filler: модель пекарни и её среды (m-bakery, of_whole)
+#   держит только владелец (её использует место post-owner);
+# - no-model-of-whole: правление холдинга заполняет систему 4, но не
+#   использует ни одной модели целого (Бир, гл. 13).
 record: board_set
 schema_version: "0.3"
 id: pekarnya-holding-c1
@@ -41,6 +45,8 @@ elements:
   - {id: ch-flour, board: ot, kind: algedonic_channel,
      label: "запас муки ниже нормы", threshold: "мука меньше чем на 4 дня выпечки",
      recovery_time: 2, seen_from: p-map}
+  - {id: m-bakery, board: ot, kind: model, of_whole: true,
+     label: "модель пекарни и её заказчиков, которую держит владелец", seen_from: p-map}
   - {id: ch-orders, board: ot, kind: algedonic_channel,
      label: "сорван срок поставки сетевому заказчику", threshold: "задержка больше 1 дня",
      seen_from: p-map}
@@ -72,6 +78,7 @@ relations:
   - {from: post-shift, to: post-owner, kind: filters, label: "только сбои дольше смены"}
   - {from: grp-bakers, to: post-shift, kind: personal}
   - {from: ch-flour, to: post-owner, kind: escalates, label: "через 2 дня"}
+  - {from: post-owner, to: m-bakery, kind: uses}
   - {from: post-holding, to: post-owner, kind: captures, label: "сценарий: продажа холдингу"}
   - {from: prog, to: mono-bakery, kind: captures}
   - {from: k-retro, to: f-owner, kind: knows}

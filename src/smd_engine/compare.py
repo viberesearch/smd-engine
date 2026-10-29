@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from difflib import SequenceMatcher
 from typing import Any
 
-from smd_engine.profile import ProfileError, profile_of
+from smd_engine.profile import SEEN_FROM_KINDS, ProfileError, profile_of
 from smd_engine.render.text import CONTINUUM, continuum_parts
 
 MATCH = 0.55  # below this, two labels are not the same element
@@ -340,7 +340,7 @@ def merge(a: dict[str, Any], b: dict[str, Any], new_id: str) -> dict[str, Any]:
         el["lineage"] = sorted(set(el.get("lineage", [])) | {f"from-{a['id']}"[:60]})
         el.pop("geom", None)
         for field, allowed in (
-            ("seen_from", ("position",)),
+            ("seen_from", SEEN_FROM_KINDS),
             ("assigned_by", ("position", "place_for_others")),
             ("performed_by", ("position", "place_for_others")),
         ):
@@ -420,7 +420,7 @@ def _with_boards_of_a(
         board = dict(raw)
         template = profile.template(board["template"])
         unfolds = template.unfolds if template and template.unfolds else None
-        for field, allowed in (("seen_from", ("position",)), ("unfolds", unfolds)):
+        for field, allowed in (("seen_from", SEEN_FROM_KINDS), ("unfolds", unfolds)):
             if field in board:
                 target = rename.get(board[field])
                 if target and (allowed is None or kinds.get(target) in allowed):

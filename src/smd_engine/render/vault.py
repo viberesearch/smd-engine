@@ -228,7 +228,7 @@ def export_vault(
         if n.get("note"):
             body += [f"> {txt['note']}: {n['note']}", ""]
         for k, v in (n.get("extra") or {}).items():
-            body += [f"**{k}**: {v}", ""]
+            body += [f"**{model['extra_labels'].get(k, k)}**: {v}", ""]
         if n.get("fillers"):
             body += [f"**{txt['fillers']}**: " + "; ".join(n["fillers"]), ""]
         if n.get("detail"):

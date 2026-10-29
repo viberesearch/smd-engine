@@ -83,10 +83,15 @@ KIND_FLAGS = (
     "stance",
     "factual",
     "vsm",
+    "of_whole",
 )
 # Hints that read `vsm_system` (validate/management.py): without a kind
 # flagged `vsm` they can never fire.
-VSM_HINTS = ("single-node-metasystem", "absorbed-into-system-1")
+VSM_HINTS = ("single-node-metasystem", "absorbed-into-system-1", "no-model-of-whole")
+# Hints that read `of_whole` (validate/management.py): without a kind flagged
+# `of_whole`, `model-of-whole-one-filler` could never fire and
+# `no-model-of-whole` would fire on every place that fills system 4.
+OF_WHOLE_HINTS = ("no-model-of-whole", "model-of-whole-one-filler")
 STEP_KEYS = {"step", "board", "pick"}
 RELATION_KEYS = {"id", "label"}
 # Relation kinds the engine labels itself (render/graph.py EDGE_KINDS): a
@@ -113,6 +118,9 @@ REQUIRED_KINDS = (
     "note",
 )
 HINT_KINDS = {"entry": "entry", "goal-without-breakdown": "goal"}
+# The kinds `seen_from` may name (gate Г3 Б): a position, or a reflexive
+# position where the profile has that kind; never a place for others.
+SEEN_FROM_KINDS = ("position", "reflexive_position")
 # The SessionFlow questions render/sessionflow.py fills from the profile.
 SESSIONFLOW_BLOCKS = ("who", "where", "what_for")
 # Reading steps `smd frames` has a title and lead for: the step texts of
@@ -171,6 +179,7 @@ class Kind:
     stance: bool = False  # takes the field `stance`: a position (GP-Guide11 ¶35)
     factual: bool = False  # records a fact: a breakdown a goal can arise from
     vsm: bool = False  # takes the field `vsm_system`: Beer's systems 1-5
+    of_whole: bool = False  # takes the field `of_whole`: a model of the whole
 
 
 @dataclass(frozen=True)
@@ -756,6 +765,12 @@ def _parse(data: dict[str, Any], name: str) -> Profile:
             raise ProfileError(
                 f"{name}: the hints {need_vsm} read vsm_system and need a kind "
                 "flagged vsm"
+            )
+        need_whole = sorted(set(hints) & set(OF_WHOLE_HINTS))
+        if need_whole and not any(k.of_whole for k in kinds):
+            raise ProfileError(
+                f"{name}: the hints {need_whole} read of_whole and need a kind "
+                "flagged of_whole"
             )
     except (KeyError, TypeError) as exc:
         raise ProfileError(f"{name}: malformed profile ({exc})") from exc

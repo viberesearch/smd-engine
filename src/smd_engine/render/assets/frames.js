@@ -34,6 +34,7 @@ const r=D[g.closest('section').dataset.record];let h;
 if(g.matches('g.k')){h='<p>'+e(r.k[g.dataset.k]||g.dataset.k)+'</p>'}
 else{const d=r.el[g.dataset.id];if(!d)return;h='<p class="meta">'+e(d.meta)+'</p><p><b>'+e(d.label)+'</b></p>'+
 (d.note?'<p>'+e(d.note)+'</p>':'')+(d.fillers?'<p>'+e(P.dataset.fillers)+': '+e(d.fillers)+'</p>':'')+
+(d.fields?'<p>'+e(d.fields)+'</p>':'')+
 grid(d.detail)+list(d.folded)+list(d.k)+(d.cites?'<p class="meta">'+e(d.cites)+'</p>':'')}
 B.innerHTML=h;P.hidden=false});
 document.getElementById('close').onclick=()=>{P.hidden=true};

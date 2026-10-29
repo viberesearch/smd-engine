@@ -189,7 +189,7 @@ def test_graph_vault_and_html_show_the_fields(
     nodes = {n["id"]: n for n in model["nodes"]}
     assert nodes["O1"]["extra"]["horizon"] == "10 years"
     assert nodes["O1"]["extra"]["covers"] == "fn-dough"
-    assert nodes["fn-logistics"]["extra"] == {"pace": "changes every 5 years"}
+    assert nodes["fn-logistics"]["extra"] == {"pace": "5 years"}
     links = {(e["t"], e["k"]) for e in model["edges"] if e["s"] == "O1"}
     assert {("s-big", "lives_in"), ("fn-logistics", "lives_in")} <= links
     assert ("fn-dough", "covers") in links and model["edge_kinds"]["covers"] == "covers"

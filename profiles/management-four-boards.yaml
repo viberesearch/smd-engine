@@ -21,7 +21,9 @@
 # "Beer layer" below with its chapter: the flag vsm (field vsm_system) on
 # position and post, the kind algedonic_channel, the relations escalates and
 # filters, the hints single-node-metasystem, line-without-recovery and
-# absorbed-into-system-1. The book has no System 3*; the inspection channel of
+# absorbed-into-system-1; from gate Г2 В, the flag of_whole (field of_whole) on
+# model and the hints no-model-of-whole and model-of-whole-one-filler. The book
+# has no System 3*; the inspection channel of
 # system 3 (Гл. 12) is not a kind here.
 # Format: docs/profiles.md; kinds and relations: docs/data-model.md.
 id: management-four-boards
@@ -81,7 +83,11 @@ kinds:
   - {id: programme, label: {ru: программы, en: programmes}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
   - {id: means, label: {ru: средства, en: means}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
   - {id: functional_place, label: {ru: функциональные места, en: functional places}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
-  - {id: model, label: {ru: модели, en: models}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  # Beer layer (gate Г2 В): a model takes of_whole, true for the firm's model of
+  # itself and its environment, kept by system 4; the post or position that
+  # holds it `uses` it (BEER1972 Гл. 13):
+  # «Если бы такой модели не было, то высшее руководство не имело бы представления о том, какой фирмой оно управляет»
+  - {id: model, label: {ru: модели, en: models}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false, of_whole: true}
   - {id: concept, label: {ru: понятия, en: concepts}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
   # Beer layer: an alarm path that bypasses the filters, with `threshold` and
   # `recovery_time`; a red line of a stakeholder is recorded as one (BEER1972 Гл. 17):
@@ -178,10 +184,12 @@ hints:
   - representation-fit
   - development-step
   - polysystem
-  # Beer layer (validate/management.py; BEER1972 Гл. 9, 15, 17)
+  # Beer layer (validate/management.py; BEER1972 Гл. 9, 13, 15, 17)
   - single-node-metasystem
   - line-without-recovery
   - absorbed-into-system-1
+  - no-model-of-whole
+  - model-of-whole-one-filler
 compare_skip: [note]
 compare_groups:
   positions: [position, reflexive_position, place_for_others]
