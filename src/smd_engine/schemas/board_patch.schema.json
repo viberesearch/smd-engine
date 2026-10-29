@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/viberesearch/smd-engine/schemas/board_patch.schema.json",
+  "title": "Board patch: a decision applied to a board set as a new sub-version of the same cycle",
+  "type": "object",
+  "required": ["record", "schema_version", "id", "applies_to", "version"],
+  "additionalProperties": false,
+  "properties": {
+    "record": {"const": "board_patch"},
+    "schema_version": {"const": "0.1"},
+    "id": {"$ref": "#/$defs/id"},
+    "case": {"type": "string"},
+    "applies_to": {"$ref": "#/$defs/id", "description": "id of the board set the patch applies to"},
+    "version": {"type": "string", "minLength": 1, "description": "the board's new state.version, e.g. 5.8"},
+    "date": {"type": "string", "format": "date"},
+    "title": {"type": "string", "minLength": 1, "description": "the board's new title"},
+    "cites": {"$ref": "#/$defs/cites"},
+    "notes": {"type": "string"},
+    "board_notes": {"type": "string", "minLength": 1, "description": "appended to the board's notes as a new line, before the lines for removals"},
+    "add": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "items appended to the board's lists; checked by the board schema after application",
+      "properties": {
+        "elements": {"$ref": "#/$defs/items"},
+        "relations": {"$ref": "#/$defs/items"},
+        "transitions": {"$ref": "#/$defs/items"},
+        "qualifications": {"$ref": "#/$defs/items"},
+        "theses": {"$ref": "#/$defs/items"},
+        "hypotheses": {"$ref": "#/$defs/items"},
+        "ontology": {"$ref": "#/$defs/items"},
+        "signoffs": {"$ref": "#/$defs/items"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/id"}, "uniqueItems": true, "description": "manifest ids added to the board's sources"}
+      }
+    },
+    "set": {
+      "type": "array",
+      "description": "fields merged into the element, K, thesis, hypothesis or ontology record of that id, or into the transition numbered n; null deletes a field",
+      "items": {
+        "type": "object",
+        "oneOf": [{"required": ["id"]}, {"required": ["n"]}],
+        "minProperties": 2,
+        "properties": {"id": {"$ref": "#/$defs/item_id"}, "n": {"$ref": "#/$defs/n"}}
+      }
+    },
+    "remove": {
+      "type": "array",
+      "description": "items, or the transition numbered n, dropped with every link that names them; the ids or numbers and reasons go to the board's notes",
+      "items": {
+        "type": "object",
+        "required": ["reason"],
+        "oneOf": [{"required": ["id"]}, {"required": ["n"]}],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"$ref": "#/$defs/item_id"},
+          "n": {"$ref": "#/$defs/n"},
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accepted": {"type": "array", "items": {"type": "string"}, "description": "appended to state.accepted"},
+        "open": {"type": "array", "items": {"type": "string"}, "description": "appended to state.open"},
+        "remove_open": {"type": "array", "items": {"type": "string"}, "description": "entries dropped from state.open"},
+        "next_move": {"type": "string", "description": "replaces state.next_move"},
+        "difficulty": {"type": "string", "description": "replaces state.difficulty"}
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+    "item_id": {"type": "string", "pattern": "^([a-z0-9][a-z0-9._-]*|[KTHO][0-9]+)$", "description": "element id, or K, T, H, O id"},
+    "n": {"type": "integer", "minimum": 1, "description": "transition number"},
+    "items": {"type": "array", "items": {"type": "object"}},
+    "cite": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*(#[a-z]+=[^\\s]+)?$"},
+    "cites": {"type": "array", "items": {"$ref": "#/$defs/cite"}}
+  }
+}

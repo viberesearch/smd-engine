@@ -1,0 +1,33 @@
+record: source_manifest
+schema_version: "0.3"
+case: example-bakeries
+location: invented example; no files
+sources:
+  - id: s1
+    title: Group session 1, invented transcript
+    kind: transcript
+    origin: team
+    date: "2026-01-10"
+    url: https://example.org/s1
+    clean_room: allow
+  - id: s3
+    title: Group session 2, invented transcript
+    kind: transcript
+    origin: team
+    date: "2026-01-17"
+    url: https://example.org/s3
+    clean_room: allow
+  - id: s4
+    title: Volume pledges returned by bakeries, invented field artefact
+    kind: field_artefact
+    origin: team
+    date: "2026-01-16"
+    url: https://example.org/s4
+    clean_room: allow
+  - id: s2
+    title: Earlier concept note of the group, invented
+    kind: team_doc
+    origin: team
+    url: https://example.org/s2
+    lineage: [earlier-concept]
+    clean_room: deny

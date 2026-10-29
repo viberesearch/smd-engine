@@ -1,0 +1,33 @@
+record: source_manifest
+schema_version: "0.3"
+case: example-pekarni
+location: выдуманный пример; файлов нет
+sources:
+  - id: s1
+    title: Сессия группы 1, выдуманная стенограмма
+    kind: transcript
+    origin: team
+    date: "2026-01-10"
+    url: https://example.org/s1
+    clean_room: allow
+  - id: s3
+    title: Сессия группы 2, выдуманная стенограмма
+    kind: transcript
+    origin: team
+    date: "2026-01-17"
+    url: https://example.org/s3
+    clean_room: allow
+  - id: s4
+    title: Обязательства по объёму, возвращённые пекарнями, выдуманный полевой артефакт
+    kind: field_artefact
+    origin: team
+    date: "2026-01-16"
+    url: https://example.org/s4
+    clean_room: allow
+  - id: s2
+    title: Прежняя концепция группы, выдуманная записка
+    kind: team_doc
+    origin: team
+    url: https://example.org/s2
+    lineage: [earlier-concept]
+    clean_room: deny

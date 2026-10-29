@@ -1,0 +1,67 @@
+# The classic two boards: org-activity and object-ontological, the "double
+# work with schemes" of the games (GP-SMD; GP1983; GP1987;
+# docs/method/reconciliation.md, section 1). No situation board.
+# Format: docs/profiles.md.
+id: classic-two-boards
+title:
+  ru: Две доски классики
+  en: The classic two boards
+boards:
+  - id: od
+    label: {ru: Оргдеятельностная доска, en: Org-activity board}
+    halves: none
+    region: [60, 150, 780, 850]
+    colour: ["#eef4f1", "#2e7d62"]
+  - id: oo
+    label: {ru: Объектно-онтологическая доска, en: Object-ontological board}
+    halves: none
+    region: [820, 150, 1540, 850]
+    colour: ["#f3f4fb", "#5c63b8"]
+    object: true
+# In layout order: a region places its items kind by kind in this order.
+kinds:
+  - {id: position, label: {ru: позиции, en: positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true}
+  - {id: reflexive_position, label: {ru: рефлексивные позиции, en: reflexive positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true}
+  - {id: goal, label: {ru: цели, en: goals}, home: od, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: place_for_others, label: {ru: места для других, en: places for others}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: ellipse, skeleton: false}
+  - {id: frame, label: {ru: рамки, en: frames}, home: oo, needs_position: true, container: true, role: false, scheme: true, shape: frame, skeleton: true}
+  - {id: standard, label: {ru: стандарты, en: standards}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: norm, label: {ru: нормы, en: norms}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: model, label: {ru: модели, en: models}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: concept, label: {ru: понятия, en: concepts}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: function, label: {ru: функции, en: functions}, home: oo, needs_position: false, container: true, role: false, scheme: true, shape: box, skeleton: true}
+  - {id: cooperation, label: {ru: кооперации, en: cooperations}, home: oo, needs_position: false, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: other, label: {ru: прочее, en: other}, home: null, needs_position: false, container: true, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: note, label: {ru: заметки, en: notes}, home: null, needs_position: false, container: false, role: false, scheme: false, shape: box, skeleton: false, light_off: true}
+  - {id: gap, label: {ru: разрывы, en: gaps}, home: null, needs_position: false, container: false, role: true, scheme: false, shape: question, skeleton: false}
+relations: [shift, flow, produces, uses, belongs, opposes, refers, represents, other]
+# No entry kind, no situation board: the hints on them are off.
+hints:
+  - empty-boards
+  - positions
+  - new-frames
+  - gaps
+  - open-qualifications
+  - candidate-moves
+  - problems
+  - belts
+  - ontology
+  - difficulty
+  - revise-if
+  - ai-drafts
+  - ai-variants
+  - no-new-scheme
+# Not matched by smd compare.
+compare_skip: [note]
+compare_groups:
+  positions: [position, reflexive_position, place_for_others]
+  frames: [frame]
+  functions: [function, cooperation]
+  institutions: [standard, norm, model, concept]
+  gaps: [gap]
+reading:
+  - {step: positions, board: od, pick: {board: od, kinds: [position, reflexive_position, goal]}}
+  - {step: places, board: od, pick: {board: od}}
+  - {step: old-frame, board: oo, pick: old-frames}
+  - {step: new-frame, board: oo, pick: new-frames}
+  - {step: object, board: oo, pick: {board: oo}}

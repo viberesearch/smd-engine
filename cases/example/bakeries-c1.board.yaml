@@ -1,0 +1,61 @@
+# Invented teaching example: a group runs three bakeries and considers
+# organising shared production for independent bakeries of a region.
+record: board_set
+schema_version: "0.3"
+id: bakeries-c1
+case: example-bakeries
+title: Bakeries, screen after session 1
+date: "2026-01-10"
+cycle: 1
+status: draft
+sources: [s1, s2]
+elements:
+  - {id: entry, board: od, kind: entry, label: entry}
+  - {id: p-owner, board: od, kind: position, label: "owner of three bakeries"}
+  - {id: p-organiser, board: od, kind: position, label: "organiser of shared production",
+     epistemic: hypothesis}
+  - {id: place-mills, board: od, kind: place_for_others, label: "regional mills"}
+  - {id: place-bank, board: od, kind: place_for_others, label: "bank: equipment leasing"}
+  - {id: f-old, board: oo, kind: frame, frame_state: old, label: "old frame: retail bakery",
+     seen_from: p-owner}
+  - {id: f-new, board: oo, kind: frame, frame_state: new,
+     label: "new frame: shared production for independent bakeries", seen_from: p-organiser,
+     cites: ["s1#t=00:31:00"]}
+  - {id: fn-dough, board: oo, kind: function, label: "dough production", in: [f-new],
+     seen_from: p-organiser}
+  - {id: fn-logistics, board: oo, kind: function, label: "night logistics", in: [f-new],
+     seen_from: p-organiser}
+  - {id: fn-quality, board: oo, kind: function, label: "quality standard", in: [f-new],
+     seen_from: p-organiser, lineage: [earlier-concept], cites: [s2]}
+  - id: m-coop
+    board: oo
+    kind: model
+    label: "model from another domain: dairy cooperatives"
+    seen_from: p-organiser
+    move: {op: glue, from: [f-new], via: "shared asset owned by producers", status: candidate}
+  - {id: s-small, board: s, half: small, kind: situation, label: "three bakeries, flat sales",
+     seen_from: p-owner}
+  - {id: s-small-fact, board: s, half: small, kind: fact,
+     label: "night shift costs a third of the payroll", seen_from: p-owner, epistemic: unverified,
+     cites: ["s1#t=00:12:40"]}
+  - {id: s-big, board: s, half: big, kind: situation, label: "independent bakeries close",
+     seen_from: p-organiser}
+  - {id: s-big-signal, board: s, half: big, kind: signal,
+     label: "chains move to central production", seen_from: p-organiser}
+  - {id: gap-payer, board: od, kind: gap, label: "who pays for the shared plant?", of: position}
+relations:
+  - {from: p-owner, to: p-organiser, kind: shift, label: "other position"}
+transitions:
+  - {n: 1, from: p-owner, to: s-small, cites: ["s1#t=00:05:00"]}
+  - {n: 2, from: s-small, to: s-big}
+  - {n: 3, from: s-big, to: f-new, label: "frame of a new object"}
+qualifications:
+  - {id: K1, targets: [p-organiser], text: "the move to the organiser position is a hypothesis",
+     by: methodologist, status: open, raised_in: 1}
+  - {id: K2, targets: [f-new], text: "functions are not tied to who performs and who pays",
+     by: methodologist, status: open, raised_in: 1}
+state:
+  version: "0.1"
+  accepted: ["the small situation is described"]
+  open: ["K1", "K2"]
+  next_move: "interview two mill owners"

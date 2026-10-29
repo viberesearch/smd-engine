@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/viberesearch/smd-engine/schemas/source_manifest.schema.json",
+  "title": "Source manifest: the raw materials of a case, listed without copying them",
+  "type": "object",
+  "required": ["record", "schema_version", "case", "sources"],
+  "additionalProperties": false,
+  "properties": {
+    "record": {"const": "source_manifest"},
+    "schema_version": {"const": "0.3"},
+    "case": {"type": "string"},
+    "location": {"type": "string", "description": "where the files are kept, e.g. local folder or the program environment"},
+    "sources": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/source"}}
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["id", "title", "kind", "origin"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+        "title": {"type": "string"},
+        "kind": {
+          "enum": ["transcript", "slides", "handout", "analysis", "prompt", "correspondence", "team_doc", "external", "field_artefact", "decision_log"]
+        },
+        "origin": {"enum": ["program", "team", "external"]},
+        "author": {"type": "string", "description": "position or public author; no private names of third parties"},
+        "date": {"type": "string", "format": "date"},
+        "file": {"type": "string", "description": "file name inside the location"},
+        "url": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "lines": {"type": "integer", "minimum": 0, "description": "the line count the sha256 covers"},
+        "lineage": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"}, "uniqueItems": true},
+        "clean_room": {"enum": ["allow", "deny"], "description": "whether a clean-room run may read it"},
+        "personal_data": {"type": "boolean", "description": "contains names or details of people outside the team"},
+        "note": {"type": "string"}
+      }
+    }
+  }
+}

@@ -1,0 +1,155 @@
+# Invented golden record: what `ingest-transcript` and then `theses-to-board`
+# should produce from s3_transcript.txt, with bakeries-c1 as the previous cycle.
+# No sign-offs (a human gives them), no field result (s4 is not in this talk).
+record: board_set
+schema_version: "0.3"
+id: bakeries-c2-expected
+case: example-bakeries
+title: Bakeries, session 2 as the procedures should record it
+date: "2026-01-17"
+cycle: 2
+revises: bakeries-c1
+reflected_from: p-reflect
+status: draft
+sources: [s1, s3]
+run: {procedure: theses-to-board, version: "0.3.3", model: "hand-checked reference", date: "2026-10-29"}
+elements:
+  - {id: entry, board: od, kind: entry, label: entry}
+  - {id: p-owner, board: od, kind: position, label: "owner of three bakeries"}
+  - {id: p-organiser, board: od, kind: position, label: "organiser of shared production",
+     epistemic: hypothesis}
+  - {id: p-reflect, board: od, kind: position, label: "the group looking back at session 1",
+     cites: ["s3#t=00:03:20"]}
+  - {id: place-mills, board: od, kind: place_for_others, label: "regional mills",
+     cites: ["s3#t=00:08:10"]}
+  - {id: place-bank, board: od, kind: place_for_others, label: "bank: equipment leasing",
+     cites: ["s3#t=00:22:05"]}
+  - {id: f-old, board: oo, kind: frame, frame_state: old, label: "old frame: retail bakery",
+     seen_from: p-owner}
+  - {id: f-new, board: oo, kind: frame, frame_state: new,
+     label: "new frame: shared production for independent bakeries", seen_from: p-organiser,
+     cites: ["s1#t=00:31:00"]}
+  - {id: fn-dough, board: oo, kind: function, label: "dough production, paid per tonne by members",
+     in: [f-new], seen_from: p-organiser, performed_by: p-organiser, cites: ["s3#t=00:14:20"]}
+  - {id: fn-logistics, board: oo, kind: function, label: "night logistics, run by the plant",
+     in: [f-new], seen_from: p-organiser, performed_by: p-organiser, cites: ["s3#t=00:16:05"]}
+  - {id: m-coop, board: oo, kind: model, label: "model from another domain: dairy cooperatives",
+     seen_from: p-organiser, epistemic: hypothesis, cites: ["s3#t=00:11:30"],
+     move: {op: glue, from: [f-new], via: "shared asset owned by producers", status: candidate}}
+  - {id: s-small, board: s, half: small, kind: situation, label: "three bakeries, flat sales",
+     seen_from: p-owner, cites: ["s3#t=00:00:55"]}
+  - {id: s-big, board: s, half: big, kind: situation, label: "independent bakeries close",
+     seen_from: p-organiser, cites: ["s3#t=00:31:10"]}
+  - {id: gap-risk, board: oo, kind: gap, label: "who carries unsold dough?", of: position,
+     voice: ai, cites: ["s3#t=00:17:40"],
+     move: {op: adjoin, from: [f-new], via: "time: day-to-day demand", status: candidate}}
+relations:
+  - {from: p-owner, to: p-organiser, kind: shift, label: "other position"}
+  - {from: p-owner, to: f-old, kind: represents}
+transitions:
+  - {n: 1, from: p-reflect, to: f-new, label: "what session 1 left without a payer",
+     cites: ["s3#t=00:03:20"]}
+  - {n: 2, from: f-new, to: s-big, cites: ["s3#t=00:31:10"]}
+qualifications:
+  - {id: K1, targets: [p-organiser], text: "the move to the organiser position is a hypothesis",
+     by: methodologist, status: open, raised_in: 1}
+  - {id: K2, targets: [f-new], text: "functions are not tied to who performs and who pays",
+     by: methodologist, status: open, raised_in: 1}
+theses:
+  - id: T1
+    claim: "Session 1 left the plant without a payer."
+    grounds: "We agreed a shared plant makes sense, and nobody said who pays for it."
+    voice: group
+    status: voiced
+    belt: md
+    kind: difficulty
+    feeds: [p-reflect]
+    cites: ["s3#t=00:03:20"]
+  - id: T2
+    claim: "The payer cannot be the owner of three bakeries; it has to be the bakeries that use the plant."
+    voice: participant
+    status: voiced
+    belt: mk
+    kind: statement
+    about: [p-organiser, fn-dough]
+    cites: ["s3#t=00:05:45"]
+  - id: T3
+    claim: "The mills will not sign a supply contract before they see a volume."
+    grounds: "Two mill owners said so in interviews."
+    next_move: "Collect a volume pledge from five bakeries."
+    voice: group
+    status: voiced
+    belt: md
+    kind: difficulty
+    feeds: [place-mills]
+    cites: ["s3#t=00:08:10"]
+  - id: T4
+    claim: "The plant could belong to the bakeries that use it, like a dairy cooperative."
+    voice: participant
+    status: assumption
+    belt: m
+    kind: statement
+    feeds: [m-coop]
+    cites: ["s3#t=00:11:30"]
+  - id: T5
+    claim: "Price dough per tonne, so the plant is paid by use."
+    voice: moderator
+    status: proposal
+    belt: mk
+    kind: task
+    feeds: [fn-dough]
+    cites: ["s3#t=00:14:20"]
+  - id: T6
+    claim: "Night logistics will be run by the plant, with its own vans."
+    voice: participant
+    status: voiced
+    belt: md
+    kind: statement
+    feeds: [fn-logistics]
+    cites: ["s3#t=00:16:05"]
+  - id: T7
+    claim: "Nobody on the board carries the loss when baked dough is not ordered."
+    voice: ai
+    status: ai_variant
+    belt: m
+    kind: problem
+    of: position
+    feeds: [gap-risk]
+    cites: ["s3#t=00:17:40"]
+  - id: T8
+    claim: "Will the bank lease equipment to a cooperative that has no history?"
+    voice: participant
+    status: voiced
+    belt: mk
+    kind: question
+    feeds: [place-bank]
+    cites: ["s3#t=00:22:05"]
+  - id: T9
+    claim: "Five of the forty independent bakeries would pledge a weekly volume if our dough costs less per tonne than their own."
+    voice: participant
+    status: assumption
+    belt: md
+    kind: statement
+    about: [place-mills, fn-dough]
+    cites: ["s3#t=00:26:30"]
+hypotheses:
+  - id: H1
+    assumes: "Five bakeries will pledge a weekly volume if dough costs less per tonne than their own."
+    action: "Offer a pledge form to twelve bakeries."
+    observe: "Number of signed pledge forms."
+    status: untested
+    targets: [place-mills, fn-dough]
+    raised_in: 2
+  - id: H2
+    assumes: "The bank leases to a cooperative backed by member pledges."
+    action: "Ask the bank once the pledges are in hand."
+    observe: "The bank's terms."
+    status: untested
+    targets: [place-bank]
+    raised_in: 2
+state:
+  version: "2.0"
+  difficulty: "session 1 left the plant without a payer"
+  accepted: []
+  open: ["K1", "K2", "T7", "H1", "H2"]
+  next_move: "offer the pledge form to twelve bakeries"

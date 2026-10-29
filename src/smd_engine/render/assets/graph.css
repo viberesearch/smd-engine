@@ -1,0 +1,31 @@
+
+:root{--bg:#fbfaf7;--ink:#1d1d1b;--muted:#6b6b66;--line:#d9d6cf;--panel:#ffffff;--hl:#f2e6b8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 -apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:10px 16px;border-bottom:1px solid var(--line)}
+header h1{font-size:17px;margin:0}
+header p{margin:2px 0 0;color:var(--muted);font-size:12px}
+main{display:grid;grid-template-columns:250px 1fr 340px;height:calc(100vh - 58px)}
+aside{overflow:auto;padding:10px 12px;background:var(--panel);border-right:1px solid var(--line)}
+aside.right{border-right:0;border-left:1px solid var(--line)}
+aside h2{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 6px}
+aside label{display:flex;gap:6px;align-items:center;margin:2px 0;font-size:13px;cursor:pointer}
+.sw{display:inline-block;width:18px;height:3px;border-radius:2px;flex:none}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none}
+button{font:inherit;font-size:12px;margin:2px 2px 2px 0;padding:3px 8px;border:1px solid var(--line);background:var(--bg);border-radius:4px;cursor:pointer}
+button:hover{background:var(--hl)}
+input[type=search]{width:100%;font:inherit;padding:5px 7px;border:1px solid var(--line);border-radius:4px}
+#wrap{position:relative;min-width:0}
+canvas{display:block;width:100%;height:100%;cursor:grab}
+#tip{position:absolute;pointer-events:none;background:#1d1d1bdd;color:#fff;padding:4px 7px;border-radius:4px;font-size:12px;max-width:320px;display:none}
+#info .id{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted)}
+#info h3{font-size:15px;margin:4px 0 8px}
+#info .meta{font-size:12px;color:var(--muted);margin-bottom:8px}
+#info .note{font-size:13px;background:var(--bg);border-left:3px solid var(--line);padding:6px 8px;margin:8px 0;white-space:pre-wrap}
+#info ul{padding-left:16px;margin:4px 0}
+#info li{margin:3px 0;font-size:13px}
+#info a.n{color:var(--ink);text-decoration:underline dotted;cursor:pointer}
+#info table{border-collapse:collapse;font-size:12px;margin:6px 0}
+#info td,#info th{border:1px solid var(--line);padding:2px 4px;vertical-align:top}
+.help{font-size:12px;color:var(--muted)}
+@media (max-width:900px){main{grid-template-columns:1fr;grid-template-rows:auto 60vh auto;height:auto}aside{border:0}}

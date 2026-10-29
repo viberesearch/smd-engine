@@ -1,0 +1,304 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/viberesearch/smd-engine/schemas/board_set.schema.json",
+  "title": "Board set: one cycle of a group's three-board screen",
+  "type": "object",
+  "required": ["record", "schema_version", "id", "title", "cycle", "status", "elements"],
+  "additionalProperties": false,
+  "properties": {
+    "record": {"const": "board_set"},
+    "schema_version": {"const": "0.3"},
+    "id": {"$ref": "#/$defs/id"},
+    "case": {"type": "string", "description": "case the screen belongs to, e.g. example-bakeries"},
+    "title": {"type": "string"},
+    "date": {"type": "string", "format": "date"},
+    "cycle": {"type": "integer", "minimum": 1, "description": "1 for the first screen; each revision adds 1"},
+    "revises": {"$ref": "#/$defs/id", "description": "id of the board set of the previous cycle"},
+    "reflected_from": {"$ref": "#/$defs/id", "description": "position element this cycle's reflexive exit was made from"},
+    "status": {"enum": ["draft", "extracted", "verified"]},
+    "checked_by": {"type": "string"},
+    "lineage": {"$ref": "#/$defs/tags"},
+    "sources": {"type": "array", "items": {"$ref": "#/$defs/id"}, "description": "ids from the source manifest"},
+    "notes": {"type": "string"},
+    "profile": {"type": "string", "default": "program-three-boards", "description": "the method profile the record follows: a file in profiles/; it sets the boards, kinds, relation kinds and hints"},
+    "run": {
+      "type": "object",
+      "required": ["procedure"],
+      "additionalProperties": false,
+      "description": "the procedure run that produced the record",
+      "properties": {
+        "procedure": {"$ref": "#/$defs/id"},
+        "version": {"type": "string"},
+        "model": {"type": "string"},
+        "date": {"type": "string", "format": "date"}
+      }
+    },
+    "applied": {"type": "array", "items": {"$ref": "#/$defs/id"}, "uniqueItems": true, "description": "ids of the patches applied to the record"},
+    "elements": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/element"}},
+    "relations": {"type": "array", "items": {"$ref": "#/$defs/relation"}},
+    "transitions": {"type": "array", "items": {"$ref": "#/$defs/transition"}},
+    "qualifications": {"type": "array", "items": {"$ref": "#/$defs/qualification"}},
+    "theses": {"type": "array", "items": {"$ref": "#/$defs/thesis"}},
+    "hypotheses": {"type": "array", "items": {"$ref": "#/$defs/hypothesis"}},
+    "ontology": {"type": "array", "items": {"$ref": "#/$defs/ontology"}},
+    "signoffs": {"type": "array", "items": {"$ref": "#/$defs/signoff"}},
+    "state": {"$ref": "#/$defs/state"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+    "tags": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"}, "uniqueItems": true},
+    "cite": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*(#[a-z]+=[^\\s]+)?$",
+      "description": "source id, optionally with an address: fp#t=00:23:45, gs#p=8"
+    },
+    "cites": {"type": "array", "items": {"$ref": "#/$defs/cite"}},
+    "taxonomy_tags": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+      "description": "taxonomy id to the values the item takes in it, checked against the taxonomy file"
+    },
+    "route": {"enum": ["smd", "triz"], "description": "the line of work the item came from: the SMD line or the TRIZ line"},
+    "scheme": {"$ref": "#/$defs/id", "description": "free id of the named scheme, next to 'of' (the block of that scheme)"},
+    "voice": {
+      "enum": ["group", "participant", "moderator", "expert", "organisers", "ai"],
+      "description": "whose words these are; no speaker names"
+    },
+    "scheme_block": {
+      "enum": ["product", "material", "means", "method", "function", "position"],
+      "description": "block of a named structural-functional scheme that is missing or problematic (GP-PP)"
+    },
+    "element": {
+      "type": "object",
+      "required": ["id", "board", "kind", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "board": {"type": "string", "minLength": 1, "description": "a board of the record's profile, e.g. od, oo, s (profiles/)"},
+        "half": {"enum": ["small", "big"], "description": "required on a board with halves (the situation board), and only there"},
+        "kind": {"type": "string", "minLength": 1, "description": "a kind of the record's profile (profiles/)"},
+        "kind_note": {"type": "string"},
+        "label": {"type": "string", "minLength": 1},
+        "label_note": {"type": "string"},
+        "short": {"type": "string", "minLength": 1, "description": "screen label; the full label stays in texts and tables"},
+        "fillers": {"type": "array", "items": {"type": "string", "minLength": 1}, "description": "actors (forms) that can occupy this role; positions, places for others and gaps only (docs/method/roles-and-actors.md)"},
+        "detail": {
+          "type": "object", "required": ["columns", "rows"], "additionalProperties": false,
+          "description": "a table behind the element, shown in details and tables, never on the boards",
+          "properties": {
+            "title": {"type": "string"},
+            "columns": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+            "rows": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
+            "keys": {"type": "object", "additionalProperties": {"$ref": "#/$defs/id"}, "description": "column name to taxonomy id; the column's cells are checked against the taxonomy"}
+          }
+        },
+        "frame_state": {"enum": ["old", "new"]},
+        "of": {"$ref": "#/$defs/scheme_block", "description": "gaps only: the scheme block the gap is missing from"},
+        "scheme": {"$ref": "#/$defs/scheme", "description": "gaps only: the named scheme 'of' refers to"},
+        "route": {"$ref": "#/$defs/route"},
+        "tags": {"$ref": "#/$defs/taxonomy_tags"},
+        "seen_from": {"$ref": "#/$defs/id", "description": "element id of the position this item is seen from"},
+        "performed_by": {"$ref": "#/$defs/id", "description": "functions only: the position or place for others that performs it"},
+        "in": {"type": "array", "items": {"$ref": "#/$defs/id"}, "description": "containers, e.g. a function inside a frame"},
+        "epistemic": {"enum": ["stated", "hypothesis", "unverified", "checked"]},
+        "voice": {"$ref": "#/$defs/voice", "description": "who introduced it"},
+        "voice_note": {"type": "string", "description": "the voice text a migration replaced, kept as said"},
+        "lineage": {"$ref": "#/$defs/tags"},
+        "cites": {"$ref": "#/$defs/cites"},
+        "move": {"$ref": "#/$defs/move"},
+        "lens": {"$ref": "#/$defs/id", "description": "id of the lens (lenses/<id>.md) whose questions produced the element"},
+        "geom": {
+          "type": "array", "minItems": 4, "maxItems": 4,
+          "items": {"type": "number", "minimum": 0, "maximum": 1},
+          "description": "[x, y, w, h] as fractions of the screen; overrides automatic layout"
+        }
+      }
+    },
+    "move": {
+      "type": "object",
+      "required": ["op", "from"],
+      "additionalProperties": false,
+      "description": "structural move that produced this element (Zharnikov 2026, Invention as a Structural Operation, doi:10.5281/zenodo.21653102)",
+      "properties": {
+        "op": {
+          "enum": ["adjoin", "rescale", "respecify", "glue"],
+          "description": "adjoin a dimension (alpha), rescale or requantize (rho), re-topologize or re-specify (tau), glue across domains (gamma)"
+        },
+        "from": {
+          "type": "array", "minItems": 1,
+          "items": {"anyOf": [{"$ref": "#/$defs/id"}, {"type": "string", "pattern": "^T[0-9]+$"}]},
+          "description": "elements (or, for a thesis, theses) the move was applied to"
+        },
+        "via": {"type": "string", "description": "what the move works through: the added axis, the new grain, the changed link, or for glue the shared substructure or other domain"},
+        "status": {"enum": ["candidate", "accepted", "rejected"]},
+        "note": {"type": "string"}
+      }
+    },
+    "relation": {
+      "type": "object",
+      "required": ["from", "to", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "from": {"$ref": "#/$defs/id"},
+        "to": {"$ref": "#/$defs/id"},
+        "kind": {"type": "string", "minLength": 1, "description": "a relation kind of the record's profile: shift, flow, produces, uses, belongs, opposes, refers, represents, other"},
+        "label": {"type": "string"},
+        "voice": {"type": "string", "description": "who drew the link, e.g. AI"},
+        "cites": {"$ref": "#/$defs/cites"}
+      }
+    },
+    "transition": {
+      "type": "object",
+      "required": ["n", "from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "n": {"type": "integer", "minimum": 1},
+        "from": {"$ref": "#/$defs/id"},
+        "to": {"$ref": "#/$defs/id"},
+        "label": {"type": "string"},
+        "voice": {"type": "string", "description": "whose move between boards, e.g. AI in a solo session"},
+        "cites": {"$ref": "#/$defs/cites"}
+      }
+    },
+    "qualification": {
+      "type": "object",
+      "required": ["id", "text", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "pattern": "^K[0-9]+$"},
+        "targets": {"type": "array", "items": {"$ref": "#/$defs/id"}},
+        "text": {"type": "string", "minLength": 1},
+        "short": {"type": "string", "minLength": 1, "description": "screen text of the badge's K; the full text stays in texts and tables"},
+        "by": {"type": "string", "description": "position that qualified: organisers, methodologist, group, AI"},
+        "voice": {"type": "string", "description": "who wrote it, when not the position in 'by', e.g. AI drafting for the methodologist"},
+        "status": {"enum": ["open", "partly", "closed"]},
+        "raised_in": {"type": "integer", "minimum": 1},
+        "closed_in": {"type": "integer", "minimum": 1},
+        "note": {"type": "string"},
+        "cites": {"$ref": "#/$defs/cites"}
+      }
+    },
+    "thesis": {
+      "type": "object",
+      "required": ["id", "claim", "voice", "status", "belt", "kind"],
+      "additionalProperties": false,
+      "description": "SessionFlow thesis card (frame 03), with belt and kind from the classic method",
+      "properties": {
+        "id": {"type": "string", "pattern": "^T[0-9]+$"},
+        "claim": {"type": "string", "minLength": 1, "description": "Утверждение"},
+        "grounds": {"type": "string", "description": "Обоснование"},
+        "illustration": {"type": "string", "description": "Иллюстрация"},
+        "consequence": {"type": "string", "description": "Следствие"},
+        "next_move": {"type": "string", "description": "Следующий ход"},
+        "voice": {"$ref": "#/$defs/voice"},
+        "status": {
+          "enum": ["voiced", "assumption", "proposal", "ai_variant", "refined", "open"],
+          "description": "the six SessionFlow labels, in order: Прозвучало в группе; Предположение участников; Предложение модератора / эксперта; Вариант формулировки от ИИ; Уточнено группой после записи; Оставляем открытым"
+        },
+        "belt": {"enum": ["md", "mk", "m"], "description": "мД thought-action, М-К thought-communication, М pure thinking (GP1987)"},
+        "kind": {"enum": ["statement", "difficulty", "task", "problem", "question"]},
+        "feeds": {"type": "array", "items": {"$ref": "#/$defs/id"}, "description": "board elements this thesis produced or changed"},
+        "of": {"$ref": "#/$defs/scheme_block", "description": "for a problem: the scheme block it is tied to"},
+        "scheme": {"$ref": "#/$defs/scheme", "description": "for a problem: the named scheme 'of' refers to"},
+        "route": {"$ref": "#/$defs/route"},
+        "tags": {"$ref": "#/$defs/taxonomy_tags"},
+        "raises": {"type": "array", "items": {"type": "string", "pattern": "^K[0-9]+$"}, "description": "qualifications this thesis raised"},
+        "about": {"type": "array", "items": {"$ref": "#/$defs/id"}, "description": "board elements the thesis reads or comments on without changing them"},
+        "move": {"$ref": "#/$defs/move"},
+        "lens": {"$ref": "#/$defs/id", "description": "id of the lens (lenses/<id>.md) behind the thesis"},
+        "cites": {"$ref": "#/$defs/cites"},
+        "note": {"type": "string"}
+      }
+    },
+    "hypothesis": {
+      "type": "object",
+      "required": ["id", "assumes", "status"],
+      "additionalProperties": false,
+      "description": "inter-module hypothesis: what we assume, how we test it, what we got, what it changes",
+      "properties": {
+        "id": {"type": "string", "pattern": "^H[0-9]+$"},
+        "voice": {"type": "string", "description": "who formulated it: group, participant, AI"},
+        "lens": {"$ref": "#/$defs/id", "description": "id of the lens behind the hypothesis"},
+        "tags": {"$ref": "#/$defs/taxonomy_tags"},
+        "assumes": {"type": "string", "minLength": 1, "description": "что предполагаем"},
+        "action": {"type": "string", "description": "каким действием проверяем"},
+        "observe": {"type": "string", "description": "что будем наблюдать"},
+        "revise_if": {"type": "string", "description": "какой результат заставит пересмотреть предположение"},
+        "status": {"enum": ["untested", "testing", "confirmed", "refuted"]},
+        "result": {"type": "string", "description": "what the field test gave"},
+        "changes": {"type": "string", "description": "what the result changes on the boards"},
+        "targets": {"type": "array", "items": {"$ref": "#/$defs/id"}, "description": "board elements the hypothesis is about"},
+        "qualifications": {"type": "array", "items": {"type": "string", "pattern": "^K[0-9]+$"}},
+        "artefacts": {"$ref": "#/$defs/cites", "description": "field artefacts the result rests on (source ids)"},
+        "raised_in": {"type": "integer", "minimum": 1},
+        "resolved_in": {"type": "integer", "minimum": 1},
+        "note": {"type": "string"},
+        "cites": {"$ref": "#/$defs/cites"}
+      }
+    },
+    "ontology": {
+      "type": "object",
+      "required": ["id", "object", "valid_for"],
+      "additionalProperties": false,
+      "description": "ontological picture: valid for a set of positions and checked for realizability, not truth (GP1981)",
+      "properties": {
+        "id": {"type": "string", "pattern": "^O[0-9]+$"},
+        "object": {"type": "string", "minLength": 1, "description": "the ontological object"},
+        "valid_for": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/id"}, "description": "positions (or places for others, i.e. positions not yet taken) the picture is valid for"},
+        "subjects": {
+          "type": "array",
+          "description": "per-position subjects (предметы) of the object",
+          "items": {
+            "type": "object",
+            "required": ["position", "subject"],
+            "additionalProperties": false,
+            "properties": {"position": {"$ref": "#/$defs/id"}, "subject": {"type": "string", "minLength": 1}}
+          }
+        },
+        "cooperation": {"$ref": "#/$defs/id", "description": "cooperation element through which the common object is built"},
+        "competes": {"type": "string", "description": "what competes with what (Khaprov's ontology test)"},
+        "aspects": {
+          "type": "object",
+          "additionalProperties": {"type": "string"},
+          "description": "the object taken apart, aspect name to text, e.g. activity, carrier, ownership, management, separation"
+        },
+        "tags": {"$ref": "#/$defs/taxonomy_tags"},
+        "test": {"type": "string", "pattern": "^H[0-9]+$", "description": "hypothesis that tests realizability in activity"},
+        "lens": {"$ref": "#/$defs/id", "description": "id of the lens behind the ontology record"},
+        "voice": {"type": "string"},
+        "note": {"type": "string"},
+        "cites": {"$ref": "#/$defs/cites"}
+      }
+    },
+    "signoff": {
+      "type": "object",
+      "required": ["function", "by"],
+      "additionalProperties": false,
+      "description": "human sign-off point; it must state the function it performs (Schukin's interface tax)",
+      "properties": {
+        "function": {
+          "enum": ["close_k", "partly_k", "reopen_k", "accept_move", "reject_move", "accept_thesis", "accept_result", "verify_record"],
+          "description": "close a qualification; mark it partly answered; reopen it; accept or reject a structural move; accept a thesis as refined by the group; accept a field result as confirming or refuting a hypothesis; set the record verified"
+        },
+        "target": {"type": "string", "description": "K id, element, thesis or hypothesis id; none for verify_record"},
+        "by": {"type": "string", "minLength": 1, "description": "the human or the group that signed; never an AI voice"},
+        "date": {"type": "string", "format": "date"},
+        "cycle": {"type": "integer", "minimum": 1},
+        "note": {"type": "string"},
+        "cites": {"$ref": "#/$defs/cites"}
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {"type": "string"},
+        "difficulty": {"type": "string", "description": "what failed in the previous cycle and triggered the reflexive exit"},
+        "accepted": {"type": "array", "items": {"type": "string"}},
+        "open": {"type": "array", "items": {"type": "string"}},
+        "next_move": {"type": "string"}
+      }
+    }
+  }
+}

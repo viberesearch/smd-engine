@@ -1,0 +1,61 @@
+# Выдуманный учебный пример (русская версия cases/example): группа ведёт три
+# пекарни и обдумывает общее производство для независимых пекарен региона.
+record: board_set
+schema_version: "0.3"
+id: pekarni-c1
+case: example-pekarni
+title: Пекарни, экран после сессии 1
+date: "2026-01-10"
+cycle: 1
+status: draft
+sources: [s1, s2]
+elements:
+  - {id: entry, board: od, kind: entry, label: вход}
+  - {id: p-owner, board: od, kind: position, label: "владелец трёх пекарен"}
+  - {id: p-organiser, board: od, kind: position, label: "организатор общего производства",
+     epistemic: hypothesis}
+  - {id: place-mills, board: od, kind: place_for_others, label: "региональные мельницы"}
+  - {id: place-bank, board: od, kind: place_for_others, label: "банк: лизинг оборудования"}
+  - {id: f-old, board: oo, kind: frame, frame_state: old, label: "старая рамка: розничная пекарня",
+     seen_from: p-owner}
+  - {id: f-new, board: oo, kind: frame, frame_state: new,
+     label: "новая рамка: общее производство для независимых пекарен", seen_from: p-organiser,
+     cites: ["s1#t=00:31:00"]}
+  - {id: fn-dough, board: oo, kind: function, label: "производство теста", in: [f-new],
+     seen_from: p-organiser}
+  - {id: fn-logistics, board: oo, kind: function, label: "ночная логистика", in: [f-new],
+     seen_from: p-organiser}
+  - {id: fn-quality, board: oo, kind: function, label: "стандарт качества", in: [f-new],
+     seen_from: p-organiser, lineage: [earlier-concept], cites: [s2]}
+  - id: m-coop
+    board: oo
+    kind: model
+    label: "модель из другой области: молочные кооперативы"
+    seen_from: p-organiser
+    move: {op: glue, from: [f-new], via: "общее имущество, которым владеют производители", status: candidate}
+  - {id: s-small, board: s, half: small, kind: situation, label: "три пекарни, продажи стоят",
+     seen_from: p-owner}
+  - {id: s-small-fact, board: s, half: small, kind: fact,
+     label: "ночная смена стоит треть фонда оплаты труда", seen_from: p-owner, epistemic: unverified,
+     cites: ["s1#t=00:12:40"]}
+  - {id: s-big, board: s, half: big, kind: situation, label: "независимые пекарни закрываются",
+     seen_from: p-organiser}
+  - {id: s-big-signal, board: s, half: big, kind: signal,
+     label: "сети переходят на централизованное производство", seen_from: p-organiser}
+  - {id: gap-payer, board: od, kind: gap, label: "кто платит за общий цех?", of: position}
+relations:
+  - {from: p-owner, to: p-organiser, kind: shift, label: "другая позиция"}
+transitions:
+  - {n: 1, from: p-owner, to: s-small, cites: ["s1#t=00:05:00"]}
+  - {n: 2, from: s-small, to: s-big}
+  - {n: 3, from: s-big, to: f-new, label: "рамка нового объекта"}
+qualifications:
+  - {id: K1, targets: [p-organiser], text: "переход в позицию организатора пока гипотеза",
+     by: methodologist, status: open, raised_in: 1}
+  - {id: K2, targets: [f-new], text: "функции не привязаны к тому, кто исполняет и кто платит",
+     by: methodologist, status: open, raised_in: 1}
+state:
+  version: "0.1"
+  accepted: ["малая ситуация описана"]
+  open: ["K1", "K2"]
+  next_move: "поговорить с двумя владельцами мельниц"

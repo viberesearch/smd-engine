@@ -1,0 +1,23 @@
+# Invented teaching example: a decision the group took after session 2,
+# recorded as a patch to cycle 2 (smd apply), not as a new cycle.
+record: board_patch
+schema_version: "0.1"
+id: bakeries-c2-1
+case: example-bakeries
+applies_to: bakeries-c2
+version: "0.2.1"
+date: "2026-01-18"
+cites: [s4]
+notes: "The pledges answer who carries unsold dough; the mills are named by what they signed."
+add:
+  elements:
+    - {id: fact-pledges, board: s, half: small, kind: fact,
+       label: "seven bakeries pledged 4.2 tonnes of dough a week", seen_from: p-organiser,
+       cites: [s4]}
+set:
+  - {id: place-mills, label: "regional mills, ready to sign at 4 tonnes a week",
+     label_note: "regional mills"}
+remove:
+  - {id: gap-risk, reason: "answered by the pledges: members carry their pledged volume (H1, s4)"}
+state:
+  accepted: ["pledged members carry unsold dough"]

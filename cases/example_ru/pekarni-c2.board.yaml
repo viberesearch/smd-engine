@@ -1,0 +1,146 @@
+# Выдуманный учебный пример, цикл 2: группа рефлектирует сессию 1, вводит
+# сессию 2 тезисами и подписывает то, что принимает.
+record: board_set
+schema_version: "0.3"
+id: pekarni-c2
+case: example-pekarni
+title: Пекарни, экран после сессии 2
+date: "2026-01-17"
+cycle: 2
+revises: pekarni-c1
+reflected_from: p-reflect
+status: draft
+sources: [s1, s3, s4]
+elements:
+  - {id: entry, board: od, kind: entry, label: вход}
+  - {id: p-owner, board: od, kind: position, label: "владелец трёх пекарен"}
+  - {id: p-organiser, board: od, kind: position, label: "организатор общего производства",
+     epistemic: hypothesis}
+  - {id: p-reflect, board: od, kind: position, label: "группа, оглядывающаяся на сессию 1"}
+  - {id: place-mills, board: od, kind: place_for_others, label: "региональные мельницы"}
+  - {id: place-bank, board: od, kind: place_for_others, label: "банк: лизинг оборудования"}
+  - {id: f-old, board: oo, kind: frame, frame_state: old, label: "старая рамка: розничная пекарня",
+     seen_from: p-owner}
+  - {id: f-new, board: oo, kind: frame, frame_state: new,
+     label: "новая рамка: общее производство для независимых пекарен", seen_from: p-organiser,
+     cites: ["s1#t=00:31:00"]}
+  - {id: fn-dough, board: oo, kind: function, label: "производство теста, участники платят за тонну",
+     in: [f-new], seen_from: p-organiser, performed_by: p-organiser, cites: ["s3#t=00:14:20"]}
+  - {id: fn-logistics, board: oo, kind: function, label: "ночная логистика силами цеха",
+     in: [f-new], seen_from: p-organiser, performed_by: p-organiser}
+  - id: m-coop
+    board: oo
+    kind: model
+    label: "модель из другой области: молочные кооперативы"
+    seen_from: p-organiser
+    voice: ai
+    move: {op: glue, from: [f-new], via: "общее имущество, которым владеют производители", status: accepted}
+  - {id: coop-plant, board: oo, kind: cooperation, short: "заказ, выпечка, мука",
+     label: "участники заказывают, цех печёт тесто, мельницы поставляют муку"}
+  - {id: s-small, board: s, half: small, kind: situation, label: "три пекарни, продажи стоят",
+     seen_from: p-owner}
+  - {id: s-big, board: s, half: big, kind: situation, label: "независимые пекарни закрываются",
+     seen_from: p-organiser}
+  - {id: gap-risk, board: oo, kind: gap, label: "кто несёт риск непроданного теста?", of: position}
+relations:
+  - {from: p-owner, to: p-organiser, kind: shift, label: "другая позиция"}
+  - {from: p-owner, to: f-old, kind: represents}
+transitions:
+  - {n: 1, from: p-reflect, to: f-new, label: "что сессия 1 оставила без плательщика"}
+  - {n: 2, from: f-new, to: s-big}
+qualifications:
+  - {id: K1, targets: [p-organiser], text: "переход в позицию организатора пока гипотеза",
+     by: methodologist, status: open, raised_in: 1}
+  - {id: K2, targets: [f-new], text: "функции не привязаны к тому, кто исполняет и кто платит",
+     by: methodologist, status: closed, raised_in: 1, closed_in: 2}
+theses:
+  - id: T1
+    claim: "Мельницы не подпишутся, пока не увидят объём."
+    grounds: "Два владельца мельниц сказали это в интервью."
+    next_move: "Собрать обязательства по объёму у пяти пекарен."
+    voice: group
+    status: voiced
+    belt: md
+    kind: difficulty
+    feeds: [place-mills]
+    raises: [K1]
+    cites: ["s3#t=00:08:10"]
+  - id: T2
+    claim: "Цех принадлежит пекарням, которые им пользуются, как молочный кооператив."
+    voice: participant
+    status: assumption
+    belt: m
+    kind: statement
+    feeds: [m-coop]
+    move: {op: glue, from: [f-new], via: "общее имущество производителей", status: accepted}
+    cites: ["s3#t=00:11:30"]
+  - id: T3
+    claim: "На доске никто не несёт риск непроданного теста."
+    voice: ai
+    status: ai_variant
+    belt: m
+    kind: problem
+    of: position
+    feeds: [gap-risk]
+    move: {op: adjoin, from: [f-new], via: "время: ежедневный спрос", status: candidate}
+  - id: T4
+    claim: "Даст ли банк в лизинг оборудование кооперативу без истории?"
+    voice: ai
+    status: refined
+    belt: mk
+    kind: question
+    feeds: [place-bank]
+    cites: ["s3#t=00:22:05"]
+  - id: T5
+    claim: "Цену на тесто назначить за тонну, чтобы цех получал плату за пользование."
+    voice: moderator
+    status: proposal
+    belt: mk
+    kind: task
+    feeds: [fn-dough]
+    cites: ["s3#t=00:14:20"]
+hypotheses:
+  - id: H1
+    assumes: "Пять пекарен обяжутся поставлять еженедельный объём, если тесто дешевле их собственного."
+    action: "Предложить форму обязательства двенадцати пекарням."
+    observe: "Число подписанных обязательств и объёмы."
+    revise_if: "Обязательств меньше пяти."
+    status: confirmed
+    result: "Семь обязательств, всего 4,2 тонны в неделю."
+    changes: "Мельницы получают объём, о котором просили (T1)."
+    targets: [place-mills, fn-dough]
+    artefacts: [s4]
+    raised_in: 1
+    resolved_in: 2
+  - id: H2
+    assumes: "Банк даёт лизинг кооперативу, за которым стоят обязательства участников."
+    action: "Пойти в банк с обязательствами на руках."
+    observe: "Условия банка."
+    revise_if: "Банк просит обеспечение сверх обязательств."
+    status: testing
+    targets: [place-bank]
+    raised_in: 2
+ontology:
+  - id: O1
+    object: "общее производство как имущество, которым владеют пользующиеся им пекарни"
+    valid_for: [p-owner, p-organiser]
+    subjects:
+      - {position: p-owner, subject: "тесто дешевле нашей ночной смены"}
+      - {position: p-organiser, subject: "цех с оплатой за пользование и гарантированным объёмом"}
+    cooperation: coop-plant
+    competes: "цех участников конкурирует с централизованным производством сетей"
+    test: H1
+signoffs:
+  - {function: close_k, target: K2, by: group, cycle: 2, date: "2026-01-17",
+     note: "тесто и логистика теперь называют, кто исполняет и кто платит"}
+  - {function: accept_move, target: m-coop, by: group, cycle: 2, date: "2026-01-17"}
+  - {function: accept_thesis, target: T4, by: group, cycle: 2, date: "2026-01-17",
+     note: "группа оставила вопрос и добавила случай лизинга"}
+  - {function: accept_result, target: H1, by: group, cycle: 2, date: "2026-01-17",
+     note: "формы обязательств сверены со списком пекарен"}
+state:
+  version: "0.2"
+  difficulty: "сессия 1 оставила цех без плательщика"
+  accepted: ["K2 закрыта", "молочный кооператив как модель"]
+  open: ["K1", "T3"]
+  next_move: "спросить банк о лизинге кооперативу"

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/viberesearch/smd-engine/schemas/taxonomies.schema.json",
+  "title": "Taxonomies: the values that item tags and bound detail columns may take",
+  "type": "object",
+  "required": ["record", "schema_version", "taxonomies"],
+  "additionalProperties": false,
+  "properties": {
+    "record": {"const": "taxonomies"},
+    "schema_version": {"const": "0.1"},
+    "case": {"type": "string"},
+    "taxonomies": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/value"}},
+      "description": "taxonomy id, e.g. tier, to its values"
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+    "value": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "description": "the value as written in tags and bound cells"},
+        "ru": {"type": "string"},
+        "en": {"type": "string"}
+      }
+    }
+  }
+}

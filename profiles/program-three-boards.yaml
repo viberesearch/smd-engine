@@ -1,0 +1,92 @@
+# The program's screen (Girenko, day 4, 17.10.2026): org-activity board top
+# left, object board top right, situation board at the bottom, split into a
+# small (left) and a big (right) half. The default profile of every record.
+# Format: docs/profiles.md.
+id: program-three-boards
+# Two boards on top, the third below them, drawn as the organisers' triangles.
+screen: triangles
+title:
+  ru: Три доски программы
+  en: The program's three boards
+boards:
+  - id: od
+    label: {ru: Оргдеятельностная доска, en: Org-activity board}
+    halves: none
+    region: [60, 150, 780, 430]
+    colour: ["#eef4f1", "#2e7d62"]
+  - id: oo
+    label: {ru: Объектная доска, en: Object board}
+    halves: none
+    region: [820, 150, 1540, 430]
+    colour: ["#f3f4fb", "#5c63b8"]
+    object: true
+  - id: s
+    label: {ru: Ситуационная доска, en: Situation board}
+    halves: [small, big]
+    region: [445, 625, 1160, 850]
+    split: 800  # the halves meet under the apex of the triangles
+    colour: ["#f5eee2", "#a8782a"]
+# In layout order: a region places its items kind by kind in this order.
+kinds:
+  - {id: entry, label: {ru: вход, en: entry}, home: null, needs_position: false, container: false, role: false, scheme: false, shape: marker, skeleton: true}
+  - {id: position, label: {ru: позиции, en: positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true}
+  - {id: goal, label: {ru: цели, en: goals}, home: od, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
+  - {id: place_for_others, label: {ru: места для других, en: places for others}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: ellipse, skeleton: false}
+  - {id: frame, label: {ru: рамки, en: frames}, home: oo, needs_position: true, container: true, role: false, scheme: true, shape: frame, skeleton: true}
+  - {id: standard, label: {ru: стандарты, en: standards}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: model, label: {ru: модели, en: models}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: concept, label: {ru: понятия, en: concepts}, home: oo, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: function, label: {ru: функции, en: functions}, home: oo, needs_position: false, container: true, role: false, scheme: true, shape: box, skeleton: true}
+  - {id: cooperation, label: {ru: кооперации, en: cooperations}, home: oo, needs_position: false, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  - {id: situation, label: {ru: ситуации, en: situations}, home: s, needs_position: true, container: true, role: false, scheme: false, shape: heading, skeleton: true}
+  - {id: normality_boundary, label: {ru: границы нормальности, en: boundaries of normality}, home: s, needs_position: true, container: false, role: false, scheme: false, shape: paragraph, skeleton: false}
+  - {id: fact, label: {ru: факты, en: facts}, home: s, needs_position: true, container: false, role: false, scheme: false, shape: paragraph, skeleton: false, light_off: true}
+  - {id: signal, label: {ru: сигналы, en: signals}, home: s, needs_position: true, container: false, role: false, scheme: false, shape: paragraph, skeleton: false, light_off: true}
+  - {id: garland, label: {ru: серии связанных событий, en: series of linked events}, home: s, needs_position: true, container: true, role: false, scheme: false, shape: paragraph, skeleton: false}
+  - {id: vision, label: {ru: визионеры, en: visionaries}, home: s, needs_position: true, container: false, role: false, scheme: false, shape: paragraph, skeleton: false}
+  - {id: other, label: {ru: прочее, en: other}, home: null, needs_position: false, container: true, role: false, scheme: false, shape: paragraph, skeleton: false}
+  - {id: note, label: {ru: заметки, en: notes}, home: null, needs_position: false, container: false, role: false, scheme: false, shape: paragraph, skeleton: false, light_off: true}
+  - {id: gap, label: {ru: разрывы, en: gaps}, home: null, needs_position: false, container: false, role: true, scheme: false, shape: question, skeleton: false}
+relations: [shift, flow, produces, uses, belongs, opposes, refers, represents, other]
+hints:
+  - entry
+  - empty-boards
+  - situation-halves
+  - positions
+  - new-frames
+  - gaps
+  - open-qualifications
+  - candidate-moves
+  - problems
+  - belts
+  - ontology
+  - difficulty
+  - revise-if
+  - ai-drafts
+  - ai-variants
+  - no-new-scheme
+# Not matched by smd compare.
+compare_skip: [entry, note]
+compare_groups:
+  positions: [position, place_for_others]
+  frames: [frame]
+  functions: [function, cooperation]
+  institutions: [standard, model, concept]
+  situation: [situation, fact, signal, normality_boundary, garland, vision]
+  gaps: [gap]
+# The organisers' order of reading a screen: each step, the board (or half) a
+# zoomed step is cut to, and what the step adds.
+reading:
+  - {step: entry, board: od, pick: {kinds: [entry]}}
+  - {step: positions, board: od, pick: {board: od, kinds: [position, goal]}}
+  - {step: places, board: od, pick: {board: od}}
+  - {step: small, board: s.small, pick: {board: s, half: small}}
+  - {step: big, board: s.big, pick: {board: s}}
+  - {step: old-frame, board: oo, pick: old-frames}
+  - {step: new-frame, board: oo, pick: new-frames}
+  - {step: object, board: oo, pick: {board: oo}}
+# SessionFlow frame 03, section 1: what each of the first three questions draws on.
+sessionflow:
+  who: [{kinds: [position]}, {kinds: [situation, fact], board: s, half: small}]
+  where: [{kinds: [place_for_others]}, {kinds: [situation, signal], board: s, half: big}]
+  what_for: [{kinds: [frame], frame_state: new}, {kinds: [function]}]

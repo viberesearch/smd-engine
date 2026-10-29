@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.pyc
+.coverage
+.pytest_cache/
+.mypy_cache/
+dist/
+build/
+out/
+
+# Claude Code local files and machine-specific MCP config (.mcp.json.silicon or .mcp.json.intel templates)
+.claude/settings.local.json
+.claude/worktrees/
+.claude/*.local.*
+.mcp.json
+
+# Local working files (handoff, case notes, restricted digests): never committed
+work/

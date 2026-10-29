@@ -1,0 +1,303 @@
+"""Index page of a board record: every K, thesis, hypothesis, ontology record, sign-off
+and element, each linked to its line in the YAML and to the local files it cites."""
+
+from __future__ import annotations
+
+import re
+import unicodedata
+from pathlib import Path
+from typing import Any
+from urllib.parse import quote
+
+from smd_engine.profile import profile_of
+from smd_engine.render.text import LABELS, esc, title_line
+
+CSS = """body{font:14px/1.45 -apple-system,Helvetica,Arial,sans-serif;margin:0;color:#1d2433;background:#fff}
+header{position:sticky;top:0;background:#fff;border-bottom:1px solid #ddd;padding:10px 16px;z-index:1}
+h1{font-size:17px;margin:0 0 4px}main{padding:0 16px 40px}h2{font-size:16px;margin:28px 0 8px;color:#1f3a68}
+table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid #e3e3e3;padding:5px 6px;vertical-align:top;text-align:left}
+th{background:#f4f5f8;position:sticky;top:84px}a{color:#1f5fbf}a.y{font-size:12px;color:#777}small{color:#666}
+:target{background:#fff4c2}td:nth-child(1){white-space:nowrap}"""
+
+ID_AT = re.compile(r"(?:^\s*-\s+|[{,]\s*)id:\s*[\"']?([^\s,\"'}\]]+)")
+
+
+def _is_web(url: str) -> bool:
+    return bool(re.match(r"https?://", url, re.I))
+
+
+def _web_link(url: str, text: str) -> str:
+    """`<a href>` only for http(s) URLs; any other scheme (`javascript:`) is plain text."""
+    if _is_web(url):
+        return f'<a href="{esc(url)}">{esc(text)}</a>'
+    return esc(text)
+
+
+def _nfc(text: str) -> str:
+    return unicodedata.normalize("NFC", text)
+
+
+def _id_lines(lines: list[str]) -> dict[str, int]:
+    """Record id -> number of the first line that declares it (`- id: X`, `{id: X,`)."""
+    found: dict[str, int] = {}
+    for n, line in enumerate(lines, 1):
+        for m in ID_AT.finditer(line):
+            found.setdefault(m.group(1), n)
+    return found
+
+
+def _signoff_line(lines: list[str], signoff: dict[str, Any]) -> int | None:
+    """A sign-off has no id: the line of its `function`, with its `target` on that
+    line or within the next four."""
+    function, target = signoff["function"], signoff.get("target", "")
+    for n, line in enumerate(lines):
+        if f"function: {function}" not in line:
+            continue
+        if not target or any(f"target: {target}" in x for x in lines[n : n + 5]):
+            return n + 1
+    return None
+
+
+class _Index:
+    def __init__(
+        self,
+        data: dict[str, Any],
+        lang: str,
+        manifest: dict[str, Any] | None,
+        record: Path,
+        archive: Path | None,
+    ) -> None:
+        self.data, self.lang, self.record = data, lang, record
+        self.lab = LABELS[lang]
+        self.idx = self.lab["index"]
+        self.lines = record.read_text(encoding="utf-8").splitlines()
+        self.ids = _id_lines(self.lines)
+        self.sources = {s["id"]: s for s in (manifest or {}).get("sources", [])}
+        self.files = (
+            {_nfc(p.name): p for p in archive.rglob("*") if p.is_file()}
+            if archive
+            else {}
+        )
+
+    def _yaml(self, line: int | None) -> str:
+        if not line:
+            return ""
+        href = f"vscode://file/{quote(str(self.record.resolve()))}:{line}"
+        return f'<a class="y" href="{esc(href)}">YAML:{line}</a>'
+
+    def _anchor(self, id_: str) -> str:
+        return f'<b id="{esc(id_)}">{esc(id_)}</b><br>{self._yaml(self.ids.get(id_))}'
+
+    def _local(self, source: dict[str, Any] | None) -> Path | None:
+        """The cited file in the archive folder, matched by NFC file name."""
+        if not source or not source.get("file"):
+            return None
+        found = self.files.get(_nfc(Path(source["file"]).name))
+        return found.resolve() if found else None
+
+    def _cite(self, cite: str) -> str:
+        sid, _, addr = cite.partition("#")
+        source = self.sources.get(sid)
+        if source is None:
+            return esc(cite)
+        title = esc(source.get("title", ""))
+        path = self._local(source)
+        if path is not None:
+            if addr.startswith("l="):
+                href = f"vscode://file/{quote(str(path))}:{addr[2:]}"
+            elif addr.startswith("p=") and path.suffix == ".pdf" and addr[2:].isdigit():
+                href = f"file://{quote(str(path))}#page={addr[2:]}"
+            else:
+                href = f"file://{quote(str(path))}"
+            return f'<a href="{esc(href)}" title="{title}">{esc(cite)}</a>'
+        if source.get("url"):
+            shown = f"{title} ({esc(self.idx['web'])}"
+            if not _is_web(source["url"]):
+                shown += f": {esc(source['url'])}"
+            return f"{_web_link(source['url'], cite)} <small>{shown})</small>"
+        return f"{esc(cite)} <small>{title}</small>"
+
+    def _cites(self, items: list[str] | None) -> str:
+        return " · ".join(self._cite(c) for c in items or [])
+
+    def _refs(self, items: list[str | None] | None) -> str:
+        return ", ".join(f'<a href="#{esc(x)}">{esc(x)}</a>' for x in items or [] if x)
+
+    def _where(self, sid: str) -> str:
+        source = self.sources.get(sid)
+        if source is None:
+            return esc(self.idx["no_entry"])
+        path = self._local(source)
+        if path is not None:
+            return f'<a href="file://{quote(str(path))}">{esc(str(path))}</a>'
+        if source.get("url"):
+            return _web_link(source["url"], source["url"])
+        return esc(self.idx["no_file"])
+
+    def _table(
+        self, key: str, title: str, cols: list[str], rows: list[list[str]]
+    ) -> str:
+        head = "".join(f"<th>{esc(c)}</th>" for c in cols)
+        body = "".join(
+            "<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in rows
+        )
+        return (
+            f'<h2 id="sec-{key}">{esc(title)}</h2><table><tr>{head}</tr>{body}</table>'
+        )
+
+    def sections(self) -> list[tuple[str, str, list[str], list[list[str]]]]:
+        d, lab, idx = self.data, self.lab, self.idx
+        profile = profile_of(d)
+        anchor, refs, cites, e = self._anchor, self._refs, self._cites, esc
+        qualifications = [
+            [
+                anchor(q["id"]),
+                e(lab["status"].get(q["status"], q["status"])),
+                e(q["text"]),
+                refs(q.get("targets")),
+                e(q.get("note", "")),
+                cites(q.get("cites")),
+            ]
+            for q in d.get("qualifications", [])
+        ]
+        theses = [
+            [
+                anchor(t["id"]),
+                e(
+                    f"{t['voice']}, {lab['thesis_status'].get(t['status'], t['status'])}"
+                ),
+                e(t["claim"]),
+                refs(t.get("feeds"))
+                + (" / " + refs(t["about"]) if t.get("about") else ""),
+                e(
+                    " ".join(
+                        x
+                        for x in (
+                            t.get("grounds", ""),
+                            t.get("consequence", ""),
+                            t.get("note", ""),
+                        )
+                        if x
+                    )
+                ),
+                cites(t.get("cites")),
+            ]
+            for t in d.get("theses", [])
+        ]
+        hypotheses = [
+            [
+                anchor(h["id"]),
+                e(lab["hyp_status"].get(h["status"], h["status"])),
+                e(h["assumes"]),
+                e(h.get("action", "")),
+                e(h.get("revise_if", "")),
+                refs(h.get("targets")) + " · " + refs(h.get("qualifications")),
+                cites(h.get("cites")),
+            ]
+            for h in d.get("hypotheses", [])
+        ]
+        ontology = [
+            [
+                anchor(o["id"]),
+                e(o["object"]),
+                refs(o.get("valid_for")),
+                refs([o.get("cooperation")]) + " · " + refs([o.get("test")]),
+                e(o.get("note", "")),
+                cites(o.get("cites")),
+            ]
+            for o in d.get("ontology", [])
+        ]
+        signoffs = [
+            [
+                f"{e(s['function'])}<br>{self._yaml(_signoff_line(self.lines, s))}",
+                refs([s.get("target")]),
+                e(f"{s['by']}, {s.get('date', '')}"),
+                e(s.get("note", "")),
+                cites(s.get("cites")),
+            ]
+            for s in d.get("signoffs", [])
+        ]
+        elements = [
+            [
+                anchor(x["id"]),
+                e(
+                    profile.board_label(x["board"], self.lang)
+                    + (f" / {x['half']}" if x.get("half") else "")
+                ),
+                e(profile.kind_label(x["kind"], self.lang)),
+                e(x.get("short", x["label"])),
+                e(x["label"])
+                + (
+                    f"<br><small>{e(x['label_note'])}</small>"
+                    if x.get("label_note")
+                    else ""
+                ),
+                e(", ".join(x.get("fillers", []))),
+                cites(x.get("cites")),
+            ]
+            for x in d["elements"]
+        ]
+        used = sorted(
+            {
+                c.partition("#")[0]
+                for key in (
+                    "elements",
+                    "theses",
+                    "hypotheses",
+                    "qualifications",
+                    "ontology",
+                    "signoffs",
+                )
+                for o in d.get(key, [])
+                for c in o.get("cites", [])
+            }
+        )
+        sources = [
+            [
+                f"<b>{e(sid)}</b>",
+                e(self.sources[sid].get("title", "")) if sid in self.sources else "",
+                self._where(sid),
+            ]
+            for sid in used
+        ]
+        return [
+            ("k", lab["qualifications"], idx["k_columns"], qualifications),
+            ("t", lab["theses"], idx["t_columns"], theses),
+            ("h", lab["hypotheses"], idx["h_columns"], hypotheses),
+            ("o", lab["ontology"], idx["o_columns"], ontology),
+            ("s", lab["signoffs"], idx["s_columns"], signoffs),
+            ("e", lab["elements"], idx["e_columns"], elements),
+            ("src", idx["src_title"], idx["src_columns"], sources),
+        ]
+
+    def page(self) -> str:
+        sections = self.sections()
+        nav = " · ".join(
+            f'<a href="#sec-{key}">{esc(title)}</a>' for key, title, _, _ in sections
+        )
+        body = "".join(self._table(*s) for s in sections)
+        record = self.record.resolve()
+        title = title_line(self.data, self.lang)
+        return (
+            f'<!doctype html><html lang="{self.lang}"><head><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width,initial-scale=1">'
+            f"<title>{esc(self.data['id'])}: {esc(self.idx['suffix'])}</title>"
+            f"<style>{CSS}</style></head><body><header><h1>{esc(title)}</h1>"
+            f"<div>{esc(self.idx['file'])}: "
+            f'<a href="file://{esc(quote(str(record)))}">{esc(self.record.name)}</a>. '
+            f"{esc(self.idx['hint'])} {nav}</div></header>"
+            f"<main>{body}</main></body></html>\n"
+        )
+
+
+def render_index(
+    data: dict[str, Any],
+    record: Path,
+    lang: str = "ru",
+    manifest: dict[str, Any] | None = None,
+    archive: Path | None = None,
+) -> str:
+    """One page listing every item of the record with its YAML line. A cited source is
+    linked to its file only when `archive` holds a file of that name; otherwise the
+    cite is followed by the source title."""
+    return _Index(data, lang, manifest, record, archive).page()
