@@ -2,7 +2,7 @@
 id: functional-plan
 title: Functional plan inside the new frame
 step: 3
-version: 0.2.2
+version: 0.2.3
 role: визионер
 profile: any
 inputs:
@@ -16,7 +16,7 @@ outputs:
   - "for functions already on the record: AI theses (`voice: ai`, `status: ai_variant`) with `about` naming the function, which propose its performer"
   - candidate moves, hypotheses H for unchecked links, and the list of decisions the human must take
 next: problematization
-sources: [GP-PP (empty places visible only in a functional structure), GP1974s (functional structure as a plane of a system), GP1975 (cooperation, product of one act as material of another), Girenko day 4 (K3, no functional plan so the big situation does not unfold; frame, plan and what exists), Schukin (function, operation, place, position, five grounds of a boundary), Fliamer (functions in the chain, the diamond of the big situation), doi:10.5281/zenodo.21653102 (glue, respecify, rescale)]
+sources: [GP-PP (empty places visible only in a functional structure), GP1974s (functional structure as a plane of a system), GP1975 (cooperation, product of one act as material of another), Girenko day 4 (K3, no functional plan so the big situation does not unfold; frame, plan and what exists), Schukin (function, operation, place, position, five grounds of a boundary), Fliamer (functions in the chain, the diamond of the big situation), BEER1972 (model of the firm, recovery time and escalation of a red line), doi:10.5281/zenodo.21653102 (glue, respecify, rescale)]
 ---
 
 # Functional plan inside the new frame
@@ -111,6 +111,8 @@ Run these checks over the chain and over the positional set. Each failed check i
 | a position in the set performs, pays for and receives nothing | none yet: ask the human (the position is not needed, or a function is missing) | n/a |
 
 `of` is mandatory: a gap with no scheme block gets the hint "gap names no scheme block it is missing from". The scheme here is the functional structure, and the number of gaps depends on it (GP-PP): another scheme gives other gaps. Say so in the reply.
+
+On the profile `management-four-boards`, the lens `beer-viable-system` (questions 2, 3, 6) adds three checks: who keeps the model of the firm (system 4) after the transfer; whether each red line, an `algedonic_channel`, has a `threshold`, a `recovery_time` and an `escalates` relation to the place that must act (the hint `line-without-recovery` names those without); what each place passes up (`filters`). A missing holder or address is a gap with `of: position`. Offer the lens in one line.
 
 A gap is not yet a problem and not yet a goal. Turning it into a problem, a goal or a theme assignment is the work of `problematization` (GP-PP warns that the formal conversion is not real work). Offer options, and let the human choose.
 

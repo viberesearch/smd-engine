@@ -1,0 +1,86 @@
+# Выдуманный учебный пример на слое Бира профиля management-four-boards
+# (С. Бир, «Мозг фирмы», 1972; пер. М. М. Лопухин, М., 1993): одну из трёх
+# пекарен из cases/example_ru, которой управляет сам владелец, покупает
+# региональный хлебный холдинг. Запись показывает три подсказки слоя:
+# - single-node-metasystem: владелец один заполняет системы 3, 4 и 5 (место
+#   post-owner); при передаче метасистема уйдёт вместе с ним;
+# - line-without-recovery: красная линия ch-orders (алгедонический канал) с
+#   порогом, но без времени восстановления и без адреса, куда идёт сигнал;
+#   ch-flour — та же линия, записанная полностью;
+# - absorbed-into-system-1: сценарий «продажа холдингу» как строка на досках:
+#   место правления холдинга (система 5) захватывает (captures) системы 4 и 5
+#   пекарни (Бир, гл. 15: фирма становится частью системы 1 покупателя).
+record: board_set
+schema_version: "0.3"
+id: pekarnya-holding-c1
+case: example-pekarnya-holding
+title: Пекарня владельца и холдинг-покупатель, слой Бира, экран после сессии 1
+date: "2026-02-07"
+cycle: 1
+status: draft
+profile: management-four-boards
+elements:
+  # Оргдеятельностная доска: владелец, покупатель, группа карты
+  - {id: p-owner, board: od, kind: position, label: "владелец и директор пекарни",
+     acts_as: leader, stance: inside}
+  - {id: p-holding, board: od, kind: position, label: "правление хлебного холдинга",
+     acts_as: organiser, stance: external}
+  - {id: p-map, board: od, kind: position, label: "группа, которая составляет карту передачи",
+     stance: external}
+  - {id: place-heir, board: od, kind: place_for_others, label: "наёмный директор после продажи"}
+  - {id: gap-model, board: od, kind: gap,
+     label: "у кого будет модель пекарни (система 4), когда владелец уйдёт?",
+     short: "у кого модель пекарни после ухода владельца?", of: position}
+  # Система ОРУ: знание, идеал, программа, красные линии как алгедонические каналы
+  - {id: k-retro, board: ot, kind: knowledge_retro,
+     label: "журнал заказов и сбоев за три года", seen_from: p-map}
+  - {id: ideal, board: ot, kind: ideal_state,
+     label: "через три года после продажи пекарня печёт под своим именем", seen_from: p-map}
+  - {id: prog, board: ot, kind: programme,
+     label: "год передачи: владелец наставником при наёмном директоре", seen_from: p-map}
+  - {id: ch-flour, board: ot, kind: algedonic_channel,
+     label: "запас муки ниже нормы", threshold: "мука меньше чем на 4 дня выпечки",
+     recovery_time: 2, seen_from: p-map}
+  - {id: ch-orders, board: ot, kind: algedonic_channel,
+     label: "сорван срок поставки сетевому заказчику", threshold: "задержка больше 1 дня",
+     seen_from: p-map}
+  # Аппарат руководства: места и их наполнение, системы 1-5 по Биру
+  - {id: post-owner, board: ap, kind: post, label: "директор-владелец", fillers: [владелец],
+     vsm_system: [3, 4, 5]}
+  - {id: post-shift, board: ap, kind: post, label: "старший смены", fillers: [старший пекарь],
+     vsm_system: [1]}
+  - {id: post-holding, board: ap, kind: post, label: "правление холдинга",
+     fillers: [председатель, финансовый директор, директор по развитию], vsm_system: [4, 5]}
+  - {id: grp-bakers, board: ap, kind: group, label: "пекари, которые сами меняются сменами"}
+  # Управляемая полисистема: пекарня и её заказчики
+  - {id: mono-bakery, board: us, kind: monosystem, label: "пекарня: цех, смены, печи",
+     seen_from: p-map}
+  - {id: mono-clients, board: us, kind: monosystem, label: "постоянные заказчики пекарни",
+     seen_from: p-map}
+  - {id: wp-bake, board: us, kind: work_process, label: "ночная выпечка", in: [mono-bakery],
+     seen_from: p-map}
+  - {id: f-owner, board: us, kind: fact,
+     label: "о закупке муки и о сроках сетевых заказов решает только владелец",
+     short: "о муке и сроках заказов решает только владелец", seen_from: p-map,
+     epistemic: unverified}
+relations:
+  - {from: p-owner, to: post-owner, kind: belongs}
+  - {from: p-owner, to: post-owner, kind: represents}
+  - {from: p-holding, to: post-holding, kind: belongs}
+  - {from: p-holding, to: post-holding, kind: represents}
+  - {from: post-owner, to: post-shift, kind: subordinates}
+  - {from: post-shift, to: post-owner, kind: filters, label: "только сбои дольше смены"}
+  - {from: grp-bakers, to: post-shift, kind: personal}
+  - {from: ch-flour, to: post-owner, kind: escalates, label: "через 2 дня"}
+  - {from: post-holding, to: post-owner, kind: captures, label: "сценарий: продажа холдингу"}
+  - {from: prog, to: mono-bakery, kind: captures}
+  - {from: k-retro, to: f-owner, kind: knows}
+  - {from: mono-bakery, to: mono-clients, kind: symbiotic}
+transitions:
+  - {n: 1, from: p-map, to: f-owner, label: "кто решает сейчас"}
+  - {n: 2, from: f-owner, to: post-owner, label: "чьё это место"}
+  - {n: 3, from: post-owner, to: ideal, label: "что останется после продажи"}
+state:
+  version: "0.1"
+  open: ["gap-model"]
+  next_move: "записать для каждой красной линии время восстановления и место, куда идёт сигнал"

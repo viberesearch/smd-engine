@@ -13,6 +13,6 @@ The method from external primary sources, so that the engine does not rest on on
 | `roles-and-actors.md` | boards hold roles; actors that can occupy them go in `fillers`; stakeholder as the term; a role with structure keeps a `detail` table (adopted 27.10.2026) |
 | `structural-moves.md` | the preprint behind the `move` field: the four operations, the selection functional, its limits and the running demonstration |
 
-Sources: the main texts are from G.P. Shchedrovitsky's *Избранные труды* (1995) and *Философия. Наука. Методология* (1997), read on gtmarket.ru, and Altshuller's texts on altshuller.ru.
+Sources: the main texts are from G.P. Shchedrovitsky's *Избранные труды* (1995) and *Философия. Наука. Методология* (1997), read on gtmarket.ru, and Altshuller's texts on altshuller.ru. Stafford Beer's «Мозг фирмы» (BEER1972, read on gtmarket.ru) is the source of the Beer layer of the management profile (`docs/profiles.md`).
 
 fondgp.ru refused automated access, and Blauberg, Sadovsky and Yudin could not be read; claims that depend on them are marked unverified. Three quotations were re-checked against the downloaded texts.

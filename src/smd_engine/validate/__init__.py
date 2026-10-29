@@ -61,13 +61,16 @@ from smd_engine.validate.hints import (
 )
 from smd_engine.validate.hypotheses import check_hypotheses
 from smd_engine.validate.management import (
+    hint_absorbed_into_system_1,
     hint_development_step,
     hint_lead_vs_manage,
     hint_leads_outside_organisation,
+    hint_line_without_recovery,
     hint_manage_via_organizedness,
     hint_manage_without_knowledge,
     hint_polysystem,
     hint_representation_fit,
+    hint_single_node_metasystem,
 )
 from smd_engine.validate.manifest import check_manifest
 from smd_engine.validate.ontology import check_ontology
@@ -149,6 +152,9 @@ REGISTRY: list[Check] = [
     hint_representation_fit,
     hint_development_step,
     hint_polysystem,
+    hint_single_node_metasystem,
+    hint_line_without_recovery,
+    hint_absorbed_into_system_1,
     check_manifest,
 ]
 

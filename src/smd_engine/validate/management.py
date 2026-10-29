@@ -12,6 +12,13 @@ GP1975a where they disagree. The 1981 hint `manage-without-forecast`
 (GP-Guide5 ¶7, «Управлять без прогноза в принципе невозможно») is replaced by
 `manage-without-knowledge`: in 1988 forecasting is «форма подмены принципов
 оргуправленческой работы сциентистскими принципами» (GP-T5 p. 251).
+
+The Beer layer of the profile (gate Бир3 В) adds three hints from Stafford
+Beer, «Мозг фирмы» (BEER1972, cited by chapter): `single-node-metasystem`,
+`line-without-recovery` and `absorbed-into-system-1`. They read the field
+`vsm_system` (Beer's systems 1-5) of posts and positions, the kind
+`algedonic_channel` with `threshold` and `recovery_time` (a stakeholder's red
+line is recorded as one), and the relations `escalates` and `captures`.
 """
 
 from __future__ import annotations
@@ -27,6 +34,12 @@ KNOWLEDGE = {
 UPPER_KIND = "ideal_state"  # its home is the upper (ОРУ) system
 MANAGED_KIND = "monosystem"  # its home is the managed polysystem
 MONO_RELATIONS = ("parasitic", "symbiotic", "mechanism_of")  # GP-T5 p. 208
+# Beer layer: systems 3, 4 and 5 (Приложение: systems 2-5 form the metasystem;
+# system 2 is mostly informal, Гл. 12, so the check asks for 3-5), the kind of a
+# red line, and the places an escalation may address.
+METASYSTEM = frozenset({3, 4, 5})
+CHANNEL = "algedonic_channel"
+ADDRESSES = ("post", "position", "place_for_others")
 
 # Gate Ш10 В revised by Ш15 Б: the kinds a position's representation is
 # expected among, by `acts_as`. The table is the engine's reading of GP-T5;
@@ -334,3 +347,142 @@ def hint_polysystem(ctx: Ctx) -> list[Finding]:
             "mechanism_of; GP-T5 p. 208): " + ", ".join(alone),
         )
     ]
+
+
+# Beer layer (gate Бир3 В): BEER1972, Stafford Beer, «Мозг фирмы».
+
+
+def _filler(ctx: Ctx, e: dict[str, Any]) -> tuple[str, str] | None:
+    """Who fills a post or position: ("filler", name) for one actor in
+    `fillers`, ("element", id) when no actor is named, None when several
+    share it (a multinode, BEER1972 Гл. 14). A post with no fillers is filled
+    by the one position that `belongs` to it; a position with no fillers that
+    belongs to posts with one and the same filler is that filler."""
+    fillers = e.get("fillers", [])
+    if len(fillers) > 1:
+        return None
+    if fillers:
+        return ("filler", fillers[0])
+    if e["kind"] == "post":
+        members = sorted(
+            {
+                r["from"]
+                for r in _rels(ctx, "belongs")
+                if r["to"] == e["id"] and _kind(ctx, r["from"]) == "position"
+            }
+        )
+        if len(members) > 1:
+            return None
+        return _filler(ctx, ctx.by_id[members[0]]) if members else ("element", e["id"])
+    posts = [ctx.by_id[p].get("fillers", []) for p in _posts(ctx, e["id"])]
+    names = {f for fs in posts for f in fs}
+    if posts and len(names) == 1 and all(len(fs) == 1 for fs in posts):
+        return ("filler", names.pop())
+    return ("element", e["id"])
+
+
+@hint("single-node-metasystem", kinds=("post",), relations=("belongs",))
+def hint_single_node_metasystem(ctx: Ctx) -> list[Finding]:
+    """One filler of posts and positions fills systems 3, 4 and 5."""
+    vsm = ctx.profile.kinds_where("vsm")
+    systems: dict[tuple[str, str], set[int]] = {}
+    carriers: dict[tuple[str, str], list[str]] = {}
+    for e in ctx.by_id.values():
+        who = _filler(ctx, e) if "vsm_system" in e and e["kind"] in vsm else None
+        if who is not None:
+            systems.setdefault(who, set()).update(e["vsm_system"])
+            carriers.setdefault(who, []).append(e["id"])
+    out: list[Finding] = []
+    for who, has in systems.items():
+        if METASYSTEM <= has:
+            name = f"«{who[1]}»" if who[0] == "filler" else f"'{who[1]}'"
+            ids = carriers[who]
+            out.append(
+                Finding(
+                    "hint",
+                    ids[0],
+                    f"{name} alone fills systems 3, 4 and 5 ({', '.join(ids)}): "
+                    "the metasystem is one person, and the transfer will remove it "
+                    "with the person. For Beer the model of the firm is kept in "
+                    "system 4: «Если бы такой модели не было, то высшее руководство не "
+                    "имело бы представления о том, какой фирмой оно управляет» "
+                    "(BEER1972 Гл. 13)",
+                )
+            )
+    return out
+
+
+@hint("line-without-recovery", kinds=(CHANNEL, "post"), relations=("escalates",))
+def hint_line_without_recovery(ctx: Ctx) -> list[Finding]:
+    """A red line (an algedonic channel with a threshold) with no recovery time
+    or no escalation address."""
+    out: list[Finding] = []
+    for e in ctx.by_id.values():
+        if e["kind"] != CHANNEL or "threshold" not in e:
+            continue
+        missing = []
+        if "recovery_time" not in e:
+            missing.append("no recovery time (recovery_time)")
+        if not any(
+            r["from"] == e["id"] and _kind(ctx, r["to"]) in ADDRESSES
+            for r in _rels(ctx, "escalates")
+        ):
+            missing.append(
+                "no escalation address (escalates to a post, position or place "
+                "for others)"
+            )
+        if missing:
+            out.append(
+                Finding(
+                    "hint",
+                    e["id"],
+                    "a red line with a threshold and "
+                    + " and ".join(missing)
+                    + ": for Beer a unit that cannot restore its index «в приемлемое "
+                    "время» sends the signal up, and the people of that level set "
+                    "the time: «указать физиологически приемлемое время "
+                    "восстановления (приведения в норму) каждого индекса» "
+                    "(BEER1972 Гл. 17)",
+                )
+            )
+    return out
+
+
+@hint("absorbed-into-system-1", kinds=("post",), relations=("captures",))
+def hint_absorbed_into_system_1(ctx: Ctx) -> list[Finding]:
+    """A transfer scenario on the boards: a post or position filling system 5
+    `captures` places that fill systems 4 and 5 of the business."""
+    vsm = ctx.profile.kinds_where("vsm")
+
+    def systems_of(eid: str) -> set[int]:
+        e = ctx.by_id.get(eid, {})
+        return set(e.get("vsm_system", [])) if e.get("kind") in vsm else set()
+
+    taken: dict[str, list[str]] = {}
+    for r in _rels(ctx, "captures"):
+        if (
+            r["from"] != r["to"]
+            and 5 in systems_of(r["from"])
+            and {4, 5} & systems_of(r["to"])
+            and r["to"] not in taken.get(r["from"], [])
+        ):
+            taken.setdefault(r["from"], []).append(r["to"])
+    out: list[Finding] = []
+    for source, targets in taken.items():
+        has = {n for t in targets for n in systems_of(t)}
+        if {4, 5} <= has:
+            out.append(
+                Finding(
+                    "hint",
+                    source,
+                    f"'{source}' fills system 5 and captures systems 4 and 5 of "
+                    f"{', '.join(targets)}: the business becomes part of the "
+                    "buyer's system 1, and its name and identity are at risk. Beer "
+                    "on a firm taken over by a larger one: «Оно должно перестать "
+                    "быть директоратом и становится группой управления. Короче "
+                    "говоря, фирма становится одним из подразделений нового целого "
+                    "— частью системы 1»; its old name «через несколько лет "
+                    "исчезает совсем» (BEER1972 Гл. 15)",
+                )
+            )
+    return out

@@ -54,6 +54,7 @@ Access note: fondgp.ru returned HTTP 403 to the fetch tool and 404 for `/lib/mmk
 | BSY1977 | Blauberg I.V., Sadovsky V.N., Yudin E.G. Systems Theory: Philosophical and Methodological Problems. Moscow: Progress, 1977 [S: library catalogues] | https://search.ub.tum.de/vufind/Record/DE-604.BV025107489 |
 | BY1973 | Блауберг И.В., Юдин Э.Г. Становление и сущность системного подхода. М.: Наука, 1973 [S: НЭБ catalogue] | https://rusneb.ru/catalog/010003_000061_5af8ed87d829815e25f2eb27fafda447/ |
 | ILE2013 | Ilevbare I.M., Probert D., Phaal R. A review of TRIZ, and its benefits and challenges in practice // Technovation 33 (2013) [S: abstracts only] | (not fetched) |
+| BEER1972 | Бир С. Мозг фирмы / пер. с англ. М. М. Лопухин. М., 1993 (Stafford Beer, Brain of the Firm, 1972; translated from the second edition, which adds Part IV on Chile, chapters 16-20); electronic publication: Центр гуманитарных технологий, 18.03.2013. Cited by chapter, «Гл. N», and «Приложение» for the glossary. The source of the Beer layer of `management-four-boards` (gate Бир3 В) and of the lens `beer-viable-system`. The book has no System 3\* | https://gtmarket.ru/library/basis/5789 |
 | CHK | Checkland P. Systems Thinking, Systems Practice (1981); Smyth D., Checkland P. (1976) root definitions; Checkland P., Poulter J. Learning for Action (2006) [S: secondary summaries only] | https://cci.drexel.edu/faculty/sgasson/SSM/Stage3b.html |
 
 ---

@@ -82,7 +82,11 @@ KIND_FLAGS = (
     "light_off",
     "stance",
     "factual",
+    "vsm",
 )
+# Hints that read `vsm_system` (validate/management.py): without a kind
+# flagged `vsm` they can never fire.
+VSM_HINTS = ("single-node-metasystem", "absorbed-into-system-1")
 STEP_KEYS = {"step", "board", "pick"}
 RELATION_KEYS = {"id", "label"}
 # Relation kinds the engine labels itself (render/graph.py EDGE_KINDS): a
@@ -166,6 +170,7 @@ class Kind:
     light_off: bool = False  # left off the lighter screen (--light)
     stance: bool = False  # takes the field `stance`: a position (GP-Guide11 ¶35)
     factual: bool = False  # records a fact: a breakdown a goal can arise from
+    vsm: bool = False  # takes the field `vsm_system`: Beer's systems 1-5
 
 
 @dataclass(frozen=True)
@@ -745,6 +750,12 @@ def _parse(data: dict[str, Any], name: str) -> Profile:
             raise ProfileError(
                 f"{name}: missing relation kinds the hints name: "
                 f"{sorted(hint_relations - set(relations))}"
+            )
+        need_vsm = sorted(set(hints) & set(VSM_HINTS))
+        if need_vsm and not any(k.vsm for k in kinds):
+            raise ProfileError(
+                f"{name}: the hints {need_vsm} read vsm_system and need a kind "
+                "flagged vsm"
             )
     except (KeyError, TypeError) as exc:
         raise ProfileError(f"{name}: malformed profile ({exc})") from exc

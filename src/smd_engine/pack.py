@@ -204,10 +204,11 @@ def pack(
         part("Role", root / "roles" / f"{role}.md")
     for lens in lenses:
         part("Lens", lens)
-    model = root / "docs" / "data-model.md"
-    if not model.exists():
-        model = root / "data-model.md"
-    part("Data model", model)
+    # The data model and its checks (docs/checks.md, split from it in 0.5.4);
+    # in the wheel both lie at the root of the assets.
+    for title, name in (("Data model", "data-model.md"), ("Checks", "checks.md")):
+        doc = root / "docs" / name
+        part(title, doc if doc.exists() else root / name)
     cells = _cells(boards)
     if cells is not None:
         rec, body = cells

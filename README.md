@@ -102,7 +102,7 @@ A profile (`profiles/*.yaml`) holds the boards, the element kinds, the relation 
 |---|---|
 | `program-three-boards` (default) | org-activity `od`, object `oo`, situation `s` with a small and a big half |
 | `classic-two-boards` | org-activity `od` and object-ontological `oo` side by side; no situation board |
-| `management-four-boards` | G.P.'s scheme of organisation, leadership and management: org-activity `od` and the upper system `ot` on top, the apparatus of leadership `ap` and the managed polysystem `us` below |
+| `management-four-boards` | G.P.'s scheme of organisation, leadership and management: org-activity `od` and the upper system `ot` on top, the apparatus of leadership `ap` and the managed polysystem `us` below; a labelled layer from Beer's viable system model (systems 1-5, red lines as algedonic channels) |
 
 An unknown profile, board or kind is an error naming the element. Format and the keys of a profile: `docs/data-model.md`, section Profiles.
 

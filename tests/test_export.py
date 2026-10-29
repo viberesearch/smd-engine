@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -50,11 +51,23 @@ def test_pack_collects_the_context() -> None:
         "# Procedure: procedures/small-situation.md",
         "# Role: roles/methodologist.md",
         "# Data model: docs/data-model.md",
+        "# Checks: docs/checks.md",
         "# Record: bakeries-c2.board.yaml",
     ):
         assert part in text
     lens_text = pack("functional-plan", [])
     assert "# Lens: lenses/design-chain.md" in lens_text
+
+
+def test_pack_finds_the_docs_at_the_root_of_the_wheel_assets(tmp_path: Path) -> None:
+    """In the wheel data-model.md and checks.md lie beside the method folders."""
+    for folder in ("procedures", "roles", "lenses"):
+        shutil.copytree(ROOT / folder, tmp_path / folder)
+    for name in ("data-model.md", "checks.md"):
+        shutil.copy(ROOT / "docs" / name, tmp_path / name)
+    text = pack("solo-session", [], root=tmp_path)
+    assert "# Data model: data-model.md" in text
+    assert "# Checks: checks.md" in text
 
 
 def test_pack_lists_the_cells_of_the_latest_cycle() -> None:

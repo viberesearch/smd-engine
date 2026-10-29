@@ -16,6 +16,13 @@
 # - The relation «захват» (captures, GP-T5 pp. 226-227) replaces the draft
 #   encloses («матрёшка», GP-Guide2004 pdf 134); knows replaces the draft
 #   reflects, since GP-T5 p. 181 drops «принцип отражения».
+# Beer layer (gate Бир3 В): items from Stafford Beer, «Мозг фирмы» (Brain of
+# the Firm, 1972; М., 1993; BEER1972 in docs/method/sources.md), each marked
+# "Beer layer" below with its chapter: the flag vsm (field vsm_system) on
+# position and post, the kind algedonic_channel, the relations escalates and
+# filters, the hints single-node-metasystem, line-without-recovery and
+# absorbed-into-system-1. The book has no System 3*; the inspection channel of
+# system 3 (Гл. 12) is not a kind here.
 # Format: docs/profiles.md; kinds and relations: docs/data-model.md.
 id: management-four-boards
 title:
@@ -59,8 +66,11 @@ boards:
     object: true
 # In layout order: a region places its items kind by kind in this order.
 kinds:
-  # od: positions and their self-determination (GP-Guide10 ¶7; GP-T5 pp. 150-151)
-  - {id: position, label: {ru: позиции, en: positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true, stance: true}
+  # od: positions and their self-determination (GP-Guide10 ¶7; GP-T5 pp. 150-151).
+  # Beer layer: a position and a post take vsm_system, the systems 1-5 they fill
+  # (BEER1972 Гл. 9):
+  # «Если один человек — это фирма, то он использует свою нервную систему, чтобы управлять такой фирмой»
+  - {id: position, label: {ru: позиции, en: positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true, stance: true, vsm: true}
   - {id: reflexive_position, label: {ru: рефлексивные позиции, en: reflexive positions}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: figure, skeleton: true, stance: true}
   - {id: goal, label: {ru: цели, en: goals}, home: od, needs_position: true, container: false, role: false, scheme: false, shape: box, skeleton: false}
   - {id: place_for_others, label: {ru: места для других, en: places for others}, home: od, needs_position: false, container: false, role: true, scheme: false, shape: ellipse, skeleton: false}
@@ -73,11 +83,15 @@ kinds:
   - {id: functional_place, label: {ru: функциональные места, en: functional places}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
   - {id: model, label: {ru: модели, en: models}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
   - {id: concept, label: {ru: понятия, en: concepts}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
+  # Beer layer: an alarm path that bypasses the filters, with `threshold` and
+  # `recovery_time`; a red line of a stakeholder is recorded as one (BEER1972 Гл. 17):
+  # «указать физиологически приемлемое время восстановления (приведения в норму) каждого индекса»
+  - {id: algedonic_channel, label: {ru: алгедонические каналы, en: algedonic channels}, home: ot, needs_position: true, container: false, role: false, scheme: true, shape: box, skeleton: false}
   # the steps of a working process, on its process board (template `process`)
   - {id: function, label: {ru: функции, en: functions}, home: process, needs_position: false, container: true, role: false, scheme: true, shape: box, skeleton: true}
   - {id: cooperation, label: {ru: кооперации, en: cooperations}, home: ot, needs_position: false, container: false, role: false, scheme: true, shape: box, skeleton: false}
   # ap: places and people (GP-Guide8; GP-T5 pp. 177, 192-193, 241-242, 254)
-  - {id: post, label: {ru: места, en: posts}, home: ap, needs_position: false, container: false, role: true, scheme: false, shape: box, skeleton: true}
+  - {id: post, label: {ru: места, en: posts}, home: ap, needs_position: false, container: false, role: true, scheme: false, shape: box, skeleton: true, vsm: true}
   - {id: group, label: {ru: неформальные группы, en: informal groups}, home: ap, needs_position: false, container: false, role: false, scheme: false, shape: box, skeleton: false}
   - {id: club, label: {ru: клубы, en: clubs}, home: ap, needs_position: false, container: false, role: false, scheme: false, shape: box, skeleton: false}
   # us: the managed polysystem (GP-T5 pp. 205-213), five planes (p. 201, 205)
@@ -125,6 +139,12 @@ relations:
   - {id: parasitic, label: {ru: паразитирует на, en: parasitic on}}
   - {id: symbiotic, label: {ru: симбиоз, en: symbiotic with}}
   - {id: mechanism_of, label: {ru: механизм для, en: mechanism of}}
+  # Beer layer: from an algedonic channel to the place that must act once the
+  # recovery time has run out (BEER1972 Гл. 17)
+  - {id: escalates, label: {ru: сигнал наверх, en: escalates}}
+  # Beer layer: what a place passes up to the place above (BEER1972 Гл. 7):
+  # «фильтр как устройство для уменьшения разнообразия, сводящее многое к одному»
+  - {id: filters, label: {ru: фильтрует, en: filters}}
 hints:
   - empty-boards
   - positions
@@ -158,10 +178,14 @@ hints:
   - representation-fit
   - development-step
   - polysystem
+  # Beer layer (validate/management.py; BEER1972 Гл. 9, 15, 17)
+  - single-node-metasystem
+  - line-without-recovery
+  - absorbed-into-system-1
 compare_skip: [note]
 compare_groups:
   positions: [position, reflexive_position, place_for_others]
-  upper: [knowledge_retro, knowledge_projective, ideal_state, programme, means, functional_place, model, concept]
+  upper: [knowledge_retro, knowledge_projective, ideal_state, programme, means, functional_place, model, concept, algedonic_channel]
   processes: [function, cooperation, work_process]
   apparatus: [post, group, club]
   managed: [monosystem, mission, self_motion, trajectory, functional_structure, link_structure, morphology, material, fact]

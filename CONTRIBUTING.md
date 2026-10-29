@@ -21,7 +21,7 @@ uv run black . && uv run flake8 && uv run mypy src && uv run pytest
 
 3. CI (`.github/workflows/ci.yml`) runs black, flake8, mypy, pytest and a trivy scan. A pull request is merged after CI is green.
 4. Commit messages are conventional: `feat(scope): ...`, `fix(scope): ...`, `docs(scope): ...`, `chore(scope): ...`.
-5. Update the docs in the same change: `docs/data-model.md` for any record field or check, `docs/profiles.md` for the profile format, `docs/commands.md` and the table in `README.md` for a command, `CHANGELOG.md` for anything a user would notice.
+5. Update the docs in the same change: `docs/data-model.md` for any record field, `docs/checks.md` for any check, `docs/profiles.md` for the profile format, `docs/commands.md` and the table in `README.md` for a command, `CHANGELOG.md` for anything a user would notice.
 
 Tests live in `tests/`, one file per area (`test_validate.py`, `test_profile.py`, `test_apply.py`, ...). The fixtures `board`, `board2` and `manifest` in `tests/conftest.py` load `cases/example/` and are deep-copied for each test, so a test may change them freely. Add one focused test per behaviour you add.
 
@@ -56,7 +56,7 @@ A check is a function that takes the context `Ctx` (`validate/context.py`) and r
 1. Write the function in the module of its subject under `src/smd_engine/validate/` (`structure.py`, `theses.py`, `hints.py`, ...). Decorate a check that only applies to board sets with `@board_set`.
 2. Add it to `REGISTRY` in `src/smd_engine/validate/__init__.py` (and its import). Findings come out in registry order.
 3. A method hint is declared with `@hint("hint-id")` and runs only for a profile that lists the id under `hints`. Add the id to the `hints` list of each profile that should have it; an id that no check declares is an error of every record that names it.
-4. Describe the check in the Checks section of `docs/data-model.md`.
+4. Describe the check in `docs/checks.md`.
 5. Test it in `tests/test_validate.py`: take the `board` fixture, break one thing, assert on the finding.
 
 ## Add a profile

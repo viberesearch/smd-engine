@@ -1,7 +1,7 @@
 ---
 id: khaprov-levels
 title: Seven levels of management complexity and three kinds of complexity
-version: 0.1.0
+version: 0.2.0
 source: "Khaprov, expert lecture on the entrepreneur as organizer of complexity, program day 4, read through a local digest of the automatic transcript and the Q&A file (digest sections 1, 2.1-2.3, 2.5, 4, Q&A 1-2 and 10; the digest is not in the repo); Khaprov in the text below means that lecture"
 route: smd
 offered_by: [positional-construction, functional-plan]
@@ -16,6 +16,7 @@ Terms are Khaprov's, from a lecture heard through an automatic transcript. Where
 ## When to use
 
 - In positional construction (section 2, the positional set), when a position is described by what it does and nobody has asked whether it acts at the level its task needs, or when the group says a problem is "technical" or "organizational" and cannot say which decision would remove it.
+- In positional construction, section 2, when the case lays out the six tiers of a business and asks at which level a tier's change is decided, or how fast each tier changes: questions 11 and 12 (the diagonal, an AI draft).
 - In the functional plan (section 4, empty places), when a function has no performer and the question is whether the missing performer belongs at a lower or a higher level than the others.
 - Not in `small-situation`: that procedure writes only the small half, no gaps and no concepts, and takes only the scale question (`khaprov-ontology`, question 1).
 - When a plan puts most of its effort into equipment, and the group wants to see what is missing around it.
@@ -63,6 +64,22 @@ Who works at which level:
 
 Systems of systems (the third block of the lecture): at the technological order he describes, branches merge into one project, controlled through situation centers in real time. A whole of this kind is held by few actors; the others choose which of them to stand under. His positioning of states is opinion, not method. The usable part is the question "target-positing" (the spelling "целополагание" is as in the transcript; the sense, positing the whole, is inferred **[unverified]**): not one goal per actor, but what the whole is and who in the existing systems (banks, state, suppliers) supports you.
 
+## Diagonal: the seven levels and the six tiers of a business (AI draft)
+
+**AI draft**, from a working session of 29.10.2026; not Khaprov's and not yet accepted by the methodologist. Khaprov gives no tiers of a business. The six tiers are the case group's scheme of a business (OST): 1 замысел (intent), 2 модель бизнеса (business model), 3 юрлицо и права (legal entity and rights), 4 продукт (product), 5 процесс (process), 6 организация (organisation). The diagonal says at which level of complexity a change of each tier is decided. It is the engine's reading **(own extrapolation)**.
+
+| Level | Tier of a business | Where it goes in a record |
+|---|---|---|
+| 7 ontology | none: there is no seventh tier. Ontology is the frame of tier 1, recorded as an ontology record | the `ontology` record of the case (`object`, `valid_for`, `lives_in`, `tempos`, `horizon`, `covers`; lens `khaprov-ontology`) |
+| 6 culture, axiology | 1 замысел | an element tagged with tier 1 when the case has a tier taxonomy, `pace` in years |
+| 5 politics | 2 модель бизнеса, 3 юрлицо и права | as above, tiers 2 and 3 |
+| 4 strategy | 2 модель бизнеса, 3 юрлицо и права | as above, tiers 2 and 3 |
+| 3 programs | 4 продукт | as above, tier 4 |
+| 2 projects | 5 процесс | as above, tier 5 |
+| 1 objects | 5 процесс, 6 организация | as above, tiers 5 and 6 |
+
+Pace falls as the level rises: what is decided at a higher level changes more slowly. In the record this means a longer `pace` (the field is a period of change in years) on an element of a higher tier than on one of a lower tier, so tier 1 has the longest pace of the six. The ontology record has no `pace`: it frames tier 1 through its `horizon`, and the hint `ontology-outlives-pace` names any pace in its `lives_in` or `covers`, or tempo in `tempos`, shorter than that horizon. The order of paces is the session's claim; neither Khaprov nor the tiers give figures **(own extrapolation)**.
+
 ## Questions
 
 1. At which level of complexity is this question decided? Name the decision that would answer it and the choice space that decision fixes below it.
@@ -75,6 +92,8 @@ Systems of systems (the third block of the lecture): at the technological order 
 8. If the problem sits at the level of a previous decision that cannot be repaired lower down, what is that decision and who made it?
 9. Does this case have a whole that spans several systems? What is that whole, and who in the existing systems (finance, state, suppliers, customers) supports it? List them as places for others, not as parties already agreed.
 10. Is the entrepreneurial function (working outside certainty, deciding at the top level) held by someone, and is it distinct from the manager's position in the case?
+11. On the diagonal (AI draft): which tier of the business does this change touch, and at which level is it being decided? Is that the level the diagonal gives for the tier? A business model or rights question (tiers 2-3) settled as a project or an object is decided too low; an intent question (tier 1) needs culture, and the ontology record that frames it.
+12. Pace on the diagonal (AI draft): how many years does each tier on the boards take to change? Does the period grow with the level, as the diagonal expects? Where a higher tier is expected to change faster than a lower one, or a tier the ontology covers changes within the ontology's horizon, what does the group take as the reason?
 
 ## Output slots
 
@@ -91,6 +110,8 @@ Every element carries `lens: khaprov-levels`. Kinds and fields are those of `doc
 | Level up or down (Q7) | candidate move on the new element: `{op: adjoin, from: [<element>], via: "axis: management level (Khaprov)", status: candidate}`. Adjoin is the engine's reading of "add the level axis"; Khaprov does not call it that **(own extrapolation)** |
 | The whole across systems (Q9) | `situation` on `s`, half `big`, label begins "whole: ..."; each supporter a `place_for_others` on `od` |
 | Entrepreneurial function (Q10) | `position` on `od` if held; if not, `gap` with `of: position` |
+| The tier a change touches and the level it is decided at (Q11) | `note` on `s`, half `small`, `label` begins "tier N at level M (diagonal: level K): ..."; the tier in `tags` when the case has a tier taxonomy; `epistemic: hypothesis` |
+| Pace of a tier (Q12) | `pace` in years on the element that stands for the tier; for tier 1, the ontology record's `horizon` and its `tempos`. A higher tier with a shorter pace than a lower one: thesis `kind: problem`, `belt: m`, `about` both elements |
 
 The lens maps no cell to a scheme block. An empty cell of the matrix is not by itself an empty place of the functional scheme (GP-PP), and the source gives no cell contents.
 
@@ -102,3 +123,5 @@ The lens maps no cell to a scheme block. An empty cell of the matrix is not by i
 - Figures from the lecture (efficiency percentages, uncertainty shares, company numbers) come from an automatic transcript and are not to be quoted without the recording.
 - The lecture's geopolitical and personal examples are the speaker's opinion and are not used here.
 - Scale (object, ecosystem, market) is a separate axis; see `khaprov-ontology`. The source links scale and level only by example.
+- The diagonal of levels and tiers, and questions 11 and 12, are an AI draft. The source gives no tiers of a business, no mapping of its levels to anything outside management, and no paces. Levels 3, 5 and 6 have no definition in the source (above), so their rows on the diagonal rest on their names only.
+- The engine has no field for a tier: a tier is a `tags` value of the case's own taxonomy, and the lens does not check the diagonal.

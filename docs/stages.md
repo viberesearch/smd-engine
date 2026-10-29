@@ -23,6 +23,7 @@ Plan approved 2026-10-25 (`docs/plan.md`). Each step is a branch and a PR. The s
 | Ш8-Ш12 | Gates Ш8-Ш12 (G.P.'s «Программа действий» against т. 5): element fields, hints, the three-positions lens | done in v0.3.8 |
 | Ш13 | G.P.'s management scheme as the profile `management-four-boards` | done in v0.4.0 |
 | boards | Record boards from profile templates; process boards on their own boards in the management profile | done in v0.5.0 |
+| Бир3 | Beer layer of the management profile (Beer, «Мозг фирмы»): `vsm_system`, `algedonic_channel`, `escalates`, `filters`, three hints, the lens `beer-viable-system`, the example `pekarnya-holding-c1` | done in v0.5.4 |
 
 ## Structural moves (Invention as a Structural Operation)
 

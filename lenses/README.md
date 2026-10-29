@@ -37,7 +37,7 @@ Elements, theses, hypotheses and ontology records carry `lens: <id>`; `smd compa
 
 | Lens | Route | Source | What it asks |
 |---|---|---|---|
-| `khaprov-levels` | smd | Khaprov, lecture | at which of seven levels of management complexity a problem is decided; the three kinds of complexity |
+| `khaprov-levels` | smd | Khaprov, lecture | at which of seven levels of management complexity a problem is decided; the three kinds of complexity; the diagonal of the levels and the six tiers of a business, and their paces (AI draft) |
 | `khaprov-ontology` | smd | Khaprov, lecture and podcast; GP1981 | three scales; the ontology test; managing not-knowing; the space-time continuum: what the system fits into, its tempos and horizon, objects bought into an old picture, a platform's layer |
 | `schukin-boundaries` | smd | Schukin, written talk | five grounds of a cut between functions; four families of change; capability probes |
 | `schukin-interface-tax` | smd | Schukin, written talk | the function of each human touchpoint; achievement and balancing metrics; the engine's own sign-offs |
@@ -46,6 +46,7 @@ Elements, theses, hypotheses and ontology records carry `lens: <id>`; `smd compa
 | `triz-contradictions` | triz | ARIZ-85V, Altshuller | a contradiction inside one object: zone, time, resources, ideal result, separation |
 | `scamper-check` | smd | Eberle, Osborn; Zharnikov | a cross-check of the four structural moves after the tract |
 | `three-positions` | smd | G.P., «Программа действий» (GP-Guide11); т. 5 | from where a scheme is drawn: inside, reflexive, external; which structures stay conditions |
+| `beer-viable-system` | smd | Beer, «Мозг фирмы» (BEER1972) | which of systems 1-5 the owner fills; where the model of the firm is; recovery time and escalation address of each red line; the business's recursion level after a transfer; organisation versus structure |
 
 ## Selection table
 
@@ -60,13 +61,16 @@ Rows are procedure and step. "Q" is the question number in the lens file. Where 
 | `visionary-tract` | 5 View of oneself (rescale) | `khaprov-ontology` | Q1-Q4 | The three scales are the grain options of the move |
 | `visionary-tract` | after 6, before the hand-over | `scamper-check` | all | Looks for candidates the four-move pass missed |
 | `visionary-tract` | 10 Hand over | `schukin-interface-tax` | Q11 | As above |
-| `positional-construction` | 2 Positional set | `khaprov-levels` | Q1-Q3, Q10 | Asks whether a position acts at the level its task needs, and whether the missing one is a gap or missing knowledge |
+| `positional-construction` | 2 Positional set | `khaprov-levels` | Q1-Q3, Q10-Q12 | Asks whether a position acts at the level its task needs, and whether the missing one is a gap or missing knowledge; on the diagonal (AI draft), whether a tier's change is decided at its level |
 | `positional-construction` | 2 Positional set, 4 Representations | `three-positions` | Q1, Q2, Q5, Q6 | A position that draws the structure it works inside draws a condition, not an object (GP-Guide11 ¶36); `stance` on the positions |
+| `positional-construction` | 2 Positional set | `beer-viable-system` | Q1, Q7 | On `management-four-boards`: which of Beer's systems 1-5 each post and position fills (`vsm_system`), and where system 5 really sits |
 | `positional-construction` | 3 The construction | `design-chain` | Q1-Q5, Q9 | The `flow` relations label what passes, from whom, to whom; the chain asks what stays behind |
 | `positional-construction` | 5 One common object | `khaprov-ontology` | Q5-Q11, Q16-Q21 | The ontology record's `subjects`, `valid_for`, `competes`, `cooperation` and `test`; when the picture is to hold for a period, `lives_in`, `tempos`, `horizon` and `covers` |
+| `positional-construction` | 5 One common object | `beer-viable-system` | Q4, Q5 | On `management-four-boards`, in a case of transfer: does the business stay a viable system of its own or become part of the buyer's system 1; organisation versus structure |
 | `functional-plan` | 2 Draft the chain, 5 Align | `fliamer-diamond` | Q3-Q5 | Functions in a chain, products, consumers; material on how the chain is arranged elsewhere |
 | `functional-plan` | 3 Performs, pays, receives | `design-chain` | Q6, Q9 | Instruments with performer and payer; empty links of the chain |
 | `functional-plan` | 4 Empty places | `khaprov-levels` | Q2, Q3 | A function with no performer: is the performer missing at a higher or lower level, or is knowledge missing |
+| `functional-plan` | 4 Empty places | `beer-viable-system` | Q2, Q3, Q6 | On `management-four-boards`: who keeps the model of the firm, the recovery time and escalation address of each red line, what each place passes up |
 | `functional-plan` | 6 Candidate moves | `schukin-boundaries` | Q1-Q8, Q14 optional | The four families and five grounds the procedure already names; grounds for `respecify` |
 | `functional-plan` | 6, after the line above | `schukin-interface-tax` | Q1-Q10 | The human touchpoints that remain after a merge or shared state |
 | `functional-plan` | 6 | `triz-contradictions` | Q0 first | Only when one function carries two opposed demands; Q0 sends a paradox between positions back to the SMD route |

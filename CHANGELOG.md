@@ -2,6 +2,18 @@
 
 Dates are those of the tag. All tags v0.2.1 to v0.3.5 were made on 2026-10-29. The version in `pyproject.toml` stayed at 0.2.0 through v0.2.4 and at 0.3.0 from v0.3.0 to v0.3.5; 0.3.6 is the first release whose package version equals its tag.
 
+## 0.5.4 - 2026-10-29
+
+A layer from Stafford Beer's viable system model in the profile `management-four-boards` (Beer, «Мозг фирмы», 1972; М., 1993; gate Бир3, option В). Schema 0.3 stays: every new field is optional, and records without them give the same output.
+
+- Profiles: kind flag `vsm`; the kinds it is set on take the element field `vsm_system`, a non-empty list of distinct systems 1-5 (a list, because one person often fills several systems). `management-four-boards` sets it on `position` and `post`.
+- `management-four-boards`, each item marked "Beer layer" in the profile file with its chapter: kind `algedonic_channel` on `ot` with the fields `threshold` (text) and `recovery_time` (days, > 0), the form in which a stakeholder's red line is recorded; relations `escalates` (from an algedonic channel to the place that must act once the recovery time has run out) and `filters` (what a place passes up); hints `single-node-metasystem` (one filler fills systems 3, 4 and 5), `line-without-recovery` (a channel with a threshold and no recovery time or no `escalates` to a post, position or place for others) and `absorbed-into-system-1` (a place filling system 5 `captures` places of the business that fill systems 4 and 5). Each off its kind is an error: `vsm_system` on a kind not flagged `vsm`, `threshold` or `recovery_time` off an `algedonic_channel`.
+- Lens `beer-viable-system` 0.1.0, offered by `positional-construction` 0.2.5 (sections 2 and 5) and `functional-plan` 0.2.3 (section 4).
+- Example `cases/example_ru/pekarnya-holding-c1.board.yaml`: an owner-run bakery sold to a holding, which gives each of the three hints once.
+- Lens `khaprov-levels` 0.2.0: a section, marked as an AI draft, with the diagonal of Khaprov's seven levels and the six tiers of a business (ontology frames tier 1 as the ontology record, not a seventh tier; culture to tier 1; politics and strategy to tiers 2 and 3; programs to tier 4; projects to tier 5; objects to tiers 5 and 6; pace falls as the level rises), and questions 11 and 12 that use it.
+- `docs/method/sources.md`: row BEER1972. `docs/profiles.md`: the Beer layer of the management profile.
+- `docs/checks.md`: the checks section of `docs/data-model.md`, moved to a file of its own when the data model passed 300 lines. `smd pack` adds it after the data model (`# Checks: docs/checks.md`), and the wheel ships it beside `data-model.md`.
+
 ## 0.5.3 - 2026-10-29
 
 The space-time continuum of an ontology (Khaprov, podcast on ontology, 28.10.2026; gate Х1, option В). Schema 0.3 stays: every new field is optional, and records without them give the same output.

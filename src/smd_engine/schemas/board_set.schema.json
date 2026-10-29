@@ -134,6 +134,9 @@
         "move": {"$ref": "#/$defs/move"},
         "lens": {"$ref": "#/$defs/id", "description": "id of the lens (lenses/<id>.md) whose questions produced the element"},
         "pace": {"type": "number", "exclusiveMinimum": 0, "description": "years: the characteristic period of change of what the element stands for, e.g. a tier or a technology (Khaprov, podcast 28.10.2026)"},
+        "vsm_system": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "integer", "minimum": 1, "maximum": 5}, "description": "kinds the profile flags vsm only (posts and positions of management-four-boards): the systems 1-5 of Beer's viable system model the place or position fills, one or several (BEER1972, Гл. 9-15)"},
+        "threshold": {"type": "string", "minLength": 1, "description": "algedonic channels only: the limit of the index past which the channel signals, e.g. a stakeholder's red line (BEER1972, Гл. 17)"},
+        "recovery_time": {"type": "number", "exclusiveMinimum": 0, "description": "algedonic channels only: days the unit has to bring the index back before the signal goes up (BEER1972, Гл. 17)"},
         "geom": {
           "type": "array", "minItems": 4, "maxItems": 4,
           "items": {"type": "number", "minimum": 0, "maximum": 1},

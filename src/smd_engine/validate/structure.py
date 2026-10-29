@@ -26,12 +26,17 @@ SUBJECT_OBJECT = re.compile(
 )
 # Fields of gates Ш9-Ш10 and the kind that takes them, by id: `position` as
 # everywhere, `goal` as the kind of the hint goal-without-breakdown
-# (profile.HINT_KINDS). `stance` goes to the kinds a profile flags `stance`.
+# (profile.HINT_KINDS). `stance` goes to the kinds a profile flags `stance`,
+# `vsm_system` to those it flags `vsm`.
 KIND_FIELDS = {
     "acts_as": ("position", "positions"),
     "arises_from": ("goal", "goals"),
     "goal_source": ("goal", "goals"),
     "assigned_by": ("goal", "goals"),
+    # Beer layer of management-four-boards (gate Бир3 В): the kind the hint
+    # line-without-recovery registers (validate/management.py)
+    "threshold": ("algedonic_channel", "algedonic channels"),
+    "recovery_time": ("algedonic_channel", "algedonic channels"),
 }
 # What a goal may arise from: a breakdown on the board or in the talk
 # (GP-Guide11 ¶43): a gap, a kind flagged `factual`, or such a thesis.
@@ -97,6 +102,20 @@ def _element_findings(ctx: Ctx, el: dict[str, Any], out: list[Finding]) -> None:
                 "error",
                 eid,
                 "'stance' is only for positions: " + ", ".join(sorted(stance)),
+            )
+        )
+    vsm = profile.kinds_where("vsm")
+    if "vsm_system" in el and kind not in vsm:
+        out.append(
+            Finding(
+                "error",
+                eid,
+                "'vsm_system' is only for "
+                + (
+                    "kinds: " + ", ".join(sorted(vsm))
+                    if vsm
+                    else f"kinds a profile flags vsm, and profile '{profile.id}' has none"
+                ),
             )
         )
     if "nature" in el and not board.object:

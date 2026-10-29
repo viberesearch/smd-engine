@@ -6,7 +6,8 @@ Start with `README.md` in the repository root. This folder holds the reference d
 
 | File | Content |
 |---|---|
-| `data-model.md` | the record format: board sets, source manifests, taxonomies, patches, the `profile` key, migration, and the checks the validator runs |
+| `data-model.md` | the record format: board sets, source manifests, taxonomies, patches, the `profile` key, migration |
+| `checks.md` | the checks the validator runs: errors, warnings and hints, and the profile and source of each hint |
 | `profiles.md` | the profile format: boards and their regions, kinds, the screen layout, the ids every profile defines, the checks of a profile file |
 | `commands.md` | the commands of `smd` with examples, and the exit codes |
 | `plan.md` | the build plan approved 2026-10-25 and the architecture of the repository |
@@ -30,7 +31,7 @@ Start with `README.md` in the repository root. This folder holds the reference d
 | Folder | Content |
 |---|---|
 | `../cases/example/` | an invented case in English: two cycles, a patch, a classic-profile record, a golden run |
-| `../cases/example_ru/` | the same case with Russian labels |
+| `../cases/example_ru/` | the same case with Russian labels, and two records on the management profile: G.P.'s scheme of ОРУ (`pekarni-oru-c1`) and its Beer layer, one bakery sold to a holding (`pekarnya-holding-c1`) |
 | `../cases/example/golden/README.md` | how to check a procedure run against a reference record with `smd eval` |
 
 ## Other files in the root

@@ -1,6 +1,6 @@
 [project]
 name = "smd-engine"
-version = "0.5.3"
+version = "0.5.4"
 description = "Records, checks and renderings for SMD-style thinking sessions (three boards, cycles, qualifications)"
 readme = "README.md"
 license = "MIT AND CC-BY-4.0"
@@ -62,6 +62,7 @@ packages = ["src/smd_engine"]
 "roles" = "smd_engine/assets/roles"
 "lenses" = "smd_engine/assets/lenses"
 "docs/data-model.md" = "smd_engine/assets/data-model.md"
+"docs/checks.md" = "smd_engine/assets/checks.md"
 
 [tool.black]
 target-version = ["py314"]
