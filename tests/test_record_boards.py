@@ -19,7 +19,8 @@ from smd_engine.profile import RESERVED_BOARD_IDS, load_profile, profile_of
 from smd_engine.records import load_record
 from smd_engine.render.frames import lighten_frames, reading_frames, zoom_frames
 from smd_engine.render.frames_page import render_frames_html
-from smd_engine.render.graph import graph_model, planes
+from smd_engine.render.graph import graph_model, planes, render_graph_html
+from smd_engine.render.html import render_html
 from smd_engine.render.index import render_index
 from smd_engine.render.layout import plan
 from smd_engine.render.markdown import render_markdown
@@ -322,21 +323,20 @@ def test_legend_and_index_name_boards_and_templates_by_label(
     oru: dict[str, Any],
 ) -> None:
     """Gate Г7б Б: the SVG legend names the boards of a transition, and the
-    index's record-boards table the template, by their labels."""
+    index's record-boards table the template, by their labels; the legend by
+    the boards' short names, a record board by its own label (gate Г8б В),
+    and a transition's label after a dash, not in brackets (gate Г8в В)."""
     svg = render_svg(oru, "ru")
-    assert (
-        "4 Аппарат руководства → Доска процесса: ночной замес теста "
-        "(кто передаёт тесто)"
-    ) in svg
-    assert "Переходы: 1 Оргдеятельностная доска → Управляемая полисистема" in svg
+    assert "4 аппарат → ночной замес теста — кто передаёт тесто" in svg
+    assert "2 полисистема → ОРУ (верх) — идеал в будущем" in svg
+    assert ") (" not in svg
+    assert "Переходы: 1 ОД доска → полисистема" in svg
     assert "AP → PB-DOUGH" not in svg
-    assert "1 Org-activity board → Managed polysystem" in render_svg(oru, "en")
+    assert "1 OA board → polysystem" in render_svg(oru, "en")
     c1 = load_record(ROOT / "cases" / "example_ru" / "pekarni-c1.board.yaml")
-    assert "2 Ситуационная доска / малая → Ситуационная доска / большая" in (
-        render_svg(c1, "ru")
-    )
+    assert "2 ситуационная / малая → ситуационная / большая" in render_svg(c1, "ru")
     index = render_index(oru, ORU, "ru")
-    assert "</td><td>Доска процесса</td><td>Доска процесса: ночной" in index
+    assert "</td><td>Доска процесса</td><td>ночной замес теста</td>" in index
     assert "<td>process</td>" not in index
     assert "</td><td>Process board</td>" in render_index(oru, ORU, "en")
 
@@ -490,3 +490,23 @@ def test_legend_lines_break_between_transitions() -> None:
     assert len(wrapped) > 1
     assert all(text_width(line, LEGEND_SIZE) <= LEGEND_WIDTH for line in wrapped)
     assert _wrap_parts([], LEGEND_WIDTH, LEGEND_SIZE) == []
+
+
+def test_short_names_on_the_graph_planes_and_in_the_frames(
+    oru: dict[str, Any],
+) -> None:
+    """Gate Г8б В: the graph writes the short names on its planes, and the
+    frames name an element's board by it; the panels and tables keep labels."""
+    model = graph_model(oru, "ru")
+    assert model["board_shorts"]["ap"] == "аппарат"
+    assert model["board_shorts"]["pb-dough"] == "ночной замес теста"
+    assert model["boards"]["pb-dough"] == "Доска процесса: ночной замес теста"
+    assert "(M.board_shorts || M.boards)[b]" in render_graph_html(oru, "ru")
+    page = render_frames_html(reading_frames(oru, "ru"), "ru")
+    assert "ОРУ (верх)" in page
+    # a short name equal to a kind's label would be merged away from the meta
+    c1 = load_record(ROOT / "cases" / "example" / "bakeries-c1.board.yaml")
+    en = render_frames_html(reading_frames(c1, "en"), "en")
+    assert '"meta": "situation · situation board"' in en
+    assert "<td>Аппарат руководства</td>" in render_html(oru, "ru")
+    assert "<td>Верхняя система ОРУ</td>" in render_html(oru, "ru")

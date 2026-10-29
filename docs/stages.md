@@ -36,6 +36,10 @@ Plan approved 2026-10-25 (`docs/plan.md`). Each step is a branch and a PR. The s
 | Г7в | «заявлено» and «проверено» confirmed; no change | done in v0.5.8 |
 | Г7г | A written model of the whole still needs a keeper for `no-model-of-whole`: docs and the lens `beer-viable-system` 0.3.1 | done in v0.5.8 |
 | Г7д | A profile label with an empty `ru` or `en` is a profile error | done in v0.5.8 |
+| Г8а | English words for the statuses in the graph's details panel, as on the page and the index | done in v0.5.9 |
+| Г8б | An optional short board name `short` in the profiles, used in the SVG legend's transitions, on the graph's planes and in the frames' element details | done in v0.5.9 |
+| Г8в | A transition's label after a dash in the SVG legend, not in brackets; the management profile's upper board renamed «Верхняя система ОРУ» | done in v0.5.9 |
+| Г8г | The index's record-boards table names a board by its own label, beside the template | done in v0.5.9 |
 
 ## Structural moves (Invention as a Structural Operation)
 

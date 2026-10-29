@@ -318,6 +318,7 @@ def test_empty_labels_are_refused(empty: str | None) -> None:
     places: list[tuple[Callable[[dict[str, Any]], dict[str, Any]], str]] = [
         (lambda d: d["title"], "management-four-boards: title ru"),
         (lambda d: d["boards"][0]["label"], "board od: label ru"),
+        (lambda d: d["boards"][0]["short"], "board od: short ru"),
         (lambda d: d["kinds"][0]["label"], "kind position: label ru"),
         (lambda d: d["kinds"][0]["label_one"], "kind position: label_one ru"),
         (lambda d: d["relations"][-1]["label"], "label ru"),
@@ -331,6 +332,21 @@ def test_empty_labels_are_refused(empty: str | None) -> None:
     data["kinds"][0]["label_one"] = {"ru": empty, "en": empty}
     with pytest.raises(ProfileError, match="label_one ru and en must not be empty"):
         profile_module._parse(data, "management-four-boards")
+
+
+def test_a_board_short_name_is_optional() -> None:
+    """Gate Г8б В: a board's `short` names it where room is short; without one
+    its label stands in."""
+    raw = yaml.safe_load(
+        (profiles_dir() / "program-three-boards.yaml").read_text(encoding="utf-8")
+    )
+    profile = profile_module._parse(copy.deepcopy(raw), "program-three-boards")
+    assert profile.board_short("od", "ru") == "ОД доска"
+    assert profile.board_short("s", "en") == "situation board"
+    assert profile.board_label("od", "ru") == "Оргдеятельностная доска"
+    del raw["boards"][0]["short"]
+    profile = profile_module._parse(raw, "program-three-boards")
+    assert profile.board_short("od", "ru") == "Оргдеятельностная доска"
 
 
 def test_default_profile_equals_the_old_tables() -> None:

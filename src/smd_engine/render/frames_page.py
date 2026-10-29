@@ -111,7 +111,7 @@ def _details(frames: list[Frame], lang: str) -> dict[str, Any]:
         for e in f.record["elements"]:
             meta = [
                 profile.kind_label_one(e["kind"], lang),
-                profile.board_label(e["board"], lang),
+                profile.board_short(e["board"], lang),
             ]
             if origin(e) != "group":
                 meta.append(st["switches"][origin(e)])

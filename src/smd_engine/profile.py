@@ -66,7 +66,10 @@ TOP_KEYS = {
     "reading",
     "sessionflow",
 }
-BOARD_KEYS = {"id", "label", "halves", "region", "colour", "split"}
+# `short` is optional: the board's name where room is short (the legend's
+# transitions, the graph's planes, the frames' element details); the label
+# stands in when it is absent (gate Г8б В).
+BOARD_KEYS = {"id", "label", "short", "halves", "region", "colour", "split"}
 BOARD_FLAGS = ("object",)
 # A board template (`per_record: true`): no region or halves; the kinds its
 # boards take; each record declares its own boards of it (`boards` in a record).
@@ -152,6 +155,7 @@ class Board:
     split: float = 0.0  # x where two halves meet: `split`, or the region's middle
     object: bool = False  # subject-object talk on it is warned
     template: str = ""  # a board a record makes of a template: the template's id
+    short: dict[str, str] = field(default_factory=dict)  # empty: the label stands in
 
 
 @dataclass(frozen=True)
@@ -282,6 +286,11 @@ class Profile:
 
     def board_label(self, board_id: str, lang: str) -> str:
         return self.board(board_id).label[lang]
+
+    def board_short(self, board_id: str, lang: str) -> str:
+        """The board's short name, where room is short; its label without one."""
+        board = self.board(board_id)
+        return (board.short or board.label)[lang]
 
     def kind_label(self, kind_id: str, lang: str) -> str:
         return self.kind(kind_id).label[lang]
@@ -418,6 +427,7 @@ def _board(raw: dict[str, Any], where: str) -> Board:
         (colour[0], colour[1]),
         float(split),
         flags["object"],
+        short=_labels(raw["short"], where, "short") if "short" in raw else {},
     )
 
 
@@ -879,7 +889,8 @@ def _with_record_boards(
 ) -> Profile:
     """The profile with record boards `made` (id, template, label): each takes
     its template's colour and `object`, a region below the fixed boards
-    (screen.record_regions) and the label "<template>: <label>"; a reading
+    (screen.record_regions), the label "<template>: <label>" and its own
+    label as the short name; a reading
     step of a template is repeated for each of its boards, in the record's
     order, with the id "<step>-<board>"."""
     columns = max(len(row) for row in rows_of(base.boards))
@@ -898,6 +909,7 @@ def _with_record_boards(
                 (region[0] + region[2]) / 2,
                 t.object,
                 tid,
+                {lang: label for lang in t.label},
             )
         )
     reading: list[Step] = []

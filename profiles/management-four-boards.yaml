@@ -36,22 +36,26 @@ title:
 boards:
   - id: od
     label: {ru: Оргдеятельностная доска, en: Org-activity board}
+    short: {ru: ОД доска, en: OA board}
     halves: none
     region: [60, 150, 780, 450]
     colour: ["#eef4f1", "#2e7d62"]
   - id: ot
-    label: {ru: Система ОРУ (верхняя), en: ОРУ system (upper)}
+    label: {ru: Верхняя система ОРУ, en: Upper ОРУ system}
+    short: {ru: ОРУ (верх), en: ОРУ (upper)}
     halves: none
     region: [820, 150, 1540, 450]
     colour: ["#f3f4fb", "#5c63b8"]
     object: true
   - id: ap
     label: {ru: Аппарат руководства, en: Apparatus of leadership}
+    short: {ru: аппарат, en: apparatus}
     halves: none
     region: [60, 510, 780, 850]
     colour: ["#f5eee2", "#a8782a"]
   - id: us
     label: {ru: Управляемая полисистема, en: Managed polysystem}
+    short: {ru: полисистема, en: polysystem}
     halves: none
     region: [820, 510, 1540, 850]
     colour: ["#f9efec", "#b0533c"]

@@ -9,11 +9,13 @@ title:
 boards:
   - id: od
     label: {ru: Оргдеятельностная доска, en: Org-activity board}
+    short: {ru: ОД доска, en: OA board}
     halves: none
     region: [60, 150, 780, 850]
     colour: ["#eef4f1", "#2e7d62"]
   - id: oo
     label: {ru: Объектно-онтологическая доска, en: Object-ontological board}
+    short: {ru: ОО доска, en: OO board}
     halves: none
     region: [820, 150, 1540, 850]
     colour: ["#f3f4fb", "#5c63b8"]

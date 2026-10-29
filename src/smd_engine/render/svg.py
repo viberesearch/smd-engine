@@ -355,18 +355,20 @@ def _legend(data: dict[str, Any], lang: str, top: float) -> tuple[str, float]:
     rows: list[tuple[str, str | list[str]]] = []
     trs = sorted(data.get("transitions", []), key=lambda t: t["n"])
     if trs:
-        # boards by their labels in the language and the half, as the page's
-        # element table names them (gate Г7б Б), so that a move between the
-        # halves of one board reads as one; a line breaks between transitions
+        # boards by their short names in the language (gate Г8б В) and the
+        # half (gate Г7б Б), so that a move between the halves of one board
+        # reads as one; the transition's label after a dash, since a label or
+        # a name may hold brackets of its own (gate Г8в В); a line breaks
+        # between transitions
         profile = profile_of(data)
         by_id = {e["id"]: e for e in data["elements"]}
 
         def board(element_id: str) -> str:
-            return board_text(profile, by_id[element_id], lang)
+            return board_text(profile, by_id[element_id], lang, short=True)
 
         parts = [
             f"{t['n']} {board(t['from'])} → {board(t['to'])}"
-            + (f" ({t['label']})" if t.get("label") else "")
+            + (f" — {t['label']}" if t.get("label") else "")
             for t in trs
         ]
         parts[0] = f"{lab['transitions']}: {parts[0]}"

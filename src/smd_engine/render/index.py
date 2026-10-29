@@ -301,11 +301,9 @@ class _Index:
                     if (template := profile.template(x["template"]))
                     else x["template"]
                 ),
-                (
-                    e(profile.board_label(x["id"], self.lang))
-                    if profile.has_board(x["id"])
-                    else e(x["label"])
-                ),
+                # the board by its own label: the column before names the
+                # template (gate Г8г Б)
+                e(x["label"]),
                 refs([x.get("seen_from")]),
                 refs([x.get("unfolds")]),
                 cites(x.get("cites")),

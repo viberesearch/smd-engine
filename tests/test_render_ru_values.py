@@ -12,14 +12,15 @@ from typing import Any
 
 import pytest
 
-from smd_engine.records import load_record
+from smd_engine.records import load_record, load_schema
 from smd_engine.render.frames import reading_frames
 from smd_engine.render.frames_page import render_frames_html
-from smd_engine.render.graph import graph_model, render_graph_html
+from smd_engine.render.graph import STATUS_FIELDS, graph_model, render_graph_html
 from smd_engine.render.html import render_html
 from smd_engine.render.index import render_index
 from smd_engine.render.markdown import render_markdown
 from smd_engine.render.svg import render_svg
+from smd_engine.render.text import LABELS
 from smd_engine.render.vault import export_vault
 
 CASES = Path(__file__).resolve().parents[1] / "cases"
@@ -116,9 +117,19 @@ def test_graph_details_panel_names_the_fixed_values(
     assert (nodes["T1"]["status"], nodes["T1"]["voice"]) == ("voiced", "group")
     assert nodes["p-organiser"]["epistemic"] == "hypothesis"
     en = {n["id"]: n for n in graph_model(c2, "en")["nodes"]}
-    assert en["T1"]["words"] == {"status": "voiced", "voice": "group"}
+    assert en["T1"]["words"] == {"status": "voiced in the group", "voice": "group"}
     assert en["p-organiser"]["words"] == {"epistemic": "hypothesis"}
     assert "const w = n.words || {status: n.status" in render_graph_html(c2, "ru")
     notes = export_vault(c2, tmp_path, "ru")
     text = "".join(p.read_text(encoding="utf-8") for p in notes if p.suffix == ".md")
     assert "status: voiced" in text and "voice: group" in text
+
+
+def test_graph_status_words_in_both_languages() -> None:
+    """Gate Г8а В: every status the schema allows for a thesis, a hypothesis
+    and a K has a word in each language for the graph's details panel."""
+    defs = load_schema("board_set")["$defs"]
+    for group, field in STATUS_FIELDS.items():
+        allowed = set(defs[group]["properties"]["status"]["enum"])
+        for lang in ("ru", "en"):
+            assert LABELS[lang]["values"][field].keys() == allowed, (field, lang)

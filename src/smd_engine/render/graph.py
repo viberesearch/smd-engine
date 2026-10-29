@@ -371,6 +371,8 @@ def graph_model(
         "id": data.get("id", ""),
         "date": str(data.get("date", "")),
         "boards": {b: profile.board_label(b, lang) for b in boards},
+        # the short names, which graph.js writes on the planes (gate Г8б В)
+        "board_shorts": {b: profile.board_short(b, lang) for b in boards},
         # the height of each plane, which graph.js draws them at
         "planes": {b: z * LAYER for b, z in plane_z.items()},
         # each board's ink colour, as on the screen and in the vault

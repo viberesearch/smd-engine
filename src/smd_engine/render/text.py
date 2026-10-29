@@ -394,10 +394,11 @@ LABELS: dict[str, dict[str, Any]] = {
 # The Russian pages name the sign-off functions by the words of "signoff".
 LABELS["ru"]["values"]["function"] = LABELS["ru"]["signoff"]
 # The graph's details panel names the status of a thesis, a hypothesis and a K
-# by these tables on the Russian page; the English graph keeps the ids.
-LABELS["ru"]["values"]["thesis_status"] = LABELS["ru"]["thesis_status"]
-LABELS["ru"]["values"]["hyp_status"] = LABELS["ru"]["hyp_status"]
-LABELS["ru"]["values"]["k_status"] = LABELS["ru"]["status"]
+# by the words the page and the index use, in both languages (gate Г8а В).
+for _lang in ("ru", "en"):
+    LABELS[_lang]["values"]["thesis_status"] = LABELS[_lang]["thesis_status"]
+    LABELS[_lang]["values"]["hyp_status"] = LABELS[_lang]["hyp_status"]
+    LABELS[_lang]["values"]["k_status"] = LABELS[_lang]["status"]
 
 # Names of the structural moves (docs/method/structural-moves.md) by language.
 MOVE_NAMES: dict[str, dict[str, str]] = {
@@ -427,11 +428,14 @@ def value_word(field: str, value: str, lang: str) -> str:
     return words.get(value, value)
 
 
-def board_text(profile: Profile, el: dict[str, Any], lang: str) -> str:
-    """The board an element stands on, by its label, and its half in the
-    language: `Ситуация / малая`."""
+def board_text(
+    profile: Profile, el: dict[str, Any], lang: str, short: bool = False
+) -> str:
+    """The board an element stands on, by its label (by its short name with
+    `short`), and its half in the language: `Ситуация / малая`."""
     half = el.get("half")
-    label = profile.board_label(el["board"], lang)
+    name = profile.board_short if short else profile.board_label
+    label = name(el["board"], lang)
     return label + (f" / {LABELS[lang][half]}" if half else "")
 
 

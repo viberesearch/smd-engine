@@ -11,17 +11,20 @@ title:
 boards:
   - id: od
     label: {ru: Оргдеятельностная доска, en: Org-activity board}
+    short: {ru: ОД доска, en: OA board}
     halves: none
     region: [60, 150, 780, 430]
     colour: ["#eef4f1", "#2e7d62"]
   - id: oo
     label: {ru: Объектная доска, en: Object board}
+    short: {ru: объектная, en: object}
     halves: none
     region: [820, 150, 1540, 430]
     colour: ["#f3f4fb", "#5c63b8"]
     object: true
   - id: s
     label: {ru: Ситуационная доска, en: Situation board}
+    short: {ru: ситуационная, en: situation board}
     halves: [small, big]
     region: [445, 625, 1160, 850]
     split: 800  # the halves meet under the apex of the triangles

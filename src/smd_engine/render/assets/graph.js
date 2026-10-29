@@ -174,7 +174,7 @@ function draw() {
     ctx.beginPath(); c.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.closePath();
     ctx.fillStyle = BOARD_COLOR[b] + '10'; ctx.fill(); ctx.strokeStyle = BOARD_COLOR[b] + '55'; ctx.stroke();
     ctx.fillStyle = BOARD_COLOR[b]; ctx.font = '600 12px sans-serif';
-    ctx.fillText(M.boards[b] || (b === 'records' ? U.records : U.sources), c[0].x + 6, c[0].y - 6);
+    ctx.fillText((M.board_shorts || M.boards)[b] || (b === 'records' ? U.records : U.sources), c[0].x + 6, c[0].y - 6);
   });
   proj = new Map();
   M.nodes.forEach(n => { if (nodeVisible(n)) proj.set(n.id, project(n.x, n.y, n.z)); });

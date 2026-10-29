@@ -2,6 +2,15 @@
 
 Dates are those of the tag. All tags v0.2.1 to v0.3.5 were made on 2026-10-29. The version in `pyproject.toml` stayed at 0.2.0 through v0.2.4 and at 0.3.0 from v0.3.0 to v0.3.5; 0.3.6 is the first release whose package version equals its tag.
 
+## 0.5.9 - 2026-10-29
+
+Four display fixes (gate Г8): English words for the statuses on the graph (Г8а, option В), short board names where room is short (Г8б, option В), transition labels after a dash and the upper ОРУ board renamed (Г8в, option В), a record board by its own label in the index (Г8г, option Б). Schema 0.3 stays; profiles take one new optional board key, `short`.
+
+- The English graph's details panel names a thesis's, hypothesis's and K's status by the words the English page and index use ("voiced in the group", until now `voiced`). Both languages alias the status tables in `LABELS[...]["values"]`; a test checks that the panel's words equal the page's in each language.
+- A board in a profile takes an optional `short: {ru, en}`, its name where room is short: the SVG legend's transitions, the planes of `smd graph` (model key `board_shorts`) and the frames' element details. The label stands in without one; tables, board headers and the graph's details panel keep the label. A record board's short name is its own label («ночной замес теста»). The shipped profiles: `od` «ОД доска» / "OA board" in all three; `oo` «объектная» / "object" and `s` «ситуационная» / "situation board" (program-three-boards; "situation" alone equals the kind's `label_one`, which the frames' element details would show once); `oo` «ОО доска» / "OO board" (classic-two-boards); `ot` «ОРУ (верх)» / "ОРУ (upper)", `ap` «аппарат» / "apparatus", `us` «полисистема» / "polysystem" (management-four-boards). An empty `short` is a profile error, as for the other labels. The legend reads «1 ОД доска → ситуационная / малая — …»; until now «1 Оргдеятельностная доска → Ситуационная доска / малая (…)».
+- The SVG legend writes a transition's label after « — », not in brackets, so a label or a board name with brackets of its own no longer gives two in a row («(… (K17))», «Система ОРУ (верхняя) (идеал в будущем)»). The management profile's `ot` board is «Верхняя система ОРУ» / "Upper ОРУ system" (until now «Система ОРУ (верхняя)» / "ОРУ system (upper)").
+- The index's record-boards table names a board by its own label in the board column («ночной замес теста»); the template column beside it names the template (until now «Доска процесса | Доска процесса: ночной замес теста»).
+
 ## 0.5.8 - 2026-10-29
 
 Words in place of ids on the graph's details panel, in the SVG legend's transitions and in the index's record-boards table (gates Г7а and Г7б, option Б), a sentence on a written model of the whole that nobody keeps (gate Г7г, option А), and empty profile labels refused (gate Г7д, option Б). No change to the schema or the records.
