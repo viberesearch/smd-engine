@@ -54,6 +54,8 @@ LABELS: dict[str, dict[str, Any]] = {
             "suffix": "указатель",
             "file": "Файл записи",
             "hint": "«YAML:N» открывает строку в VS Code; ссылки на PDF открывают страницу.",
+            "hint_relative": "«YAML:N» — номер строки в файле записи; "
+            "ссылки на PDF открывают страницу.",
             "web": "сеть",
             "no_file": "локального файла нет",
             "no_entry": "нет в реестре",
@@ -167,6 +169,8 @@ LABELS: dict[str, dict[str, Any]] = {
             "suffix": "index",
             "file": "Record file",
             "hint": '"YAML:N" opens the line in VS Code; PDF links open the page.',
+            "hint_relative": '"YAML:N" is the line in the record file; '
+            "PDF links open the page.",
             "web": "web",
             "no_file": "no local file",
             "no_entry": "not in the manifest",

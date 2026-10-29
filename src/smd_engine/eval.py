@@ -12,7 +12,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from smd_engine.compare import compare
+from smd_engine.compare import compare, compare_hypotheses, compare_qualifications
 
 WINDOW = 30  # seconds between two timecodes that still name the same utterance
 KINDS = ("agreement", "refinement", "conflict", "only_a", "only_b")
@@ -40,6 +40,26 @@ class EvalResult:
     only_run: list[tuple[str, str]]  # (thesis id, cites)
     only_expected: list[tuple[str, str]]
     failures: list[str] = field(default_factory=list)
+    run_block: dict[str, Any] | None = None  # the run's `run` stamp
+    expected_block: dict[str, Any] | None = None  # the expected record's stamp
+    # K and H matched by wording: (run id, expected id) pairs, then the ids left over
+    qualifications: ItemMatch | None = None
+    hypotheses: ItemMatch | None = None
+
+
+@dataclass
+class ItemMatch:
+    matched: list[tuple[str, str]]
+    only_run: list[str]
+    only_expected: list[str]
+
+
+def _item_match(pairs: list[tuple[str | None, str | None, float]]) -> ItemMatch:
+    return ItemMatch(
+        [(a, b) for a, b, _ in pairs if a and b],
+        [a for a, b, _ in pairs if a and not b],
+        [b for a, b, _ in pairs if b and not a],
+    )
 
 
 def parse_cite(cite: str) -> Address:
@@ -113,7 +133,16 @@ def evaluate(
     for pair in compare(run, expected):
         counts[pair.kind] += 1
     matched, only_run, only_expected = match_theses(run, expected)
-    result = EvalResult(counts, matched, only_run, only_expected)
+    result = EvalResult(
+        counts,
+        matched,
+        only_run,
+        only_expected,
+        run_block=run.get("run"),
+        expected_block=expected.get("run"),
+        qualifications=_item_match(compare_qualifications(run, expected)),
+        hypotheses=_item_match(compare_hypotheses(run, expected)),
+    )
     if min_agreement is not None and counts["agreement"] < min_agreement:
         result.failures.append(
             f"agreement {counts['agreement']} is below the minimum {min_agreement}"
@@ -125,9 +154,19 @@ def evaluate(
     return result
 
 
+def _stamp(block: dict[str, Any] | None) -> str:
+    """The `run` block as `key=value` pairs, or `none` when the record has no stamp."""
+    if not block:
+        return "none"
+    return ", ".join(f"{k}={v}" for k, v in block.items())
+
+
 def format_result(result: EvalResult) -> str:
-    """Plain text: the five counts, then the theses matched and unmatched."""
+    """Plain text: the five counts, the run blocks, the theses, K and H."""
     out = [" · ".join(f"{k} {result.counts[k]}" for k in KINDS), ""]
+    out.append(f"run: {_stamp(result.run_block)}")
+    out.append(f"expected: {_stamp(result.expected_block)}")
+    out.append("")
     out.append(f"theses matched by cites ({len(result.matched)}):")
     for m in result.matched:
         out.append(f"  {m.run} = {m.expected}  {m.run_cite} / {m.expected_cite}")
@@ -135,6 +174,18 @@ def format_result(result: EvalResult) -> str:
     out += [f"  {tid}  {cites}" for tid, cites in result.only_run]
     out.append(f"theses only in the expected record ({len(result.only_expected)}):")
     out += [f"  {tid}  {cites}" for tid, cites in result.only_expected]
+    for name, items in (
+        ("qualifications", result.qualifications),
+        ("hypotheses", result.hypotheses),
+    ):
+        if items is None:
+            continue
+        out.append(f"{name} matched by wording ({len(items.matched)}):")
+        out += [f"  {a} = {b}" for a, b in items.matched]
+        out.append(f"{name} only in the run ({len(items.only_run)}):")
+        out += [f"  {i}" for i in items.only_run]
+        out.append(f"{name} only in the expected record ({len(items.only_expected)}):")
+        out += [f"  {i}" for i in items.only_expected]
     for failure in result.failures:
         out.append(f"FAIL: {failure}")
     return "\n".join(out) + "\n"

@@ -15,11 +15,14 @@ viewer uses to show and hide layers and to look up details.
 from __future__ import annotations
 
 import math
+import re
+from collections.abc import Iterator
+from html import unescape
 from typing import Any
 
 from smd_engine.profile import Board, Profile, profile_of
 from smd_engine.render.layout import Box, Geometry, plan
-from smd_engine.render.text import LABELS, MOVE_NAMES, esc, wrap
+from smd_engine.render.text import LABELS, MOVE_NAMES, esc, text_width, wrap
 from smd_engine.screen import BOARD_TOP, CENTER, WIDTH, outline
 from smd_engine.validate import AI_VOICES
 
@@ -31,6 +34,14 @@ HIGHLIGHT = ("#fde9a8", "#c9a227")
 FOCUS = "#e8730c"
 LAYERS = frozenset({"transitions", "k", "legend"})
 CLEAN_ROOM = "from-clean-room"
+LABEL_SIZE = 12  # font size of a relation label
+LABEL_STEP = 15.0  # a label that overlaps something may move by a line
+LABEL_LEADING = 14.0  # line step of a wrapped label
+LABEL_WIDTH = 220.0  # a label that overlaps something may wrap at this width
+LABEL_TRIES = 4  # lines up and down a label may move (60 px)
+TEXT = re.compile(
+    r'<text x="([-\d.]+)" y="([-\d.]+)" font-size="([\d.]+)"([^>]*)>([^<]*)</text>'
+)
 
 DEFS = f"""<defs>
 <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8"
@@ -182,6 +193,139 @@ def _curve(a: Box, b: Box, bend: float = 0.22) -> tuple[str, float, float]:
     cx, cy = mx + nx * offset, my + ny * offset
     path = f"M{x0:.1f},{y0:.1f} Q{cx:.1f},{cy:.1f} {x1:.1f},{y1:.1f}"
     return path, 0.25 * x0 + 0.5 * cx + 0.25 * x1, 0.25 * y0 + 0.5 * cy + 0.25 * y1
+
+
+def _bend(rel: dict[str, Any]) -> float:
+    return 0.0 if rel["kind"] == "shift" else 0.15
+
+
+Rect = tuple[float, float, float, float]
+Spot = tuple[float, float, list[str]]  # x, y of the first line, the lines
+
+
+def _overlap(rect: Rect, others: list[Rect]) -> float:
+    return sum(
+        max(0.0, min(rect[2], o[2]) - max(rect[0], o[0]))
+        * max(0.0, min(rect[3], o[3]) - max(rect[1], o[1]))
+        for o in others
+    )
+
+
+def _label_box(spot: Spot) -> Rect:
+    x, y, lines = spot
+    half = max(text_width(ln, LABEL_SIZE) for ln in lines) / 2
+    return (
+        x - half,
+        y - LABEL_SIZE,
+        x + half,
+        y + (len(lines) - 1) * LABEL_LEADING + 3,
+    )
+
+
+def _text_rects(svg: str) -> list[Rect]:
+    """The boxes of the `<text>` items of an SVG fragment drawn by `_txt`."""
+    rects = []
+    for m in TEXT.finditer(svg):
+        x, y, size = float(m.group(1)), float(m.group(2)), float(m.group(3))
+        width = text_width(unescape(m.group(5)), size)
+        if 'text-anchor="middle"' in m.group(4):
+            x -= width / 2
+        elif 'text-anchor="end"' in m.group(4):
+            x -= width
+        rects.append((x, y - size, x + width, y + 3))
+    return rects
+
+
+def _badge(box: Box, k: int, figure: bool) -> tuple[float, float]:
+    """Top left of the k-th K badge on an element (32 x 20)."""
+    bx = box.cx + 14 + k * 36 if figure else box.x + box.w - 30 - k * 36
+    return bx, box.y - 10
+
+
+def _obstacles(
+    data: dict[str, Any], boxes: dict[str, Box], profile: Profile, screen: str
+) -> list[Rect]:
+    """What a relation label should not cover, on the whole record: the boxes of
+    the elements (of a frame, its heading; of a figure, its icon and caption),
+    the board and half headings of `screen`, and the K badges."""
+    rects = _text_rects(screen)
+    els = {e["id"]: e for e in data["elements"]}
+    for el in data["elements"]:
+        b = boxes[el["id"]]
+        shape = profile.kind(el["kind"]).shape
+        if shape == "frame":
+            wide = max([text_width(ln, 13) for ln in b.lines] + [0.0])
+            rects.append(
+                (b.x, b.y, b.x + 12 + wide, b.y + 24 + (len(b.lines) - 1) * 16)
+            )
+        elif shape == "figure":
+            half = max([text_width(ln, 13) for ln in b.lines] + [0.0]) / 2
+            rects.append((b.cx - 10, b.y, b.cx + 10, b.y + 46))
+            rects.append(
+                (b.cx - half, b.y + 51, b.cx + half, b.y + 67 + (len(b.lines) - 1) * 15)
+            )
+        else:
+            rects.append((b.x, b.y, b.x + b.w, b.y + b.h))
+    stacked: dict[str, int] = {}
+    for q in data.get("qualifications", []):
+        if not q.get("targets") or q["targets"][0] not in boxes:
+            continue
+        target = q["targets"][0]
+        k = stacked.get(target, 0)
+        stacked[target] = k + 1
+        figure = profile.kind(els[target]["kind"]).shape == "figure"
+        bx, by = _badge(boxes[target], k, figure)
+        rects.append((bx, by, bx + 32, by + 20))
+    return rects
+
+
+def _candidates(x: float, y: float, label: str) -> Iterator[Spot]:
+    """Spots for a label whose one line stands at (x, y), nearest first: that
+    spot, then lines up before down, at most LABEL_TRIES away; on each line the
+    label in one line and wrapped to LABEL_WIDTH (its last line on that line),
+    centred, then a quarter and a half of its width left and right."""
+    shapes = [[label]]
+    wrapped = wrap(label, LABEL_WIDTH, LABEL_SIZE)
+    if len(wrapped) > 1:
+        shapes.append(wrapped)
+    for k in range(2 * LABEL_TRIES + 1):
+        line = y + (k + 1) // 2 * LABEL_STEP * (-1 if k % 2 else 1)
+        for lines in shapes:
+            top = line - (len(lines) - 1) * LABEL_LEADING
+            width = max(text_width(ln, LABEL_SIZE) for ln in lines)
+            for dx in (0.0, -0.25, 0.25, -0.5, 0.5):
+                yield x + dx * width, top, lines
+
+
+def _label_spots(
+    relations: list[dict[str, Any]], boxes: dict[str, Box], obstacles: list[Rect]
+) -> list[Spot | None]:
+    """Where each relation label goes, in record order: in one line above the
+    middle of its link, unless that covers a label placed before it or one of
+    `obstacles`. Then it takes the first of `_candidates` that covers nothing,
+    or with none free the one that covers least, the middle winning ties, so a
+    label never moves to a worse place. Computed on every relation of the
+    record, so a frame or a cut screen keeps the spots of the full screen, and
+    a label that covers nothing keeps its place."""
+    placed: list[Rect] = []
+    spots: list[Spot | None] = []
+    for rel in relations:
+        if not rel.get("label") or rel["from"] not in boxes or rel["to"] not in boxes:
+            spots.append(None)
+            continue
+        _, x, y = _curve(boxes[rel["from"]], boxes[rel["to"]], _bend(rel))
+        best: tuple[float, Spot, Rect] | None = None
+        for spot in _candidates(x, y - 6, rel["label"]):
+            rect = _label_box(spot)
+            cost = _overlap(rect, placed) + _overlap(rect, obstacles)
+            if best is None or cost < best[0]:
+                best = (cost, spot, rect)
+            if cost == 0:
+                break
+        assert best is not None
+        placed.append(best[2])
+        spots.append(best[1])
+    return spots
 
 
 def _legend(data: dict[str, Any], lang: str, top: float) -> tuple[str, float]:
@@ -400,8 +544,9 @@ def render_svg(
             return svg
         return f'<g opacity="0.4">{svg}</g>'
 
-    screen = _three_boards if profile.screen == "triangles" else _regions_screen
-    parts.append(screen(profile, geo, lang))
+    draw_screen = _three_boards if profile.screen == "triangles" else _regions_screen
+    screen = draw_screen(profile, geo, lang)
+    parts.append(screen)
 
     # frames first so that their chips are drawn on top
     ordered = sorted(
@@ -428,12 +573,14 @@ def render_svg(
             for i in shown
             if els[i]["board"] == part and (not half or els[i].get("half") == half)
         }
-    for rel in data.get("relations", []):
+    relations = data.get("relations", [])
+    spots = _label_spots(relations, boxes, _obstacles(data, boxes, profile, screen))
+    for rel, spot in zip(relations, spots):
         if rel["from"] not in linked or rel["to"] not in linked:
             continue
         a, b = boxes[rel["from"]], boxes[rel["to"]]
         start = len(parts)
-        path, mx, my = _curve(a, b, 0.0 if rel["kind"] == "shift" else 0.15)
+        path, _, _ = _curve(a, b, _bend(rel))
         if rel["kind"] == "shift":
             parts.append(
                 f'<path d="{path}" fill="none" stroke="{INK}" stroke-width="1.5" '
@@ -444,9 +591,18 @@ def render_svg(
                 f'<path d="{path}" fill="none" stroke="#888" stroke-width="1.2" '
                 f'stroke-dasharray="4 3" marker-end="url(#ag)"/>'
             )
-        if rel.get("label"):
+        if spot is not None:
+            x, y, lines = spot
             parts.append(
-                _txt(mx, my - 6, rel["label"], 12, fill=MUTED, text_anchor="middle")
+                _lines(
+                    x,
+                    y,
+                    lines,
+                    LABEL_SIZE,
+                    LABEL_LEADING,
+                    fill=MUTED,
+                    text_anchor="middle",
+                )
             )
         parts[start:] = [
             f'<g class="rel" data-from="{esc(rel["from"])}" data-to="{esc(rel["to"])}">'
@@ -489,12 +645,8 @@ def render_svg(
         box = boxes[target]
         k = stacked.get(target, 0)
         stacked[target] = k + 1
-        bx = (
-            box.x + box.w - 30 - k * 36
-            if profile.kind(els[target]["kind"]).shape != "figure"
-            else box.cx + 14 + k * 36
-        )
-        by = box.y - 10
+        figure = profile.kind(els[target]["kind"]).shape == "figure"
+        bx, by = _badge(box, k, figure)
         fill = NAVY if q["status"] != "closed" else "#8a94b8"
         parts.append(
             f'<g class="k" data-k="{q["id"]}" data-target="{esc(target)}">'

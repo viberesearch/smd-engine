@@ -10,9 +10,8 @@ const EDGE_COLOR = {flow:'#1f77b4', shift:'#d62728', opposes:'#ff7f0e', produces
 // relation kinds a profile adds (graph.py edge_kinds) are drawn grey
 const edgeColor = k => EDGE_COLOR[k] || '#7f7f7f';
 const CAMERA = 2600;
-// boards top down from M.boards, centred on 0; records above, sources below (graph.py planes)
-const PLANE_Z = {records: 520, sources: -520};
-Object.keys(M.boards).forEach((b, i, all) => { PLANE_Z[b] = ((all.length - 1) / 2 - i) * 260; });
+// height of each plane: the boards, records above, sources below (graph.py planes, LAYER)
+const PLANE_Z = M.planes;
 const DASHED = new Set(['tests','qualifies','feeds','valid_for','cooperation','tested_by','cites','in']);
 const byId = new Map(M.nodes.map(n => [n.id, n]));
 const out = new Map(), inc = new Map();

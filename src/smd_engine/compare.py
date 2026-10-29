@@ -149,14 +149,13 @@ def _where(el: dict[str, Any]) -> str:
     return str(el["board"]) + (f"/{el['half']}" if el.get("half") else "")
 
 
-def compare_qualifications(
-    a: dict[str, Any], b: dict[str, Any]
+def _match_texts(
+    qa: list[dict[str, Any]], qb: list[dict[str, Any]], key: str
 ) -> list[tuple[str | None, str | None, float]]:
-    """Match K items by text; unmatched ones keep None on the other side."""
-    qa, qb = a.get("qualifications", []), b.get("qualifications", [])
+    """Match items by the wording of `key`; unmatched ones keep None on the other side."""
     scored = sorted(
         (
-            (similarity(x["text"], y["text"]), i, j)
+            (similarity(x[key], y[key]), i, j)
             for i, x in enumerate(qa)
             for j, y in enumerate(qb)
         ),
@@ -174,6 +173,22 @@ def compare_qualifications(
     out += [(q["id"], None, 0.0) for i, q in enumerate(qa) if i not in ua]
     out += [(None, q["id"], 0.0) for j, q in enumerate(qb) if j not in ub]
     return out
+
+
+def compare_qualifications(
+    a: dict[str, Any], b: dict[str, Any]
+) -> list[tuple[str | None, str | None, float]]:
+    """Match K items by text; unmatched ones keep None on the other side."""
+    return _match_texts(
+        a.get("qualifications", []), b.get("qualifications", []), "text"
+    )
+
+
+def compare_hypotheses(
+    a: dict[str, Any], b: dict[str, Any]
+) -> list[tuple[str | None, str | None, float]]:
+    """Match H items by what they assume; unmatched ones keep None on the other side."""
+    return _match_texts(a.get("hypotheses", []), b.get("hypotheses", []), "assumes")
 
 
 def compare_boards(a: dict[str, Any], b: dict[str, Any]) -> list[str]:

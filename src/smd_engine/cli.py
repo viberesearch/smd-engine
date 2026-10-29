@@ -47,11 +47,13 @@ from smd_engine.render.svg import render_svg
 from smd_engine.render.vault import export_vault
 from smd_engine.revise import revise
 from smd_engine.sources import (
-    find_file,
     check_files,
     clean_room,
+    find_file,
+    line_count,
     refresh,
     refresh_targets,
+    rewrite_line_counts,
     rewrite_sha_lines,
     source_ids,
 )
@@ -287,6 +289,10 @@ def _refresh_sources(args: argparse.Namespace, manifest: dict[str, Any]) -> int:
         changes = {s["id"]: s["sha256"] for s in targets if s["id"] in changed}
         manifest_path = Path(args.manifest)
         text = rewrite_sha_lines(manifest_path.read_text("utf-8"), changes)
+        counts = {
+            s["id"]: s["lines"] for s in targets if s["id"] in changed and "lines" in s
+        }
+        text = rewrite_line_counts(text, counts)
     except (ValueError, FileNotFoundError) as exc:
         print(exc, file=sys.stderr)
         return 1
@@ -296,8 +302,7 @@ def _refresh_sources(args: argparse.Namespace, manifest: dict[str, Any]) -> int:
         if src["id"] in changed:
             path = find_file(folder, src["file"])
             assert path is not None
-            lines = len(path.read_bytes().splitlines())
-            print(f"{src['id']}: sha256 updated, {lines} lines")
+            print(f"{src['id']}: sha256 updated, {line_count(path)} lines")
         else:
             print(f"{src['id']}: unchanged")
     if changed:
@@ -544,12 +549,16 @@ def cmd_publish(args: argparse.Namespace) -> int:
     taxonomies = _load_taxonomies(args.taxonomies)
     chain = _chain(path, data)
     failed = False
+    # errors fail anywhere in the chain; with --strict, warnings fail only on the
+    # published record, and those of the earlier cycles are reported
     for n, (file, rec) in enumerate(chain):
         prev = chain[n + 1][1] if n + 1 < len(chain) else None
         for f in validate_record(rec, ids, prev, taxonomies):
-            if f.level == "error" or (args.strict and f.level == "warning"):
+            if f.level == "error" or (args.strict and f.level == "warning" and n == 0):
                 print(f"{file}: {f}", file=sys.stderr)
                 failed = True
+            elif args.strict and f.level == "warning":
+                print(f"{file}: {f} (earlier cycle: not failing)", file=sys.stderr)
     if failed:
         print("not published: the record does not validate", file=sys.stderr)
         return 1
@@ -572,12 +581,14 @@ def cmd_publish(args: argparse.Namespace) -> int:
     pages = {
         f"{name}_frames.html": render_frames_html(reading, args.lang),
         f"{name}_cycle_frames.html": render_frames_html(cycles, args.lang),
+        # links relative to the bundle folder, so that it can be moved or sent
         f"{name}_index.html": render_index(
             data,
             path,
             args.lang,
             manifest,
             Path(args.archive) if args.archive else None,
+            base=Path(args.out),
         ),
         f"{name}_graph.html": render_graph_html(data, args.lang, manifest),
         f"{name}.html": render_html(data, args.lang, screen=screen),
@@ -781,7 +792,11 @@ def build_parser() -> argparse.ArgumentParser:
     pb.add_argument("--zoom", action="store_true", help="as in frames")
     pb.add_argument("--notes", help="Markdown texts per frame, as in frames")
     pb.add_argument("--archive", help="folder with source files, as in index")
-    pb.add_argument("--strict", action="store_true", help="fail on warnings")
+    pb.add_argument(
+        "--strict",
+        action="store_true",
+        help="fail on warnings of the record; those of earlier cycles are reported",
+    )
     pb.add_argument("--taxonomies", type=Path, help="taxonomy file, as in validate")
     pb.set_defaults(func=cmd_publish)
 

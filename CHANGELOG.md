@@ -2,6 +2,24 @@
 
 Dates are those of the tag. All tags v0.2.1 to v0.3.5 were made on 2026-10-29. The version in `pyproject.toml` stayed at 0.2.0 through v0.2.4 and at 0.3.0 from v0.3.0 to v0.3.5; 0.3.6 is the first release whose package version equals its tag.
 
+## 0.5.2 - 2026-10-29
+
+- The public export leaves out `tests/test_export_public.py`, which tests the maintainer tool that the export also leaves out; 0.5.1 was not released publicly for this reason.
+
+## 0.5.1 - 2026-10-29
+
+Follow-ups; no change to the schema or the records.
+
+- `smd eval` prints the `run` block of both records and matches the qualifications (K) by their text and the hypotheses (H) by what they assume, as `smd compare` matches K: matched pairs, then those only in the run and only in the expected record. These lines add no threshold.
+- A profile is refused with a `ProfileError` when a colour is not written `#rrggbb` in lowercase, when `compare_groups` is `null`, and when the `id` of a board, template, kind or relation is missing or not a string.
+- `smd sources --refresh` also writes `lines` for a source whose entry carries it, editing that line only; before, `sha256` was refreshed and `lines` went stale.
+- `tests/test_export_public.py` covers the scan of `scripts/export_public.py` (one planted leak of each pattern; a clean tree) and its argument checks.
+- `docs/plan.md` and `docs/stages.md` give the release tags of the steps of the 2026-10-29 update (v0.2.1 to v0.5.0) and say that a release tag is not a schema version.
+- `smd graph`: the height of each plane comes from `render/graph.py` (`LAYER`) in the model as `planes`; `graph.js` no longer repeats the spacing (260, 520). The planes stand where they stood; the graph pages differ only by that key and those lines.
+- Screen: a relation label stands above the middle of its link unless it covers a label placed before it, an element box (of a frame, its heading; of a figure, its icon and caption), a board or half heading or a K badge. Then it takes the nearest spot that covers nothing, at most 4 lines (60 px) up or down and half its width sideways, in one line or wrapped to 220 px; with none free, the spot that covers least, its own spot winning ties, so no label moves to a worse place. Spots are computed on the whole record, so frames and cut screens keep them. On `mipt-transfer-c5` the overlapping pairs go from 122 to 53 between labels and from 163 to 135 between labels and boxes. Labels that cover nothing keep their spot; in the examples three labels move one line (`two-boards-c1`: «looks back at», «dough»; `pekarni-oru-c1`: «усилить»), whose spot covered an element.
+- `smd publish --strict` fails on warnings of the published record only; warnings of the earlier cycles it `revises` are printed with "(earlier cycle: not failing)". Errors anywhere in the chain still fail.
+- `smd publish` writes the index with links relative to `--out` (`render_index(..., base=)`): the record file and `--archive` files by relative path, a file that shares only the root with `--out` without a link, and `YAML:N` as a line number, so no absolute path of the building machine is in the bundle. `smd index` keeps its absolute `file://` and `vscode://` links.
+
 ## 0.5.0 - 2026-10-29
 
 The first public release since 0.3.7; it also carries 0.3.8 and 0.4.0, which were tagged in the private repository only.

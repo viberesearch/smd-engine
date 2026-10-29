@@ -53,7 +53,7 @@ Each step is a branch and a PR in this repository. Each change to a case reposit
 - 0b: case sources. Each case has one manifest; raw files stay where they are.
 
 **Step 1. Records, validator, renderer.**
-- Schemas v0.2.
+- Schemas v0.2 (released in v0.1.0; schema v0.2 is not release v0.2.x: the schema stayed v0.2 until v0.2.4).
 - Validator: structural checks plus semantic levels (dangling references, element without a position, frame without a chain, K pointing at nothing, transitions out of order).
 - SVG/HTML renderer in the program's three-board layout, with automatic placement inside board regions and optional manual geometry.
 - Done when: `uv run pytest` passes, black and flake8 are clean, and two golden screens render.
@@ -86,13 +86,13 @@ Each step is a branch and a PR in this repository. Each change to a case reposit
 - Prompts run without Claude Code: any model, with the files attached.
 - Exports: SessionFlow formats ("Наша малая ситуация. Материал к сообщению", the module start message), Russian versions into the case repository by PR, journal entries.
 
-**Step 7. Decisions as records.** `board_patch` and `smd apply`; `smd publish` (validate, frames, index, graph in one run); `smd sources refresh` for growing decision logs. Done when: a pilot case's board of one sub-version is reproduced byte for byte from its predecessor and the committed patch.
+**Step 7. Decisions as records.** `board_patch` and `smd apply`; `smd publish` (validate, frames, index, graph in one run); `smd sources refresh` for growing decision logs. Done when: a pilot case's board of one sub-version is reproduced byte for byte from its predecessor and the committed patch. Released as v0.2.2 (`sources --refresh`), v0.2.3 (`publish`), v0.3.1 (`apply`) and v0.3.4 (transitions by `n`, `board_notes`).
 
-**Step 8. Schema v0.3, migration, profiles.** Versioned schema files, `smd migrate`, the fields of item 13, taxonomies and tags, the profile mechanism with `classic-two-boards` as the second profile. Done when: every v0.2 record in `cases/` and in the pilot case's repository migrates and validates with zero errors, and the two-board fixture validates with no hint about a situation board.
+**Step 8. Schema v0.3, migration, profiles.** Versioned schema files, `smd migrate`, the fields of item 13, taxonomies and tags, the profile mechanism with `classic-two-boards` as the second profile. Done when: every v0.2 record in `cases/` and in the pilot case's repository migrates and validates with zero errors, and the two-board fixture validates with no hint about a situation board. Released as v0.3.0 (schema v0.3, `smd migrate`, taxonomies, tags), v0.3.2 (profiles) and v0.3.5 (regions, graph colours).
 
-**Step 9. Quality across models.** Run stamp, `smd eval` on top of `compare`, a public golden run (invented bakeries transcript) and a private one in the case repository. Done when: `smd eval` on the stored plenary run reproduces the 25.10 counts.
+**Step 9. Quality across models.** Run stamp, `smd eval` on top of `compare`, a public golden run (invented bakeries transcript) and a private one in the case repository. Done when: `smd eval` on the stored plenary run reproduces the 25.10 counts. Released as v0.3.3.
 
-**Step 10. Code structure.** Check registry in `validate/`, static assets out of `render/graph.py` and `render/frames.py`. No behaviour change: the test suite passes unchanged plus the registry test.
+**Step 10. Code structure.** Check registry in `validate/`, static assets out of `render/graph.py` and `render/frames.py`. No behaviour change: the test suite passes unchanged plus the registry test. Released as v0.2.4. Later releases: v0.3.6 (open release), v0.3.7 (docs), v0.3.8, v0.4.0 and v0.5.0 (see `docs/stages.md`).
 
 ## Not in scope (report only)
 

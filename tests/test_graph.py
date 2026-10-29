@@ -9,6 +9,7 @@ import yaml
 
 from smd_engine.cli import main
 from smd_engine.profile import default_profile
+from smd_engine.render import asset_text
 from smd_engine.render.graph import (
     EDGE_KINDS,
     LAYER,
@@ -40,6 +41,19 @@ def test_graph_model_puts_boards_on_planes_and_types_links(
     titles = {s["id"]: s["title"] for s in manifest["sources"]}
     for s in cited & set(titles):
         assert nodes[f"src:{s}"]["label"] == titles[s]
+
+
+def test_graph_page_takes_plane_heights_from_the_model(
+    board2: dict[str, Any], manifest: dict[str, Any]
+) -> None:
+    model = graph_model(board2, "en", manifest)
+    heights = {b: z * LAYER for b, z in planes(default_profile()).items()}
+    assert model["planes"] == heights
+    assert {n["z"] for n in model["nodes"]} <= set(heights.values())
+    # graph.js draws the planes at these heights and keeps no spacing of its own
+    script = asset_text("graph.js")
+    assert "const PLANE_Z = M.planes;" in script
+    assert not re.search(rf"\b({LAYER:g}|{2 * LAYER:g})\b", script)
 
 
 def test_graph_page_is_self_contained(board2: dict[str, Any]) -> None:

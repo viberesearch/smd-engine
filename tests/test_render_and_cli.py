@@ -18,7 +18,13 @@ from smd_engine.render.layout import layout, region_of, regions
 from smd_engine.render.markdown import render_markdown
 from smd_engine.render.mermaid import render_mermaid
 from smd_engine.render.svg import render_svg
-from smd_engine.sources import check_files, clean_room, refresh, rewrite_sha_lines
+from smd_engine.sources import (
+    check_files,
+    clean_room,
+    refresh,
+    rewrite_sha_lines,
+    sha256_of,
+)
 
 EXAMPLE = Path(__file__).resolve().parents[1] / "cases" / "example"
 
@@ -118,6 +124,33 @@ def test_refresh_leaves_other_sources_untouched(
     assert refresh(manifest, tmp_path, []) == ["s4"]
     assert "sha256" not in manifest["sources"][0]
     assert manifest["sources"][1]["sha256"] == "0" * 64
+
+
+def test_refresh_writes_lines_where_the_entry_carries_them(tmp_path: Path) -> None:
+    manifest_path = tmp_path / "sources.yaml"
+    head = '# hand-written\nrecord: source_manifest\nschema_version: "0.3"\n'
+    head += "case: c\nlocation: here\nsources:\n"
+    item = "  - id: {id}\n    title: T\n    origin: team\n    kind: decision_log\n"
+    old = "a" * 64
+    text = (
+        head
+        + item.format(id="log")
+        + f'    file: log.txt\n    sha256: "{old}"\n    lines: 2  # the sha256 covers\n'
+        + item.format(id="log2")
+        + f"    file: log2.txt\n    sha256: {old}\n"
+    )
+    manifest_path.write_text(text, encoding="utf-8")
+    (tmp_path / "log.txt").write_text("a\nb\nc\n")
+    (tmp_path / "log2.txt").write_text("a\n")
+    argv = ["sources", str(manifest_path), "--folder", str(tmp_path), "--refresh"]
+    assert main(argv) == 0
+    want = text.replace("lines: 2 ", "lines: 3 ")
+    want = want.replace(old, sha256_of(tmp_path / "log.txt"), 1)
+    want = want.replace(old, sha256_of(tmp_path / "log2.txt"), 1)
+    assert manifest_path.read_text(encoding="utf-8") == want  # log2: no lines added
+    (tmp_path / "log.txt").write_text("a\nb\n")  # lines changes with the sha256
+    assert main(argv) == 0
+    assert "lines: 2  # the sha256 covers" in manifest_path.read_text(encoding="utf-8")
 
 
 def test_cli_validate_render_sources(
@@ -254,6 +287,46 @@ def test_dense_record_grows_the_boards_without_overlap(board: dict[str, Any]) ->
                     or b.y + b.h <= a.y
                 )
                 assert apart, (a.id, b.id)
+
+
+def test_relation_labels_in_a_narrow_half_cover_nothing(
+    board: dict[str, Any],
+) -> None:
+    import re
+
+    from smd_engine.profile import profile_of
+    from smd_engine.render.layout import plan
+    from smd_engine.render.svg import _obstacles, _text_rects, _three_boards
+
+    def apart(a: tuple[float, ...], b: tuple[float, ...]) -> bool:
+        return a[2] <= b[0] or b[2] <= a[0] or a[3] <= b[1] or b[3] <= a[1]
+
+    def labels(svg: str) -> list[tuple[float, float, float, float]]:
+        out = []
+        for g in re.findall(r'<g class="rel"[^>]*>(.*?)</g>', svg):
+            r = _text_rects(g)
+            out.append((r[0][0], r[0][1], max(x[2] for x in r), r[-1][3]))
+        return out
+
+    alone = labels(render_svg(board, "en"))
+    # three labelled links between the two items of the small half share a middle
+    board["relations"] += [
+        {"from": "s-small", "to": "s-small-fact", "kind": "refers", "label": text}
+        for text in (
+            "payroll",
+            "the night shift is what makes the flat sales unprofitable",
+            "seen by the owner",
+        )
+    ]
+    placed = labels(render_svg(board, "en"))
+    assert placed[0] == alone[0]  # a label that covers nothing stays put
+    assert len(placed) == 4
+    geo, boxes = plan(board, 960)
+    profile = profile_of(board)
+    screen = _three_boards(profile, geo, "en")  # the program profile
+    for i, a in enumerate(placed):
+        assert all(apart(a, b) for b in placed[i + 1 :])
+        assert all(apart(a, o) for o in _obstacles(board, boxes, profile, screen))
 
 
 def test_fillers_and_detail_stay_off_the_board(board: dict[str, Any]) -> None:

@@ -24,7 +24,8 @@ LAYER = 260.0  # distance between planes
 
 def planes(profile: Profile) -> dict[str, float]:
     """Plane per board, top down (the last board on top), centred on 0; records
-    above the boards, sources below (graph.js stacks them the same way)."""
+    above the boards, sources below. In LAYER units; `graph_model` passes the
+    heights to graph.js as `planes`."""
     boards = [b.id for b in reversed(profile.boards)]
     middle = (len(boards) - 1) / 2
     z = {b: middle - n for n, b in enumerate(boards)}
@@ -304,6 +305,8 @@ def graph_model(
         "id": data.get("id", ""),
         "date": str(data.get("date", "")),
         "boards": {b: profile.board_label(b, lang) for b in boards},
+        # the height of each plane, which graph.js draws them at
+        "planes": {b: z * LAYER for b, z in plane_z.items()},
         # each board's ink colour, as on the screen and in the vault
         "board_colours": {b: profile.board(b).colour[1] for b in boards},
         # the engine's link kinds, then the relation kinds the profile labels

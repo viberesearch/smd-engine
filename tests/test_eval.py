@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 
 from smd_engine.cli import main
-from smd_engine.eval import evaluate, match_theses, parse_cite
+from smd_engine.eval import evaluate, format_result, match_theses, parse_cite
 from smd_engine.records import load_record
 
 GOLDEN = Path(__file__).resolve().parents[1] / "cases" / "example" / "golden"
@@ -53,3 +53,22 @@ def test_cli_eval(capsys: pytest.CaptureFixture[str]) -> None:
     assert "theses matched by cites (9)" in out
     assert main(["eval", path, path, "--min-agreement", "999"]) == 1
     assert "FAIL: agreement 13 is below the minimum 999" in capsys.readouterr().out
+
+
+def test_output_has_run_blocks_and_compares_k_and_h(expected: dict[str, Any]) -> None:
+    run = copy.deepcopy(expected)
+    run["run"] = {"procedure": "theses-to-board", "model": "m1"}
+    run["qualifications"] = run["qualifications"][:1]
+    run["hypotheses"][1]["assumes"] = "Nothing alike at all, wholly other words."
+    result = evaluate(run, expected)
+    assert result.qualifications is not None and result.hypotheses is not None
+    assert result.qualifications.matched == [("K1", "K1")]
+    assert result.qualifications.only_expected == ["K2"]
+    assert result.hypotheses.matched == [("H1", "H1")]
+    assert result.hypotheses.only_run == ["H2"]
+    assert result.hypotheses.only_expected == ["H2"]
+    out = format_result(result)
+    assert "run: procedure=theses-to-board, model=m1" in out
+    assert "expected: procedure=theses-to-board, version=0.3.3" in out
+    assert "qualifications only in the expected record (1):\n  K2" in out
+    assert "hypotheses matched by wording (1):\n  H1 = H1" in out

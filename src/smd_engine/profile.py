@@ -43,7 +43,7 @@ SHAPES = {
     "box",
 }
 SCREENS = ("regions", "triangles")
-COLOUR = re.compile(r"#[0-9a-fA-F]{6}")
+COLOUR = re.compile(r"#[0-9a-f]{6}")
 # The id of a board a record makes of a template: the schema's id less the
 # dot, which separates a board from its half (`s.small`).
 RECORD_BOARD_ID = re.compile(r"[a-z0-9][a-z0-9_-]*")
@@ -313,6 +313,13 @@ def _keys(raw: dict[str, Any], allowed: set[str], where: str) -> None:
         raise ProfileError(f"{where}: unknown keys {unknown}")
 
 
+def _id(raw: dict[str, Any], where: str) -> str:
+    value = raw.get("id")
+    if not isinstance(value, str) or not value:
+        raise ProfileError(f"{where}: id is missing or not a string")
+    return value
+
+
 def _flags(raw: dict[str, Any], names: tuple[str, ...], where: str) -> dict[str, bool]:
     flags = {f: raw.get(f, False) for f in names}
     not_bool = [f for f, v in flags.items() if not isinstance(v, bool)]
@@ -345,7 +352,7 @@ def _board(raw: dict[str, Any], where: str) -> Board:
     if len(region) != 4 or not all(map(_number, region)) or len(colour) != 2:
         raise ProfileError(f"{where}: region takes 4 numbers, colour 2 colours")
     if not all(COLOUR.fullmatch(c) for c in colour):
-        raise ProfileError(f"{where}: a colour is written #rrggbb")
+        raise ProfileError(f"{where}: a colour is written #rrggbb, lowercase")
     x0, y0, x1, y1 = region
     left, top, right, _ = MARGIN
     if not (
@@ -364,7 +371,7 @@ def _board(raw: dict[str, Any], where: str) -> Board:
             f"{where}: split must lie inside the region, more than 10 from each edge"
         )
     return Board(
-        str(raw["id"]),
+        _id(raw, where),
         _labels(raw.get("label"), where),
         ordered,
         (x0, y0, x1, y1),
@@ -383,12 +390,14 @@ def _template(raw: dict[str, Any], where: str) -> Template:
         raise ProfileError(f"{where}: per_record must be true")
     colour = tuple(str(c) for c in raw["colour"])
     if len(colour) != 2 or not all(COLOUR.fullmatch(c) for c in colour):
-        raise ProfileError(f"{where}: colour takes 2 colours, each #rrggbb")
+        raise ProfileError(
+            f"{where}: colour takes 2 colours, each #rrggbb in lowercase"
+        )
     kinds = _strings(raw.get("kinds"), f"{where}: kinds")
     if not kinds:
         raise ProfileError(f"{where}: a template takes at least one kind")
     return Template(
-        str(raw["id"]),
+        _id(raw, where),
         _labels(raw.get("label"), where),
         (colour[0], colour[1]),
         kinds,
@@ -445,7 +454,7 @@ def _kind(raw: dict[str, Any], boards: set[str], where: str) -> Kind:
     if raw.get("shape") not in SHAPES:
         raise ProfileError(f"{where}: shape must be one of {', '.join(sorted(SHAPES))}")
     return Kind(
-        str(raw["id"]),
+        _id(raw, where),
         _labels(raw.get("label"), where),
         raw.get("home"),
         shape=str(raw["shape"]),
@@ -585,7 +594,7 @@ def _relations(items: Any, name: str) -> dict[str, dict[str, str]]:
             rid, label = raw, {}
         elif isinstance(raw, dict):
             _keys(raw, RELATION_KEYS, f"{name}: relation {raw.get('id')}")
-            rid = str(raw["id"])
+            rid = _id(raw, f"{name}: relation {raw.get('id')}")
             label = _labels(raw.get("label"), f"{name}: relation {rid}")
         else:
             raise ProfileError(
@@ -706,7 +715,7 @@ def _parse(data: dict[str, Any], name: str) -> Profile:
                     f"{name}: template {t.id}: kinds {homed} live on it but are "
                     "not among its kinds"
                 )
-        raw_groups = data.get("compare_groups") or {}
+        raw_groups = data.get("compare_groups", {})
         if not isinstance(raw_groups, dict):
             raise ProfileError(f"{name}: compare_groups must be a mapping")
         groups = {

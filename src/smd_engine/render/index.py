@@ -1,8 +1,15 @@
 """Index page of a board record: every K, thesis, hypothesis, ontology record, sign-off
-and element, each linked to its line in the YAML and to the local files it cites."""
+and element, each linked to its line in the YAML and to the local files it cites.
+
+By default the links hold absolute paths (`file://`, `vscode://file/`), for use on the
+machine that built the page. With `base` (the folder the page is written to, as in
+`smd publish`) they are relative to it, so the folder can be moved or sent: a file that
+shares no folder with `base` but the root is not linked, and YAML lines, which only an
+absolute `vscode://` link opens, are shown as numbers."""
 
 from __future__ import annotations
 
+import os
 import re
 import unicodedata
 from pathlib import Path
@@ -31,6 +38,14 @@ def _web_link(url: str, text: str) -> str:
     if _is_web(url):
         return f'<a href="{esc(url)}">{esc(text)}</a>'
     return esc(text)
+
+
+def _relative(path: Path, base: Path) -> str | None:
+    """`path` relative to the folder `base`, or None when they share only the root."""
+    target, folder = path.resolve(), base.resolve()
+    if os.path.commonpath([target, folder]) == target.anchor:
+        return None
+    return Path(os.path.relpath(target, folder)).as_posix()
 
 
 def _nfc(text: str) -> str:
@@ -66,8 +81,9 @@ class _Index:
         manifest: dict[str, Any] | None,
         record: Path,
         archive: Path | None,
+        base: Path | None = None,
     ) -> None:
-        self.data, self.lang, self.record = data, lang, record
+        self.data, self.lang, self.record, self.base = data, lang, record, base
         self.lab = LABELS[lang]
         self.idx = self.lab["index"]
         self.lines = record.read_text(encoding="utf-8").splitlines()
@@ -79,9 +95,19 @@ class _Index:
             else {}
         )
 
+    def _href(self, path: Path) -> str | None:
+        """A link to a local file: its `file://` URL, or with `base` its relative path
+        (None when it cannot be relative)."""
+        if self.base is None:
+            return f"file://{quote(str(path.resolve()))}"
+        relative = _relative(path, self.base)
+        return quote(relative) if relative is not None else None
+
     def _yaml(self, line: int | None) -> str:
         if not line:
             return ""
+        if self.base is not None:
+            return f'<a class="y">YAML:{line}</a>'
         href = f"vscode://file/{quote(str(self.record.resolve()))}:{line}"
         return f'<a class="y" href="{esc(href)}">YAML:{line}</a>'
 
@@ -89,11 +115,14 @@ class _Index:
         return f'<b id="{esc(id_)}">{esc(id_)}</b><br>{self._yaml(self.ids.get(id_))}'
 
     def _local(self, source: dict[str, Any] | None) -> Path | None:
-        """The cited file in the archive folder, matched by NFC file name."""
+        """The cited file in the archive folder, matched by NFC file name; with `base`,
+        only a file that can be linked relative to it."""
         if not source or not source.get("file"):
             return None
         found = self.files.get(_nfc(Path(source["file"]).name))
-        return found.resolve() if found else None
+        if found is None or self._href(found) is None:
+            return None
+        return found.resolve()
 
     def _cite(self, cite: str) -> str:
         sid, _, addr = cite.partition("#")
@@ -103,12 +132,11 @@ class _Index:
         title = esc(source.get("title", ""))
         path = self._local(source)
         if path is not None:
-            if addr.startswith("l="):
+            href = self._href(path) or ""
+            if addr.startswith("l=") and self.base is None:
                 href = f"vscode://file/{quote(str(path))}:{addr[2:]}"
             elif addr.startswith("p=") and path.suffix == ".pdf" and addr[2:].isdigit():
-                href = f"file://{quote(str(path))}#page={addr[2:]}"
-            else:
-                href = f"file://{quote(str(path))}"
+                href += f"#page={addr[2:]}"
             return f'<a href="{esc(href)}" title="{title}">{esc(cite)}</a>'
         if source.get("url"):
             shown = f"{title} ({esc(self.idx['web'])}"
@@ -129,7 +157,8 @@ class _Index:
             return esc(self.idx["no_entry"])
         path = self._local(source)
         if path is not None:
-            return f'<a href="file://{quote(str(path))}">{esc(str(path))}</a>'
+            shown = str(path) if self.base is None else _relative(path, self.base)
+            return f'<a href="{esc(self._href(path) or "")}">{esc(shown or "")}</a>'
         if source.get("url"):
             return _web_link(source["url"], source["url"])
         return esc(self.idx["no_file"])
@@ -295,16 +324,21 @@ class _Index:
             f'<a href="#sec-{key}">{esc(title)}</a>' for key, title, _, _ in sections
         )
         body = "".join(self._table(*s) for s in sections)
-        record = self.record.resolve()
         title = title_line(self.data, self.lang)
+        href = self._href(self.record)
+        record = (
+            f'<a href="{esc(href)}">{esc(self.record.name)}</a>'
+            if href is not None
+            else esc(self.record.name)
+        )
+        hint = self.idx["hint" if self.base is None else "hint_relative"]
         return (
             f'<!doctype html><html lang="{self.lang}"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width,initial-scale=1">'
             f"<title>{esc(self.data['id'])}: {esc(self.idx['suffix'])}</title>"
             f"<style>{CSS}</style></head><body><header><h1>{esc(title)}</h1>"
-            f"<div>{esc(self.idx['file'])}: "
-            f'<a href="file://{esc(quote(str(record)))}">{esc(self.record.name)}</a>. '
-            f"{esc(self.idx['hint'])} {nav}</div></header>"
+            f"<div>{esc(self.idx['file'])}: {record}. "
+            f"{esc(hint)} {nav}</div></header>"
             f"<main>{body}</main></body></html>\n"
         )
 
@@ -315,8 +349,10 @@ def render_index(
     lang: str = "ru",
     manifest: dict[str, Any] | None = None,
     archive: Path | None = None,
+    base: Path | None = None,
 ) -> str:
     """One page listing every item of the record with its YAML line. A cited source is
     linked to its file only when `archive` holds a file of that name; otherwise the
-    cite is followed by the source title."""
-    return _Index(data, lang, manifest, record, archive).page()
+    cite is followed by the source title. With `base`, the folder the page goes to,
+    links to local files are relative to it (see the module docstring)."""
+    return _Index(data, lang, manifest, record, archive, base).page()

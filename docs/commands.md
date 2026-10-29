@@ -27,9 +27,9 @@ uv run smd vault cases/example/bakeries-c2.board.yaml out/vault --sources cases/
 uv run smd pack solo-session cases/example/bakeries-c2.board.yaml --sources cases/example/sources.yaml -o out/pack.md   # attach to any model; --sources carries the manifest, --taxonomies the taxonomy file; with board sets, the skeleton of the latest cycle as "Cells to fill"
 uv run smd sources cases/example/sources.yaml --clean-room --deny-lineage earlier-concept
 uv run smd sources path/to/sources.yaml --folder /local/folder
-uv run smd sources path/to/sources.yaml --folder /local/folder --refresh [ids]   # recompute sha256 of the named sources (default: every decision_log) and edit only the sha256 lines of the manifest
+uv run smd sources path/to/sources.yaml --folder /local/folder --refresh [ids]   # recompute sha256 of the named sources (default: every decision_log) and, where a source carries `lines`, its line count; edit only those lines of the manifest
 uv run smd compare a.board.yaml b.board.yaml -o out/compare.md --merge out/merge.board.yaml
-uv run smd eval run.board.yaml cases/example/golden/bakeries-c2-expected.board.yaml --min-agreement 10 --max-only-expected 3   # did a procedure run get worse: the five compare counts, theses matched by cites; exit 1 on a missed threshold
+uv run smd eval run.board.yaml cases/example/golden/bakeries-c2-expected.board.yaml --min-agreement 10 --max-only-expected 3   # did a procedure run get worse: the five compare counts, the `run` blocks of both records, theses matched by cites, K and H matched by wording; exit 1 on a missed threshold
 uv run smd revise cases/example/bakeries-c2.board.yaml --decisions decisions.yaml -o out/bakeries-c3.board.yaml   # next cycle with the human's sign-offs applied
 uv run smd apply cases/example/bakeries-c2.board.yaml cases/example/patches/bakeries-c2-1.patch.yaml -o out/bakeries-c2.board.yaml --sources cases/example/sources.yaml   # a decision on the current cycle as a patch (set and remove by id or by transition number n, board_notes): the next sub-version, validated (also --taxonomies); nothing is written on errors
 ```
@@ -38,6 +38,8 @@ uv run smd apply cases/example/bakeries-c2.board.yaml cases/example/patches/bake
 - **error:** inconsistent record (dangling reference, broken numbering).
 - **warning:** breaks a convention of the method, e.g. an item with no position it is seen from.
 - **hint** (with `--hints`): a methodological observation, e.g. an empty small situation, or a new frame with no functional plan.
+
+`publish` validates the record and the earlier cycles it `revises` (found next to it). An error anywhere in that chain stops the bundle. With `--strict`, a warning on the published record stops it too; warnings on earlier cycles are printed, marked "earlier cycle: not failing", and the bundle is written. The bundle's index links files relative to the `--out` folder, so the folder can be moved or sent: the record file and `--archive` files are linked by relative paths, a file that shares no folder with `--out` except the root is named without a link, and `YAML:N` is a line number, not a VS Code link. `smd index` keeps absolute `file://` and `vscode://` links for use on the building machine.
 
 `sources --folder` checks that every listed file is present, has a sha256, and matches it. `--refresh` rewrites the sha256 instead, for logs that grow.
 

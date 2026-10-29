@@ -206,7 +206,7 @@ signoffs:
 
 `smd sources --clean-room --deny-lineage <tags>` splits sources into allowed and denied for a run that must not see a given lineage.
 
-`smd sources <manifest> --folder F --refresh [ids]` recomputes `sha256` for the named sources (default: every `decision_log`) from the files in F and edits only those `sha256:` lines in the manifest text (comments and formatting stay; a source with a `file:` line and no `sha256:` gets one); file names are matched after Unicode NFC normalisation.
+`smd sources <manifest> --folder F --refresh [ids]` recomputes `sha256` (and `lines`, for a source that carries it) for the named sources (default: every `decision_log`) from the files in F and edits only those `sha256:` and `lines:` lines in the manifest text (comments and formatting stay; a source with a `file:` line and no `sha256:` gets one); file names are matched after Unicode NFC normalisation.
 
 ## taxonomies: the values of tags
 

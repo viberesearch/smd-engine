@@ -1,6 +1,6 @@
 # Build steps and where each method enters
 
-Plan approved 2026-10-25 (`docs/plan.md`). Each step is a branch and a PR.
+Plan approved 2026-10-25 (`docs/plan.md`). Each step is a branch and a PR. The steps of the 2026-10-29 update were released as v0.2.1 to v0.3.x; a release tag is not a schema version (schema v0.2 ran from v0.1.0 to v0.2.4, schema v0.3 starts at v0.3.0).
 
 | Step | Content | Status |
 |---|---|---|
@@ -18,8 +18,11 @@ Plan approved 2026-10-25 (`docs/plan.md`). Each step is a branch and a PR.
 | 8 | Schema v0.3, `smd migrate`, profiles, taxonomies and tags | done: schema v0.3, `smd migrate`, taxonomies and tags in v0.3.0 (PR #21); profiles in v0.3.2: `program-three-boards` (default) and `classic-two-boards`, fixture `cases/example/two-boards-c1.board.yaml` |
 | 9 | Run stamp, `smd eval`, golden runs (update plan step 9) | done in v0.3.3: `smd eval`, the `run` stamp on records, `cases/example/golden/` |
 | 10 | Code structure: check registry, render assets | done in v0.2.4: the validator is a package with a check registry; the frames and graph assets are package files |
-| docs | Architecture section, command tables and this file (update plan step 10) | done in the step after v0.3.6 |
+| docs | Architecture section, command tables and this file (update plan step 10) | done in v0.3.7 |
 | 11 | Open release preparation (update plan step 11) | done in v0.3.6: licence, public READMEs, `README_ru.md`, `cases/example_ru/`, release workflow |
+| Ш8-Ш12 | Gates Ш8-Ш12 (G.P.'s «Программа действий» against т. 5): element fields, hints, the three-positions lens | done in v0.3.8 |
+| Ш13 | G.P.'s management scheme as the profile `management-four-boards` | done in v0.4.0 |
+| boards | Record boards from profile templates; process boards on their own boards in the management profile | done in v0.5.0 |
 
 ## Structural moves (Invention as a Structural Operation)
 

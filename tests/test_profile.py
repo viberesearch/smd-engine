@@ -222,6 +222,32 @@ def test_malformed_profile_file_is_an_error_not_a_traceback(
     assert broken(change) == [f"error: profile: broken: {message}"]
 
 
+@pytest.mark.parametrize(
+    "change, message",
+    [
+        (
+            lambda data: data["boards"][0]["colour"].__setitem__(0, "#AABBCC"),
+            "board od: a colour is written #rrggbb, lowercase",
+        ),
+        (_set(compare_groups=None), "compare_groups must be a mapping"),
+        (
+            lambda data: data["boards"][0].update(id=7),
+            "board 7: id is missing or not a string",
+        ),
+        (
+            lambda data: data["boards"][0].pop("id"),
+            "board None: id is missing or not a string",
+        ),
+    ],
+)
+def test_colour_compare_groups_and_ids_are_checked(
+    broken: Callable[..., list[str]],
+    change: Callable[[dict[str, Any]], None],
+    message: str,
+) -> None:
+    assert broken(change) == [f"error: profile: broken: {message}"]
+
+
 def test_reading_step_without_texts_is_refused(
     broken: Callable[..., list[str]],
 ) -> None:
