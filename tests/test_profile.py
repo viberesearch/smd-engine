@@ -306,6 +306,33 @@ def test_kind_keys_flags_and_string_lists_are_checked(
     assert error.startswith(f"error: profile: broken: {message}")
 
 
+@pytest.mark.parametrize("empty", ["", "  ", None])
+def test_empty_labels_are_refused(empty: str | None) -> None:
+    """Gate Г7д Б: a {ru, en} label with an empty language is a profile error,
+    wherever the profile takes one; the shipped profiles have none."""
+    for pid in profile_module.profile_ids():
+        load_profile(pid)
+    raw = yaml.safe_load(
+        (profiles_dir() / "management-four-boards.yaml").read_text(encoding="utf-8")
+    )
+    places: list[tuple[Callable[[dict[str, Any]], dict[str, Any]], str]] = [
+        (lambda d: d["title"], "management-four-boards: title ru"),
+        (lambda d: d["boards"][0]["label"], "board od: label ru"),
+        (lambda d: d["kinds"][0]["label"], "kind position: label ru"),
+        (lambda d: d["kinds"][0]["label_one"], "kind position: label_one ru"),
+        (lambda d: d["relations"][-1]["label"], "label ru"),
+    ]
+    for label_of, message in places:
+        data = copy.deepcopy(raw)
+        label_of(data)["ru"] = empty
+        with pytest.raises(ProfileError, match=f"{message} must not be empty"):
+            profile_module._parse(data, "management-four-boards")
+    data = copy.deepcopy(raw)
+    data["kinds"][0]["label_one"] = {"ru": empty, "en": empty}
+    with pytest.raises(ProfileError, match="label_one ru and en must not be empty"):
+        profile_module._parse(data, "management-four-boards")
+
+
 def test_default_profile_equals_the_old_tables() -> None:
     profile = default_profile()
     assert profile.id == "program-three-boards"
@@ -689,3 +716,13 @@ def test_a_template_of_any_profile_gives_record_boards(
     assert profile.board("d1").region == (60, 910, 780, 1210)
     frames = reading_frames(record, "en")
     assert [f.title for f in frames if f.id == "process-d1"] == ["Detail: one"]
+
+
+@pytest.mark.parametrize("scalar", [0, False, 1.5])
+def test_labels_that_are_not_text_are_refused(scalar: Any) -> None:
+    raw = yaml.safe_load(
+        (profiles_dir() / "management-four-boards.yaml").read_text(encoding="utf-8")
+    )
+    raw["kinds"][0]["label_one"]["en"] = scalar
+    with pytest.raises(ProfileError, match="kind position: label_one en must be text"):
+        profile_module._parse(raw, "management-four-boards")

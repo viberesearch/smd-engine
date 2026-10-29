@@ -31,6 +31,11 @@ Plan approved 2026-10-25 (`docs/plan.md`). Each step is a branch and a PR. The s
 | Г5б | A written-down model of the whole: field `written` on kinds flagged `of_whole`; `model-of-whole-one-filler` passes such a model by; the lens `beer-viable-system` 0.3.0 | done in v0.5.7 |
 | Г5в | Russian on the pages: the digest's own words, move names by language, singular kind labels `label_one` in the profiles | done in v0.5.7 |
 | Г6 | Russian words for the fixed values on the Russian pages: relation kinds, epistemic, move and record status, frame state, a thesis's voice, belt and kind, sign-off functions; board labels in the page's element table | done in v0.5.7 |
+| Г7а | Words for the status, voice and epistemic status in the graph's details panel; the graph keeps the ids in its data | done in v0.5.8 |
+| Г7б | Board labels and halves in the SVG legend's transitions; template labels in the index's record-boards table | done in v0.5.8 |
+| Г7в | «заявлено» and «проверено» confirmed; no change | done in v0.5.8 |
+| Г7г | A written model of the whole still needs a keeper for `no-model-of-whole`: docs and the lens `beer-viable-system` 0.3.1 | done in v0.5.8 |
+| Г7д | A profile label with an empty `ru` or `en` is a profile error | done in v0.5.8 |
 
 ## Structural moves (Invention as a Structural Operation)
 

@@ -23,7 +23,8 @@ from smd_engine.render.graph import graph_model, planes
 from smd_engine.render.index import render_index
 from smd_engine.render.layout import plan
 from smd_engine.render.markdown import render_markdown
-from smd_engine.render.svg import render_svg
+from smd_engine.render.svg import LEGEND_SIZE, LEGEND_WIDTH, _wrap_parts, render_svg
+from smd_engine.render.text import text_width
 from smd_engine.render.vault import export_vault
 from smd_engine.revise import revise
 from smd_engine.validate import validate_record
@@ -317,6 +318,29 @@ def test_graph_vault_index_markdown_and_pack(
     assert "pb-delivery: board of process: доставка теста в пекарни" in text
 
 
+def test_legend_and_index_name_boards_and_templates_by_label(
+    oru: dict[str, Any],
+) -> None:
+    """Gate Г7б Б: the SVG legend names the boards of a transition, and the
+    index's record-boards table the template, by their labels."""
+    svg = render_svg(oru, "ru")
+    assert (
+        "4 Аппарат руководства → Доска процесса: ночной замес теста "
+        "(кто передаёт тесто)"
+    ) in svg
+    assert "Переходы: 1 Оргдеятельностная доска → Управляемая полисистема" in svg
+    assert "AP → PB-DOUGH" not in svg
+    assert "1 Org-activity board → Managed polysystem" in render_svg(oru, "en")
+    c1 = load_record(ROOT / "cases" / "example_ru" / "pekarni-c1.board.yaml")
+    assert "2 Ситуационная доска / малая → Ситуационная доска / большая" in (
+        render_svg(c1, "ru")
+    )
+    index = render_index(oru, ORU, "ru")
+    assert "</td><td>Доска процесса</td><td>Доска процесса: ночной" in index
+    assert "<td>process</td>" not in index
+    assert "</td><td>Process board</td>" in render_index(oru, ORU, "en")
+
+
 def test_an_empty_record_board_is_in_the_markdown(oru: dict[str, Any]) -> None:
     oru["boards"].append({"id": "pb-empty", "template": "process", "label": "пусто"})
     assert (
@@ -450,3 +474,19 @@ def test_apply_adds_sets_and_removes_record_boards(oru: dict[str, Any]) -> None:
     oru["transitions"] = oru["transitions"][:3]
     first = apply_patch(oru, {**patch, "set": [], "remove": []})
     assert list(first).index("boards") < list(first).index("elements")
+
+
+def test_legend_lines_break_between_transitions() -> None:
+    parts = [
+        f"{n} Оргдеятельностная доска → Ситуационная доска / малая" for n in "12345"
+    ]
+    lines = _wrap_parts(parts, LEGEND_WIDTH, LEGEND_SIZE)
+    assert len(lines) > 1
+    assert all(text_width(line, LEGEND_SIZE) <= LEGEND_WIDTH for line in lines)
+    # every part whole on one line: lines break only between transitions
+    assert sorted(p for line in lines for p in line.split(" · ")) == parts
+    long = " ".join(["слово"] * 400)  # one part wider than a line: wrapped by words
+    wrapped = _wrap_parts([long], LEGEND_WIDTH, LEGEND_SIZE)
+    assert len(wrapped) > 1
+    assert all(text_width(line, LEGEND_SIZE) <= LEGEND_WIDTH for line in wrapped)
+    assert _wrap_parts([], LEGEND_WIDTH, LEGEND_SIZE) == []

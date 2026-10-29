@@ -23,6 +23,7 @@ from smd_engine.render.text import (
     element_parts,
     esc,
     screen_label,
+    value_word,
 )
 
 SPAN = 1000.0  # width of a board plane in graph units
@@ -100,6 +101,12 @@ CONTINUUM_EDGE_KINDS: dict[str, dict[str, str]] = {
 }
 # Kinds shown by the "flows and shifts" view.
 FLOW_KINDS = ["flow", "shift", "opposes", "produces", "uses", "transition"]
+# The `value_word` field of each record group's `status`.
+STATUS_FIELDS = {
+    "thesis": "thesis_status",
+    "hypothesis": "hyp_status",
+    "qualification": "k_status",
+}
 GROUP_LABELS = {
     "ru": {
         "thesis": "тезис",
@@ -127,6 +134,14 @@ def _spread(i: int, scale: float = 26.0) -> tuple[float, float]:
     angle = i * 2.399963  # golden angle
     r = scale * math.sqrt(i + 1)
     return r * math.cos(angle), r * math.sin(angle)
+
+
+def _words(values: dict[str, tuple[str, str]], lang: str) -> dict[str, str]:
+    """The words the details panel shows for a node's fixed values, by key
+    (`status`, `voice`, `epistemic`), from (`value_word` field, value) pairs;
+    a value left out stays out. The node keeps the ids, which graph.js and the
+    vault's properties read (gate Г7а Б)."""
+    return {k: value_word(field, v, lang) for k, (field, v) in values.items() if v}
 
 
 def graph_model(
@@ -203,6 +218,13 @@ def graph_model(
                 "fillers": e.get("fillers", []),
                 "detail": e.get("detail"),
                 "cites": e.get("cites", []),
+                "words": _words(
+                    {
+                        "voice": ("voice", e.get("voice", "")),
+                        "epistemic": ("epistemic", e.get("epistemic", "")),
+                    },
+                    lang,
+                ),
                 "x": x,
                 "y": y,
                 "z": z,
@@ -276,6 +298,13 @@ def graph_model(
                 "note": rec.get("note", ""),
                 "status": status,
                 "voice": rec.get("voice", ""),
+                "words": _words(
+                    {
+                        "status": (STATUS_FIELDS.get(group, ""), status),
+                        "voice": ("voice", rec.get("voice", "")),
+                    },
+                    lang,
+                ),
                 "extra": extra,
                 "cites": rec.get("cites", []),
                 "x": cx + dx,

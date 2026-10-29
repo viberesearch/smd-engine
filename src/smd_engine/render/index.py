@@ -295,7 +295,12 @@ class _Index:
         boards = [
             [
                 anchor(x["id"]),
-                e(x["template"]),
+                # the template by its label (gate Г7б Б); an unknown one as recorded
+                e(
+                    template.label[self.lang]
+                    if (template := profile.template(x["template"]))
+                    else x["template"]
+                ),
                 (
                     e(profile.board_label(x["id"], self.lang))
                     if profile.has_board(x["id"])

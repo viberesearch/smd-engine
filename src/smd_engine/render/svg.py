@@ -25,6 +25,7 @@ from smd_engine.render.layout import Box, Geometry, plan
 from smd_engine.render.text import (
     LABELS,
     MOVE_NAMES,
+    board_text,
     esc,
     text_width,
     value_word,
@@ -46,6 +47,8 @@ LABEL_STEP = 15.0  # a label that overlaps something may move by a line
 LABEL_LEADING = 14.0  # line step of a wrapped label
 LABEL_WIDTH = 220.0  # a label that overlaps something may wrap at this width
 LABEL_TRIES = 4  # lines up and down a label may move (60 px)
+LEGEND_WIDTH = 1520.0  # the legend's lines, from x 40 to 1560
+LEGEND_SIZE = 12  # font size of the legend
 TEXT = re.compile(
     r'<text x="([-\d.]+)" y="([-\d.]+)" font-size="([\d.]+)"([^>]*)>([^<]*)</text>'
 )
@@ -335,18 +338,39 @@ def _label_spots(
     return spots
 
 
+def _wrap_parts(parts: list[str], width: float, size: float) -> list[str]:
+    """Parts joined by " · " in lines of at most `width`, a line breaking only
+    between parts; a part wider than a line is wrapped by its words."""
+    lines: list[str] = []
+    for part in parts:
+        if lines and text_width(f"{lines[-1]} · {part}", size) <= width:
+            lines[-1] += f" · {part}"
+        else:
+            lines += wrap(part, width, size)
+    return lines
+
+
 def _legend(data: dict[str, Any], lang: str, top: float) -> tuple[str, float]:
     lab = LABELS[lang]
-    rows: list[tuple[str, str]] = []
+    rows: list[tuple[str, str | list[str]]] = []
     trs = sorted(data.get("transitions", []), key=lambda t: t["n"])
     if trs:
+        # boards by their labels in the language and the half, as the page's
+        # element table names them (gate Г7б Б), so that a move between the
+        # halves of one board reads as one; a line breaks between transitions
+        profile = profile_of(data)
         by_id = {e["id"]: e for e in data["elements"]}
+
+        def board(element_id: str) -> str:
+            return board_text(profile, by_id[element_id], lang)
+
         parts = [
-            f"{t['n']} {by_id[t['from']]['board'].upper()} → {by_id[t['to']]['board'].upper()}"
+            f"{t['n']} {board(t['from'])} → {board(t['to'])}"
             + (f" ({t['label']})" if t.get("label") else "")
             for t in trs
         ]
-        rows.append(("b", f"{lab['transitions']}: " + " · ".join(parts)))
+        parts[0] = f"{lab['transitions']}: {parts[0]}"
+        rows.append(("b", _wrap_parts(parts, LEGEND_WIDTH, LEGEND_SIZE)))
     for q in data.get("qualifications", []):
         status = lab["status"][q["status"]]
         rows.append(("k", f"{q['id']} [{status}] {q.get('short') or q['text']}"))
@@ -381,9 +405,11 @@ def _legend(data: dict[str, Any], lang: str, top: float) -> tuple[str, float]:
     ]
     y = top + 22
     for tag, text in rows:
-        lines = wrap(text, 1520, 12)
+        lines = (
+            text if isinstance(text, list) else wrap(text, LEGEND_WIDTH, LEGEND_SIZE)
+        )
         color = NAVY if tag == "k" else MUTED
-        out.append(_lines(40, y, lines, 12, 16, fill=color))
+        out.append(_lines(40, y, lines, LEGEND_SIZE, 16, fill=color))
         y += len(lines) * 16 + 4
     return "".join(out), y + 8
 

@@ -101,7 +101,9 @@ function select(id) {
   info.innerHTML = '';
   const where = n.g === 'element' ? M.boards[n.b] : n.kind;
   info.append(el('div', {class: 'id'}, n.id), el('h3', {}, n.label));
-  const meta = [where, n.g === 'element' ? n.kind : '', n.status ? `${U.status}: ${n.status}` : '', n.voice ? `${U.voice}: ${n.voice}` : '', n.epistemic || ''].filter(Boolean).join(' · ');
+  // fixed values by their words in the language (graph.py _words); the ids stay in n.status, n.voice, n.epistemic
+  const w = n.words || {status: n.status, voice: n.voice, epistemic: n.epistemic};
+  const meta = [where, n.g === 'element' ? n.kind : '', w.status ? `${U.status}: ${w.status}` : '', w.voice ? `${U.voice}: ${w.voice}` : '', w.epistemic || ''].filter(Boolean).join(' · ');
   info.append(el('div', {class: 'meta'}, meta));
   // only web links become anchors; any other scheme (javascript:, data:) stays plain text
   if (n.url) info.append(el('div', {class: 'meta'}, /^https?:\/\//i.test(n.url)

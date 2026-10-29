@@ -393,6 +393,11 @@ LABELS: dict[str, dict[str, Any]] = {
 
 # The Russian pages name the sign-off functions by the words of "signoff".
 LABELS["ru"]["values"]["function"] = LABELS["ru"]["signoff"]
+# The graph's details panel names the status of a thesis, a hypothesis and a K
+# by these tables on the Russian page; the English graph keeps the ids.
+LABELS["ru"]["values"]["thesis_status"] = LABELS["ru"]["thesis_status"]
+LABELS["ru"]["values"]["hyp_status"] = LABELS["ru"]["hyp_status"]
+LABELS["ru"]["values"]["k_status"] = LABELS["ru"]["status"]
 
 # Names of the structural moves (docs/method/structural-moves.md) by language.
 MOVE_NAMES: dict[str, dict[str, str]] = {
@@ -414,9 +419,10 @@ MOVE_NAMES: dict[str, dict[str, str]] = {
 def value_word(field: str, value: str, lang: str) -> str:
     """A fixed value of a record (`voice`, `epistemic`, `move.status` as
     `move_status`, the record's `status` as `record_status`, a thesis's `belt`
-    and `kind` as `thesis_kind`, a sign-off's `function`) as its word in the
-    language; a value the language has no word for is shown as recorded, as
-    the English pages show the ids."""
+    and `kind` as `thesis_kind`, a sign-off's `function`, the `status` of a
+    thesis, a hypothesis and a K as `thesis_status`, `hyp_status`, `k_status`)
+    as its word in the language; a value the language has no word for is shown
+    as recorded, as the English pages show the ids."""
     words: dict[str, str] = LABELS[lang]["values"].get(field, {})
     return words.get(value, value)
 

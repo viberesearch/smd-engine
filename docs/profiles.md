@@ -118,7 +118,7 @@ A filter is a mapping of at least one of `kinds` (a list of kind ids), `board`, 
 
 A malformed profile is an error of every record that names it (`error: profile: <id>: ...`), and like a schema error it stops the checks of that record:
 - a section of the wrong type, a key outside the tables above (at the top, in a board, kind, reading step or filter), a flag other than `true` or `false`, `hints` other than a list of strings, `relations` other than a list of ids and `{id, label}` mappings;
-- a duplicate board, kind or reading step id; a missing kind of the table above; a kind without `label` or `label_one`, or one of them without `ru` and `en`;
+- a duplicate board, kind or reading step id; a missing kind of the table above; a kind without `label` or `label_one`, or one of them without `ru` and `en`; a `{ru, en}` label (the profile's `title`, a board's, template's, kind's or relation's `label`, a kind's `label_one`) whose `ru` or `en` is empty or blank, or is not text (a number or `true`/`false`) (gate Г7д Б);
 - no boards; `halves` other than `none` or a list of distinct halves; a board off the screen or overlapping another as drawn, a row whose boards do not overlap vertically, a `split` on a board without two halves or outside its region, a colour other than `#rrggbb`, a `screen` other than `regions` or `triangles`, a `triangles` screen with other than its three boards or with a board outside its part;
 - a duplicate relation kind or hint id, a hint id the engine does not have, a relation kind outside the engine's without a label, a relation kind an enabled hint names and the profile lacks;
 - a `home` that is neither a board nor a template; a `shape` outside the list;

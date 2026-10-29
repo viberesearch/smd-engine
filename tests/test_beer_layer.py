@@ -415,7 +415,16 @@ def test_written_model_of_whole_does_not_leave_with_its_holder(
     assert len(found(case, "hint", "m-bakery")) == 1
 
 
-def test_written_is_gated_as_of_whole(case: dict[str, Any]) -> None:
+def test_written_model_of_whole_still_needs_a_keeper(case: dict[str, Any]) -> None:
+    """Gate Г7г А: a written model of the whole that nobody `uses` does not
+    satisfy `no-model-of-whole`; the places filling system 4 still get it."""
+    el(case, "m-bakery")["written"] = True
+    case["relations"] = [
+        r for r in case["relations"] if (r["kind"], r["to"]) != ("uses", "m-bakery")
+    ]
+    hints = [h for h in found(case, "hint") if "fills system 4, but" in h]
+    assert [h.split(":")[0] for h in hints] == ["post-owner", "post-holding"]
+    assert found(case, "hint", "m-bakery") == []
     el(case, "post-owner")["written"] = True
     assert found(case, "error") == ["post-owner: 'written' is only for kinds: model"]
     el(case, "post-owner").pop("written")

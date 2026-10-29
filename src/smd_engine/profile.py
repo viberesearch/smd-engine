@@ -328,8 +328,22 @@ def profile_ids() -> list[str]:
 
 
 def _labels(raw: Any, where: str, key: str = "label") -> dict[str, str]:
+    """A {ru, en} label: both languages, text, neither empty (gate Г7д Б). A
+    value left blank in the YAML (`ru:`) reads as None and is empty too."""
     if not isinstance(raw, dict) or not {"ru", "en"} <= raw.keys():
         raise ProfileError(f"{where}: {key} needs ru and en")
+    scalars = [
+        lang
+        for lang in ("ru", "en")
+        if raw[lang] is not None and not isinstance(raw[lang], str)
+    ]
+    if scalars:
+        raise ProfileError(f"{where}: {key} {' and '.join(scalars)} must be text")
+    empty = [
+        lang for lang in ("ru", "en") if raw[lang] is None or not str(raw[lang]).strip()
+    ]
+    if empty:
+        raise ProfileError(f"{where}: {key} {' and '.join(empty)} must not be empty")
     return {"ru": str(raw["ru"]), "en": str(raw["en"])}
 
 
@@ -789,7 +803,7 @@ def _parse(data: dict[str, Any], name: str) -> Profile:
         raise ProfileError(f"{name}: malformed profile ({exc})") from exc
     return Profile(
         name,
-        _labels(data.get("title"), name),
+        _labels(data.get("title"), name, "title"),
         boards,
         kinds,
         relations,

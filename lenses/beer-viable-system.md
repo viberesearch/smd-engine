@@ -1,7 +1,7 @@
 ---
 id: beer-viable-system
 title: Beer's viable system at a transfer of ownership, systems 1-5, red lines and recursion
-version: 0.3.0
+version: 0.3.1
 source: "Stafford Beer, «Мозг фирмы» (Brain of the Firm, 1972; translated from the second edition, with Part IV on Chile, by М. М. Лопухин, М., 1993), read on gtmarket.ru, https://gtmarket.ru/library/basis/5789 (BEER1972 in docs/method/sources.md); cited by chapter, «Гл. N», and «Приложение» for the glossary"
 route: smd
 offered_by: [positional-construction, functional-plan]
@@ -63,7 +63,7 @@ Every element and thesis carries `lens: beer-viable-system`. Kinds, fields and r
 
 - Beer's model is cybernetic regulation of a viable system toward survival; G.P.'s scheme of ОРУ is an activity that captures its object from a reflexive position. The profile carries both, with Beer's items labelled as a layer; it does not reconcile them [ANALYSIS].
 - The checks are the engine's reading of Beer: the book gives no rule that 3, 4 and 5 in one person is a risk, no field for recovery time, and no test of absorption. The thresholds of the checks (3-4-5 in one filler; system 5 taking 4 and 5) are the engine's [ANALYSIS].
-- Beer gives no rule that a model held by one person is a risk; he allows a distributed model. The hint `model-of-whole-one-filler` is the engine's reading for a transfer. Holding a model is recorded as `uses` from the place; `seen_from` stays the position the model is drawn from. A written model (`written: true`) stays when its holder leaves; whether the next holder can read it is not checked [ANALYSIS].
+- Beer gives no rule that a model held by one person is a risk; he allows a distributed model. The hint `model-of-whole-one-filler` is the engine's reading for a transfer. Holding a model is recorded as `uses` from the place; `seen_from` stays the position the model is drawn from. A written model (`written: true`) stays when its holder leaves; whether the next holder can read it is not checked [ANALYSIS]. A written model still needs a keeper: until a place filling system 4 `uses` it, `no-model-of-whole` names that place (gate Г7г А) [ANALYSIS].
 - `recovery_time` is in days. Beer gives no unit; Cybersyn read indices daily (Гл. 16-17) [ANALYSIS].
 - A scenario of the transfer has no record of its own: it is laid out on the boards as the buyer's post and its `captures` relations. Two scenarios are two records, or two cycles [ANALYSIS].
 - The book's figures on the multinode (Гл. 14) rest on Beer's assumed probabilities and are not quoted here.

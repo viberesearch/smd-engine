@@ -2,6 +2,18 @@
 
 Dates are those of the tag. All tags v0.2.1 to v0.3.5 were made on 2026-10-29. The version in `pyproject.toml` stayed at 0.2.0 through v0.2.4 and at 0.3.0 from v0.3.0 to v0.3.5; 0.3.6 is the first release whose package version equals its tag.
 
+## 0.5.8 - 2026-10-29
+
+Words in place of ids on the graph's details panel, in the SVG legend's transitions and in the index's record-boards table (gates Г7а and Г7б, option Б), a sentence on a written model of the whole that nobody keeps (gate Г7г, option А), and empty profile labels refused (gate Г7д, option Б). No change to the schema or the records.
+
+- The graph's details panel names a thesis's, hypothesis's and K's status, a voice and an epistemic status by their words on the Russian page («статус: Прозвучало в группе · голос: группа», «гипотеза»; until now `voiced`, `group`, `hypothesis`). The graph model gives each node `words` (status, voice, epistemic by `value_word`), which `graph.js` prints; the node keeps the ids in `status`, `voice` and `epistemic`, which `graph.js` reads to outline a hypothesis and the vault writes to its properties (unchanged). `LABELS["ru"]["values"]` takes the status tables as `thesis_status`, `hyp_status` and `k_status`. The English page shows the same text, its words being the ids; its bytes change by the `words` of each node and the three lines of `graph.js`.
+- The SVG legend names the boards of a transition by their labels in the language and the half, as the page's element table does (`board_text`): «1 Оргдеятельностная доска → Ситуационная доска / малая», "1 Org-activity board → Situation board / small"; until now `1 OD → S`. The profiles have no short board label, so the full label is used, and the row breaks between transitions, not inside one: a record with long transition labels takes more legend lines. The page, the frames and the cycle frames show the same legend, in both languages.
+- The index's record-boards table names the template by its label («Доска процесса», "Process board"; until now `process`).
+- `no-model-of-whole` (gate Г7г А): a written model (`written: true`) does not count unless a place `uses` it; a written model still needs a keeper. The code already did so; `docs/checks.md` and the lens `beer-viable-system` 0.3.1 say so, and a test asserts it.
+- A `{ru, en}` label of a profile (its `title`, a board's, template's, kind's or relation's `label`, a kind's `label_one`) whose `ru` or `en` is empty, blank or left out in the YAML (`ru:`) is a profile error: "kind position: label_one ru must not be empty". The title's errors name `title` (until now `label`). The shipped profiles load.
+- Gate Г7в: «заявлено» for `stated` and «проверено» for `checked` are confirmed as they stand since 0.5.7; no doc calls them proposed.
+- Review fixes: a `{ru, en}` label that is not text (`0`, `false`) is refused as well; the graph's details panel falls back to the ids when a node has no `words`; a test of the legend's line breaks.
+
 ## 0.5.7 - 2026-10-29
 
 A reflexive position for `reflected_from` and a written-down model of the whole (gates Г5а and Г5б), and Russian on the Russian pages: the digest's own words, move names and singular kind labels (gate Г5в), then the fixed values of a record (gate Г6), each by option Б; schema 0.3 stays and its one new field, `written`, is optional.
