@@ -2,7 +2,7 @@
 id: small-situation
 title: Small situation by the four questions
 step: 3
-version: 0.2.2
+version: 0.2.3
 role: игротехник
 profile: program-three-boards
 inputs:
@@ -123,7 +123,7 @@ Grounds, resources and constraints are `fact` elements on `s`, `half: small`, wi
 | `observe` | что будем наблюдать |
 | `revise_if` | какой результат заставит пересмотреть предположение |
 
-Also set `targets` (element ids the assumption is about), `raised_in` (the cycle), `qualifications` (K ids it answers, if any) and `status`: `testing` if the human is doing the action now, otherwise `untested`.
+Also set `targets` (element ids the assumption is about), `raised_in` (the cycle), `qualifications` (K ids it answers, if any) and `status`: `testing` if the human is doing the action now, otherwise `untested`. Each new H gets a `type` (`core`, `product`, `claim`, `estimate`, `probe`, `design`; `field-result` section 0.1), and a `claim` or `estimate` gets a `rule` with its `basis` (section 0.2 there), written now, before the field.
 
 Rules:
 - **Task or hypothesis.** If the human knows a method and only has to carry it out, it is a task (GP-PP): a thesis of kind `task`, not an H. An H has an outcome that could be otherwise.

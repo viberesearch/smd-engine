@@ -170,6 +170,12 @@ hints:
   - ontology-outlives-pace
   - difficulty
   - revise-if
+  - hypothesis-type
+  - hypothesis-rule
+  - rule-basis
+  - rule-n-min
+  - type-status
+  - verdict
   - ai-drafts
   - ai-variants
   - no-new-scheme
@@ -182,6 +188,12 @@ hints:
   - design-the-natural
   - information-without-cell
   - cells-from-information
+  # Method review 31.10.2026: board density, the self-checks of the ontology
+  # procedures (docs/checks.md)
+  - board-dense
+  - ai-cooperation
+  - cooperation-flows
+  - translation-loss
   # This scheme (validate/management.py)
   - lead-vs-manage
   - manage-via-organizedness

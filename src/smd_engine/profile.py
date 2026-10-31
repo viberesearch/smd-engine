@@ -61,6 +61,7 @@ TOP_KEYS = {
     "kinds",
     "relations",
     "hints",
+    "board_dense",
     "compare_groups",
     "compare_skip",
     "reading",
@@ -123,6 +124,9 @@ REQUIRED_KINDS = (
     "note",
 )
 HINT_KINDS = {"entry": "entry", "goal-without-breakdown": "goal"}
+# Elements on one board past which the hint board-dense advises folding or
+# splitting it; a profile sets its own in `board_dense` (docs/checks.md).
+BOARD_DENSE = 15
 # The kinds `seen_from` may name (gate Г3 Б): a position, or a reflexive
 # position where the profile has that kind; never a place for others.
 SEEN_FROM_KINDS = ("position", "reflexive_position")
@@ -228,6 +232,7 @@ class Profile:
     # steps of a template's boards included (`reading` holds the expanded ones)
     templates: tuple[Template, ...] = ()
     steps: tuple[Step, ...] = ()
+    board_dense: int = BOARD_DENSE
     _boards: dict[str, Board] = field(default_factory=dict, repr=False)
     _kinds: dict[str, Kind] = field(default_factory=dict, repr=False)
 
@@ -780,6 +785,9 @@ def _parse(data: dict[str, Any], name: str) -> Profile:
         relation_map = _relations(data.get("relations") or [], name)
         relations = tuple(relation_map)
         hints = _hints(_strings(data.get("hints") or [], f"{name}: hints"), name)
+        dense = data.get("board_dense", BOARD_DENSE)
+        if not isinstance(dense, int) or isinstance(dense, bool) or dense < 1:
+            raise ProfileError(f"{name}: board_dense must be a whole number > 0")
         if data.get("id") != name:
             raise ProfileError(f"{name}: id must be the file name")
         screen = data.get("screen", "regions")
@@ -826,6 +834,7 @@ def _parse(data: dict[str, Any], name: str) -> Profile:
         {r: label for r, label in relation_map.items() if label},
         templates,
         steps,
+        dense,
     )
 
 

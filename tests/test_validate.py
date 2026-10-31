@@ -290,3 +290,25 @@ def test_route_and_scheme_fields(board2: dict[str, Any]) -> None:
     ]
     gap["route"] = "other"
     assert levels(validate_record(board2), "error")
+
+
+def test_run_stamp_v2_fields(board: dict[str, Any]) -> None:
+    sha = "b" * 64
+    board["run"] = {
+        "procedure": "theses-to-board",
+        "pack_sha256": sha,
+        "inputs": {"s1": sha, "s2": sha},
+        "temperature": 0,
+        "sample": 3,
+    }
+    assert levels(validate_record(board), "error") == []
+    for field, bad in (
+        ("pack_sha256", "abc"),
+        ("inputs", {"s1": 5}),
+        ("inputs", ["s1"]),
+        ("temperature", "warm"),
+        ("sample", 1.5),
+        ("sample", "2"),
+    ):
+        wrong = {**board, "run": {**board["run"], field: bad}}
+        assert levels(validate_record(wrong), "error"), (field, bad)

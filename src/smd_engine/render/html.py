@@ -13,6 +13,8 @@ from smd_engine.render.text import (
     continuum_lines,
     element_lines,
     esc,
+    field_lines,
+    hypothesis_parts,
     pace_text,
     value_word,
 )
@@ -56,6 +58,12 @@ def _fields(el: dict[str, Any], lang: str) -> str:
 def _continuum(o: dict[str, Any], lang: str) -> str:
     """Lives in, tempos, horizon and covers of an ontology record."""
     shown = continuum_lines(o, lang)
+    return f"<br><small>{esc('; '.join(shown))}</small>" if shown else ""
+
+
+def _hypothesis(h: dict[str, Any], lang: str) -> str:
+    """Type, decision rule and observed count of a hypothesis, under it."""
+    shown = field_lines(hypothesis_parts(h, lang), lang)
     return f"<br><small>{esc('; '.join(shown))}</small>" if shown else ""
 
 
@@ -124,7 +132,7 @@ def render_html(
             [
                 f"<b>{esc(h['id'])}</b>",
                 esc(lab["hyp_status"][h["status"]]),
-                esc(h["assumes"]),
+                esc(h["assumes"]) + _hypothesis(h, lang),
                 esc(h.get("action", "")),
                 esc(h.get("result", "")),
             ]

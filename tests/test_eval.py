@@ -72,3 +72,20 @@ def test_output_has_run_blocks_and_compares_k_and_h(expected: dict[str, Any]) ->
     assert "expected: procedure=theses-to-board, version=0.3.3" in out
     assert "qualifications only in the expected record (1):\n  K2" in out
     assert "hypotheses matched by wording (1):\n  H1 = H1" in out
+
+
+def test_output_prints_the_v2_run_stamp(expected: dict[str, Any]) -> None:
+    run = copy.deepcopy(expected)
+    sha = "a" * 64
+    run["run"] = {
+        "procedure": "theses-to-board",
+        "pack_sha256": sha,
+        "inputs": {"s3": sha},
+        "temperature": 0.2,
+        "sample": 2,
+    }
+    out = format_result(evaluate(run, expected))
+    assert (
+        f"run: procedure=theses-to-board, pack_sha256={sha}, inputs={{s3: {sha}}}, "
+        "temperature=0.2, sample=2"
+    ) in out

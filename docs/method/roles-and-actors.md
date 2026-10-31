@@ -50,5 +50,6 @@ When one role has inner structure, the board shows one element with a `short` la
 
 - `theses-to-board`, step 2: an actor in a thesis becomes a filler of a role.
 - `positional-construction`: the positional set is a set of roles.
+- `stakeholder-ontology`, section 0: the position whose ontology is elicited is a role; the person who occupies it is its filler.
 - `qualification-pass` 3.3, check "Role, not actor": a К, or a label fix by whoever wrote the record.
 - `smd validate` checks the form only: `fillers` sits on roles, and `detail` rows match their columns.

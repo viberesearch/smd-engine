@@ -2,7 +2,7 @@
 id: theses-to-board
 title: Theses to board updates and a state line
 step: 2
-version: 0.3.5
+version: 0.3.6
 role: игротехник
 profile: any
 inputs:
@@ -88,4 +88,4 @@ uv run smd render <record> --format html -o out/<id>.html
 
 Fix every error. Report the warnings and hints you leave, with a reason. Coverage check: every element cites a source, and every thesis feeds an element, raises a K, reads an element (`about`), or is reported as off the boards.
 
-Record the run: set `run: {procedure: theses-to-board, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs.
+Record the run: set `run: {procedure: theses-to-board, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs. Add the optional fields when you know them, and omit the rest, never inventing a value: `pack_sha256` (the hash `smd pack` printed, if you were given a pack), `inputs` (source id: sha256 of the file you read), `temperature` (a number), `sample` (the run index, when the procedure is run several times on one input).

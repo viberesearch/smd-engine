@@ -32,9 +32,21 @@ from smd_engine.validate.context import (
     Finding,
     build_ctx,
 )
+from smd_engine.validate.graph import (
+    check_cycles,
+    hint_function_flows,
+    hint_idle_positions,
+    hint_isolated_facts,
+    hint_jump_to_frame,
+    hint_object_isolated,
+    hint_positions_unlinked,
+    hint_transition_unanchored,
+    hint_unlinked_functions,
+)
 from smd_engine.validate.hints import (
     hint_ai_drafts,
     hint_ai_variants,
+    hint_board_dense,
     hint_candidate_moves,
     hint_difficulty,
     hint_entry,
@@ -59,7 +71,15 @@ from smd_engine.validate.hints import (
     hint_revise_if,
     hint_situation_halves,
 )
-from smd_engine.validate.hypotheses import check_hypotheses
+from smd_engine.validate.hypotheses import (
+    check_hypotheses,
+    hint_hypothesis_rule,
+    hint_hypothesis_type,
+    hint_rule_basis,
+    hint_rule_n_min,
+    hint_type_status,
+    hint_verdict,
+)
 from smd_engine.validate.management import (
     hint_absorbed_into_system_1,
     hint_development_step,
@@ -75,7 +95,12 @@ from smd_engine.validate.management import (
     hint_single_node_metasystem,
 )
 from smd_engine.validate.manifest import check_manifest
-from smd_engine.validate.ontology import check_ontology
+from smd_engine.validate.ontology import (
+    check_ontology,
+    hint_ai_cooperation,
+    hint_cooperation_flows,
+    hint_translation_loss,
+)
 from smd_engine.validate.signoffs import (
     SIGNOFF_EFFECT,
     SIGNOFF_FAMILY,
@@ -92,6 +117,7 @@ from smd_engine.validate.structure import (
 )
 from smd_engine.validate.taxonomies import check_tags, taxonomy_values
 from smd_engine.validate.theses import STATUS_VOICES, check_theses, check_thesis_raises
+from smd_engine.validate.tract import hint_bridge_from, hint_garland, hint_move_via
 
 __all__ = [
     "AI_VOICES",
@@ -113,6 +139,7 @@ REGISTRY: list[Check] = [
     check_elements,
     check_record_boards,
     check_relations,
+    check_cycles,
     check_transitions,
     check_qualifications,
     check_record_level,
@@ -125,17 +152,38 @@ REGISTRY: list[Check] = [
     hint_entry,
     hint_empty_boards,
     hint_situation_halves,
+    hint_board_dense,
     hint_positions,
+    hint_positions_unlinked,
     hint_new_frames,
+    hint_function_flows,
+    hint_unlinked_functions,
+    hint_idle_positions,
+    hint_object_isolated,
+    hint_isolated_facts,
+    hint_jump_to_frame,
+    hint_transition_unanchored,
+    hint_garland,
+    hint_bridge_from,
+    hint_move_via,
     hint_gaps,
     hint_open_qualifications,
     hint_candidate_moves,
     hint_problems,
     hint_belts,
     hint_ontology,
+    hint_ai_cooperation,
+    hint_cooperation_flows,
+    hint_translation_loss,
     hint_ontology_outlives_pace,
     hint_difficulty,
     hint_revise_if,
+    hint_hypothesis_type,
+    hint_hypothesis_rule,
+    hint_rule_basis,
+    hint_rule_n_min,
+    hint_type_status,
+    hint_verdict,
     hint_ai_drafts,
     hint_ai_variants,
     hint_no_new_scheme,
@@ -281,6 +329,7 @@ def validate_record(
     source_ids: set[str] | None = None,
     previous: dict[str, Any] | None = None,
     taxonomies: dict[str, set[str]] | None = None,
+    source_kinds: dict[str, str] | None = None,
 ) -> list[Finding]:
     """Validate one record.
 
@@ -288,7 +337,9 @@ def validate_record(
     boards, kinds and relation kinds, and only the hints the profile enables.
     source_ids enables citation checks; previous is the board set this one
     revises, when it is at hand, for the checks across cycles; taxonomies
-    (see taxonomy_values) enables the checks of tags and bound detail columns.
+    (see taxonomy_values) enables the checks of tags and bound detail columns;
+    source_kinds (source id to its manifest kind) the check that `observed`
+    counts a field artefact.
     """
     findings = _version_findings(data)
     if findings:
@@ -300,7 +351,7 @@ def validate_record(
         findings += _profile_findings(data)
     if any(f.level == "error" for f in findings):
         return findings
-    ctx = build_ctx(data, source_ids, previous, taxonomies)
+    ctx = build_ctx(data, source_ids, previous, taxonomies, source_kinds)
     for check in REGISTRY:
         hint_id = getattr(check, "hint_id", None)
         if hint_id is None or hint_id in ctx.profile.hints:

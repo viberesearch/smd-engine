@@ -13,6 +13,11 @@ def source_ids(manifest: dict[str, Any]) -> set[str]:
     return {s["id"] for s in manifest["sources"]}
 
 
+def source_kinds(manifest: dict[str, Any]) -> dict[str, str]:
+    """Source id to its kind (`field_artefact`, `transcript`, ...)."""
+    return {s["id"]: s["kind"] for s in manifest["sources"]}
+
+
 def clean_room(
     manifest: dict[str, Any], deny_lineage: set[str] | None = None
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:

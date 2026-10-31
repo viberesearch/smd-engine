@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Any
 
 from smd_engine.validate.context import Ctx, Finding, hint, is_ai
+from smd_engine.validate.hypotheses import RULED_TYPES, UNTESTED_TYPES
 from smd_engine.render.text import years_text
 
 # Kinds by id are those every profile defines (profile.REQUIRED_KINDS; `entry`
@@ -43,17 +44,51 @@ def hint_empty_boards(ctx: Ctx) -> list[Finding]:
     ]
 
 
+# The procedure that lays out each half; HINT_PROCEDURES names the first.
+HALF_PROCEDURES = {
+    "small": "procedures/small-situation.md §2",
+    "big": "procedures/visionary-tract.md §2",
+}
+
+
 @hint("situation-halves")
 def hint_situation_halves(ctx: Ctx) -> list[Finding]:
     """An empty half of any halved board, named as the method names the halves
     (small and big situation); a profile whose halved board holds no situation
     leaves this hint off (docs/profiles.md, `hints`)."""
     return [
-        Finding("hint", f"{b.id}/{half}", f"{half} situation not laid out")
+        Finding(
+            "hint",
+            f"{b.id}/{half}",
+            f"{half} situation not laid out",
+            HALF_PROCEDURES.get(half, ""),
+        )
         for b in ctx.profile.boards
         for half in b.halves
         if not _on(ctx, b.id, half)
     ]
+
+
+@hint("board-dense")
+def hint_board_dense(ctx: Ctx) -> list[Finding]:
+    """A board with more elements than the profile's `board_dense` (default
+    15): advice to fold or split it, not an error (docs/checks.md)."""
+    limit = ctx.profile.board_dense
+    out: list[Finding] = []
+    for b in ctx.profile.boards:
+        count = sum(e["board"] == b.id for e in ctx.by_id.values())
+        if count > limit:
+            out.append(
+                Finding(
+                    "hint",
+                    b.id,
+                    f"{count} elements on the {b.label['en'].lower()}, more than "
+                    f"{limit}: fold what is settled, or split a part off to a "
+                    "board of its own; `smd frames --light` and `--zoom` read it "
+                    "step by step",
+                )
+            )
+    return out
 
 
 @hint("positions")
@@ -98,6 +133,7 @@ def hint_new_frames(ctx: Ctx) -> list[Finding]:
                         frame["id"],
                         f"{len(unowned)} of {len(inside)} functions name no position "
                         "that performs them (performed_by): " + ", ".join(unowned),
+                        "procedures/functional-plan.md §3",
                     )
                 )
     return out
@@ -183,6 +219,15 @@ def hint_belts(ctx: Ctx) -> list[Finding]:
                 "theses",
                 "schemes (М) with no thought-action (мД): thinking cut off from "
                 "the situation?",
+            )
+        )
+    if set(belts) == {"md"}:
+        out.append(
+            Finding(
+                "hint",
+                "theses",
+                "only thought-action (мД), no scheme (М) and no thought-"
+                "communication (М-К): mechanical reproduction?",
             )
         )
     return out
@@ -277,7 +322,12 @@ def hint_revise_if(ctx: Ctx) -> list[Finding]:
             "no result is named that would make us revise the assumption",
         )
         for h in ctx.record.get("hypotheses", [])
-        if h["status"] in ("untested", "testing") and not h.get("revise_if")
+        if h["status"] in ("untested", "testing")
+        and not h.get("revise_if")
+        and not h.get("rule")
+        # claims and estimates get hypothesis-rule; core, design and probe
+        # are read with no refutation condition
+        and h.get("type") not in RULED_TYPES + UNTESTED_TYPES
     ]
 
 

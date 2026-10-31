@@ -12,6 +12,7 @@ from smd_engine.render.text import (
     continuum_lines,
     element_parts,
     field_lines,
+    hypothesis_parts,
     value_word,
 )
 
@@ -175,6 +176,7 @@ def render_markdown(data: dict[str, Any], lang: str = "ru") -> str:
             for key in ("action", "result", "changes"):
                 if h.get(key):
                     bits.append(f"{words[key]}: {h[key]}")
+            bits += field_lines(hypothesis_parts(h, lang), lang)
             if h.get("artefacts"):
                 bits.append("— " + ", ".join(h["artefacts"]))
             out.append(" ".join(bits))

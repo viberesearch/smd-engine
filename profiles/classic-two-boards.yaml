@@ -51,6 +51,12 @@ hints:
   - ontology-outlives-pace
   - difficulty
   - revise-if
+  - hypothesis-type
+  - hypothesis-rule
+  - rule-basis
+  - rule-n-min
+  - type-status
+  - verdict
   - ai-drafts
   - ai-variants
   - no-new-scheme
@@ -63,6 +69,15 @@ hints:
   - design-the-natural
   - information-without-cell
   - cells-from-information
+  # Method review 31.10.2026: board density, the empty places of a functional
+  # plan, the self-checks of the ontology procedures (docs/checks.md)
+  - board-dense
+  - function-flows
+  - unlinked-functions
+  - idle-positions
+  - ai-cooperation
+  - cooperation-flows
+  - translation-loss
 # Not matched by smd compare.
 compare_skip: [note]
 compare_groups:

@@ -2,7 +2,7 @@
 id: solo-session
 title: Solo thinking session with AI positions
 step: 3
-version: 0.2.2
+version: 0.2.4
 role: игротехник
 profile: any
 inputs:
@@ -55,6 +55,8 @@ The human can take any actor position, and says so when doing it.
 | 5 | `problematization` | методолог | Empty places are visible only in a functional structure, so it follows the plan. Plus and minus on a named scheme (GP-PP) |
 | 6 | `qualification-pass` | методолог | Checks the whole record against the program's criteria and typical errors (Girenko day 4); needs the gaps from step 5 |
 | 7 | `reflexive-protocol` | игротехник | Closes the cycle (GP1975) and opens the next |
+
+`stakeholder-ontology` is not a step of this order. Run it when the human asks for the ontology of one stakeholder position in its own words (for example the Owner Ontology), usually before step 3, whose ontology record can then read it. Its decisions are listed as its section 8 says; in proposal mode they go into `state.open`.
 
 `problematization` needs a trigger in the record: a difficulty, a refuted H, or an open K. With none, the human may skip it, and the skip goes into `state.open`. The sequence is a default, not a canon: Girenko day 4 allows entry from any side and returns between stations, and the classic texts give no fixed phase sequence for every game (`docs/method/reconciliation.md`, section 7). You may go back to an earlier step in the same record. Say so when you do.
 
@@ -139,7 +141,7 @@ This applies to a session with a human. Proposal mode cannot reach it, since its
 3. The human has given or refused each requested sign-off, and each outcome is applied or recorded.
 4. The reply names what changed, what is open, and where the next session starts.
 
-Record the run: set `run: {procedure: <the procedure that wrote the record>, version: <its front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record (each procedure's hand-over says the same). A later procedure replaces it; `smd eval` compares two such runs.
+Record the run: set `run: {procedure: <the procedure that wrote the record>, version: <its front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record (each procedure's hand-over says the same). A later procedure replaces it; `smd eval` compares two such runs. Add the optional fields when you know them, and omit the rest, never inventing a value: `pack_sha256` (the hash `smd pack` printed, if you were given a pack), `inputs` (source id: sha256 of the file you read), `temperature` (a number), `sample` (the run index, when the procedure is run several times on one input).
 
 ## 11. Proposal mode
 

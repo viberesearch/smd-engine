@@ -128,3 +128,9 @@ def test_dump_record_is_compact_and_lossless(board2: dict[str, Any]) -> None:
     text = dump_record(board2)
     assert yaml.safe_load(text) == board2
     assert "- {id: K1, targets: [p-organiser]" in text
+
+
+def test_run_stamp_is_not_carried(board2: dict[str, Any]) -> None:
+    board2["run"] = {"procedure": "small-situation", "pack_sha256": "0" * 64}
+    new, _ = revise(board2, date="2026-02-01")
+    assert "run" not in new

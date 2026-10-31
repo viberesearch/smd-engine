@@ -8,6 +8,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 from xml.sax.saxutils import escape
 
+from smd_engine.verdict import rule_line
+
 if TYPE_CHECKING:
     from smd_engine.profile import Profile
 
@@ -56,6 +58,10 @@ LABELS: dict[str, dict[str, Any]] = {
             "cooperation": "кооперация",
             "result": "результат",
             "changes": "что меняет на досках",
+            "type": "тип гипотезы",
+            "rule": "правило решения",
+            "observed": "наблюдено",
+            "basis": "основание порога",
         },
         # Words of the fixed values of a record, by field (value_word); a value
         # with no word here is shown as recorded.
@@ -98,6 +104,15 @@ LABELS: dict[str, dict[str, Any]] = {
                 "extracted": "извлечено",
                 "verified": "сверено",
             },
+            # a hypothesis's `type` (field-result.md §0.1)
+            "hyp_type": {
+                "core": "ядро программы",
+                "product": "методологический продукт",
+                "claim": "эмпирическое утверждение",
+                "estimate": "оценка",
+                "probe": "разведка",
+                "design": "проектное решение",
+            },
             # a thesis: its belt (GP1987) and its kind
             "belt": {"md": "мД", "mk": "М-К", "m": "М"},
             "thesis_kind": {
@@ -125,6 +140,31 @@ LABELS: dict[str, dict[str, Any]] = {
             "unfolds": "развёртывает",
             "revises": "пересматривает",
             "version": "версия",
+        },
+        # words of the core view (`smd status`, status.py)
+        "core": {
+            "open_k": "Открытые и частично закрытые K",
+            "testing": "Гипотезы в проверке",
+            "untested": "Непроверенные гипотезы по охвату (предложение; выбирает группа)",
+            "reach": "охват",
+            "waiting": "Ждут подписи человека",
+            "w_variants": "варианты тезисов от ИИ",
+            "w_moves": "ходы-кандидаты",
+            "w_k": "K от ИИ",
+            "w_h": "H от ИИ",
+            "counts": "Счёт",
+            "boards": "по доскам",
+            "kinds": "по видам",
+            "more": "и ещё {n}",
+            "none": "нет",
+            "verdicts": "Вердикт по правилу решения (предложение; подписывает группа)",
+            "verdict": {
+                "too_few": "мало случаев, остаётся в проверке",
+                "refuted": "опровергнуто",
+                "confirmed": "подтверждено",
+                "inconclusive": "не решено, остаётся в проверке",
+            },
+            "no_share": "порог не доля строго между 0 и 1, предложения нет",
         },
         "details": "Таблицы элементов",
         "relations": "Связи",
@@ -173,6 +213,7 @@ LABELS: dict[str, dict[str, Any]] = {
                 "чем проверяем",
                 "что пересмотрим",
                 "цели, К",
+                "охват (предложение)",
                 "источники",
             ],
             "o_columns": [
@@ -263,6 +304,10 @@ LABELS: dict[str, dict[str, Any]] = {
             "cooperation": "cooperation",
             "result": "result",
             "changes": "changes",
+            "type": "type",
+            "rule": "decision rule",
+            "observed": "observed",
+            "basis": "threshold basis",
         },
         "values": {
             "acts_as": {
@@ -276,6 +321,14 @@ LABELS: dict[str, dict[str, Any]] = {
                 "inside": "inside",
                 "reflexive": "reflexive",
                 "external": "external",
+            },
+            "hyp_type": {
+                "core": "core of the programme",
+                "product": "methodological product",
+                "claim": "empirical claim",
+                "estimate": "estimate",
+                "probe": "probe",
+                "design": "design choice",
             },
             # the other fixed values (voice, epistemic status, move status,
             # ...) are shown by their ids on the English pages
@@ -298,6 +351,31 @@ LABELS: dict[str, dict[str, Any]] = {
             "version": "version",
             "action": "action",
             "test": "test",
+        },
+        # words of the core view (`smd status`, status.py)
+        "core": {
+            "open_k": "Open and partly answered K",
+            "testing": "Hypotheses in testing",
+            "untested": "Untested hypotheses by reach (a proposal; the group chooses)",
+            "reach": "reach",
+            "waiting": "Waiting for a human sign-off",
+            "w_variants": "AI variants of theses",
+            "w_moves": "candidate moves",
+            "w_k": "K drafted by AI",
+            "w_h": "H drafted by AI",
+            "counts": "Counts",
+            "boards": "by board",
+            "kinds": "by kind",
+            "more": "and {n} more",
+            "none": "none",
+            "verdicts": "Verdicts by the decision rule (a proposal; the group signs)",
+            "verdict": {
+                "too_few": "too few cases, stays testing",
+                "refuted": "refuted",
+                "confirmed": "confirmed",
+                "inconclusive": "inconclusive, stays testing",
+            },
+            "no_share": "the threshold is not a share strictly between 0 and 1, no proposal",
         },
         "details": "Element tables",
         "relations": "Relations",
@@ -346,6 +424,7 @@ LABELS: dict[str, dict[str, Any]] = {
                 "test",
                 "revise if",
                 "targets, K",
+                "reach (proposal)",
                 "cites",
             ],
             "o_columns": [
@@ -426,6 +505,31 @@ def value_word(field: str, value: str, lang: str) -> str:
     as recorded, as the English pages show the ids."""
     words: dict[str, str] = LABELS[lang]["values"].get(field, {})
     return words.get(value, value)
+
+
+def rule_text(rule: dict[str, Any], lang: str) -> str:
+    """A decision rule as `доля 55+ < 0.2, n >= 30 (основание порога: ...)`."""
+    basis = rule.get("basis")
+    words = LABELS[lang]["fields"]
+    return rule_line(rule) + (f" ({words['basis']}: {basis})" if basis else "")
+
+
+def observed_text(obs: dict[str, Any]) -> str:
+    """What the field gave for the rule: `12/40 (s7)`."""
+    return f"{obs['k']}/{obs['n']} ({obs['artefact']})"
+
+
+def hypothesis_parts(h: dict[str, Any], lang: str) -> dict[str, str]:
+    """The typed-standard fields of a hypothesis as plain text, by field:
+    `type` as its word, `rule` and `observed`; fields it lacks are left out."""
+    out: dict[str, str] = {}
+    if "type" in h:
+        out["type"] = value_word("hyp_type", h["type"], lang)
+    if "rule" in h:
+        out["rule"] = rule_text(h["rule"], lang)
+    if "observed" in h:
+        out["observed"] = observed_text(h["observed"])
+    return out
 
 
 def board_text(

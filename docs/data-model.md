@@ -9,7 +9,11 @@ The validator accepts only the current schema version. A record with another `sc
 Top level: `id`, `case`, `title`, `date`, `cycle` (1, 2, ...), `revises` (id of the previous cycle), `reflected_from`, `status` (`draft` | `extracted` | `verified`, the last needs `checked_by`), `sources` (manifest ids), `lineage`, `profile`, `run`, `applied`, `boards`, `elements`, `relations`, `transitions`, `qualifications`, `theses`, `hypotheses`, `ontology`, `signoffs`, `state`.
 
 - `profile`: the method profile the record follows, a string; `program-three-boards` when absent. The profile sets the boards, kinds, relation kinds and hints (see Profiles below); an unknown profile is an error.
-- `run`: the procedure run that produced the record: `{procedure, version, model, date}`; `procedure` (a procedure id) is required. `model` is free text, what the runner reports about itself. Each procedure writes it at hand-over and replaces an earlier one; `smd eval` compares two records (`cases/example/golden/README.md`).
+- `run`: the procedure run that produced the record: `{procedure, version, model, date}` and four optional fields; `procedure` (a procedure id) is required. `model` is free text, what the runner reports about itself. Each procedure writes it at hand-over and replaces an earlier one; `smd revise` drops it, since the next cycle is not that run's product; `smd eval` prints the `run` of both records (`cases/example/golden/README.md`). The optional fields make a run repeatable; leave out what you do not know. A record without them stays valid, and the schema version stays 0.3.
+  - `pack_sha256`: sha256 of the `smd pack` output the run used. `smd pack` prints it to stderr as `pack sha256: <hex>`.
+  - `inputs`: a mapping from a source id to the sha256 of the input file the run read (the `sha256` of the source's manifest entry, when the run read that file).
+  - `temperature`: the sampling temperature, a number.
+  - `sample`: the run index (1, 2, ...) when a procedure is run several times on one input.
 - `applied`: the ids of the patches applied to the record, in order (`smd apply`, see Patches below).
 
 `reflected_from` is the position element a new cycle was made from: a `position`, or a `reflexive_position` where the profile has that kind (gate Г5а Б); a `place_for_others` or any other kind is an error. `smd compare --merge` drops it, since the merge is a new cycle whose reflexive exit is still to be named. A cycle is a reflexive exit, not a time slice: the group leaves the actor's position, describes the past cycle and projects the next one (GP1975; `docs/method/reconciliation.md` section 4).
@@ -166,8 +170,11 @@ The inter-module form: what we assume, how we test it, what we got, what it chan
 | `voice` | who formulated it; AI-drafted K and H are listed as a hint until a human keeps or drops them |
 | `lens` | the lens behind it, as on elements; ontology records take `lens` too |
 | `tags` | as on elements; ontology records take `tags` too |
+| `type` | how it is read (gate М1 В; `procedures/field-result.md` §0.1): `core` (core of the programme, not tested directly), `product` (methodological product, tested for realizability, GP1981), `claim` (one empirical claim, falsified by a condition written before the field), `estimate` (a share, cost or frequency: an interval against a decision threshold), `probe` (a few interviews: produces hypotheses, tests none), `design` (design choice or vision, not tested) |
+| `rule` | the pre-registered decision rule, a structured `revise_if` (gate Ф В): `{metric, op, threshold, n_min, basis}`; refuted when `<metric> <op> <threshold>` (`op`: `<`, `<=`, `>`, `>=`); `n_min` (integer from 1) the fewest cases it is read on; `basis` where the threshold comes from. `metric`, `op` and `threshold` are required |
+| `observed` | what the field gave for the rule: `{k, n, artefact}`, k cases of n (k from 0, n from 1, k no more than n) in a source of kind `field_artefact` |
 
-A result (`confirmed` or `refuted`) needs `result`, `artefacts`, `resolved_in` and an `accept_result` sign-off.
+A result (`confirmed` or `refuted`) needs `result`, `artefacts`, `resolved_in` and an `accept_result` sign-off. With `rule` and `observed`, a threshold strictly between 0 and 1, and the hypothesis still `untested` or `testing`, the engine proposes a verdict from the 95% Wilson score interval of k/n (`src/smd_engine/verdict.py`): too few (n below `n_min`), refuted (the whole interval on the refuting side), confirmed (on the holding side) or inconclusive (it straddles the threshold); `smd validate --hints` and `smd status` print it. The proposal changes nothing: the sign-off stays human.
 
 ### Ontology (step 3)
 

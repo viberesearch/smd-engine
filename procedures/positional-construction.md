@@ -2,7 +2,7 @@
 id: positional-construction
 title: Positional construction, shifts and a common object
 step: 3
-version: 0.2.5
+version: 0.2.7
 role: визионер
 profile: any
 inputs:
@@ -114,8 +114,8 @@ In a case of transfer on the profile `management-four-boards`, the lens `beer-vi
 
 Rule: a common object is a construction of the activities of several positions, and it is built only where those activities cooperate, that is, where the product of one activity is the material or means of another (GP1981, GP1975; source: `docs/method/encodable.md`, 8.2, `reconstructs_through_activity`, and `docs/method/reconciliation.md`, section 2). Without such a link there is only a set of separate representations.
 
-1. Can the human name how the positions' activities connect, for example the product of one is the material of another? If yes, add one element of kind `cooperation` on `oo`: its label says what is built and by which activities. Link each participating position to it with `flow`, labelled with what that position gives or takes (GP1975: a product of one act becomes material or means of another).
-2. If the human cannot name the connection, do not stop. Draft the cooperation yourself: the same `cooperation` element on `oo`, `voice: ai`, `epistemic: hypothesis`, with the links as your proposal for what each position gives and takes, each `flow` carrying `voice: ai`. Add a qualification K on it (`targets` the cooperation, `voice: ai`, `status: open`) that asks the human to name or correct how the activities connect. The K is mandatory: an AI-drafted cooperation without it is not allowed. The ontology record below then stays `voice: ai` and its test H is the check that the drafted link exists in activity. If you cannot draft even a hypothetical link, keep the per-position representations, add a `gap` with `of` set to the scheme block that is missing (usually `function`: the link nobody performs) and say so in the reply.
+1. Can the human name how the positions' activities connect, for example the product of one is the material of another? If yes, add one element of kind `cooperation` on `oo`: its label says what is built and by which activities. Link each participating position to it with `flow`, labelled with what that position gives or takes (GP1975: a product of one act becomes material or means of another). The hint `cooperation-flows` names a position of the ontology record's `valid_for` with no `flow` to or from its cooperation.
+2. If the human cannot name the connection, do not stop. Draft the cooperation yourself: the same `cooperation` element on `oo`, `voice: ai`, `epistemic: hypothesis`, with the links as your proposal for what each position gives and takes, each `flow` carrying `voice: ai`. Add a qualification K on it (`targets` the cooperation, `voice: ai`, `status: open`) that asks the human to name or correct how the activities connect. The K is mandatory: an AI-drafted cooperation without it is not allowed, and the hint `ai-cooperation` names one. The ontology record below then stays `voice: ai` and its test H is the check that the drafted link exists in activity. If you cannot draft even a hypothetical link, keep the per-position representations, add a `gap` with `of` set to the scheme block that is missing (usually `function`: the link nobody performs) and say so in the reply.
 3. With a cooperation, write an ontology record:
 
 ```yaml
@@ -140,9 +140,10 @@ ontology:
 ```
 
 - `valid_for` lists exactly the actors that take part in the cooperation. The picture is valid for that set and for no wider one (GP1981). Places for others (positions not yet taken) may be listed, as in the example: a cooperation often needs an actor who holds no position yet, and the record then says the picture is valid for it only once the place is taken. Do not list a place just to widen the picture.
-- `subjects` has one line for each actor in `valid_for`, and for no other. For a place for others the line is your hypothesis of what the subject would be, so the record stays `voice: ai`.
+- `subjects` has one line for each actor in `valid_for`, and for no other. The validator warns on a line for an actor outside `valid_for` and on an actor of `valid_for` with no line. For a place for others the line is your hypothesis of what the subject would be, so the record stays `voice: ai`.
 - `aspects` takes the object apart (the ontology aspects): `activity` (what is done), `carrier` (who or what performs it and keeps the ability), `ownership` (who holds the right), `management` (who decides), `separation` (how these come apart, or that they do not). Fill every aspect the human or the sources speak to; write "не определено" for an aspect nobody has spoken to, not a guess. The aspects feed `competes` and the test H.
 - `competes` answers Khaprov's ontology test, which is program vocabulary: what do we say we make; what does the competitor say; do objects compete here, or corporations and consortia? Write it as a statement the human can reject.
+- An ontology of one position in its own words (a stakeholder ontology, for example the Owner Ontology, the tier-1 stakeholder's) is elicited by `stakeholder-ontology`, with `valid_for` that one position. Read its object and subject as that position's subject here; do not reword them.
 - `test` names a hypothesis H. An ontology is checked for realizability in activity, not for truth (GP1981). Write H:
 
 ```yaml
@@ -185,7 +186,7 @@ For each AI-worded element and move ask: сохраняем / уточняем /
 
 Set `state.open` to the unconfirmed positions, gaps, candidate moves and H; set `state.next_move` to the functional plan inside the new frame. Do not close a K: a K about the positional set is closed only by the human's `close_k`, and you list it as a request with the grounds.
 
-Record the run: set `run: {procedure: positional-construction, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs.
+Record the run: set `run: {procedure: positional-construction, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs. Add the optional fields when you know them, and omit the rest, never inventing a value: `pack_sha256` (the hash `smd pack` printed, if you were given a pack), `inputs` (source id: sha256 of the file you read), `temperature` (a number), `sample` (the run index, when the procedure is run several times on one input).
 
 ## 8. Check
 

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import shutil
 import tomllib
 from pathlib import Path
 from typing import Any
+
+import pytest
 
 from smd_engine.cli import main
 from smd_engine.pack import asset_root, pack
@@ -90,6 +93,18 @@ def test_pack_cells_skip_a_malformed_element(tmp_path: Path) -> None:
     cells = pack("ingest-transcript", [rec]).split("# Cells to fill")[1]
     cells = cells.split("# Record:")[0]
     assert "p-a: position on od: owner" in cells and "None" not in cells
+
+
+def test_pack_prints_sha256_of_its_output(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    out = tmp_path / "pack.md"
+    assert main(["pack", "field-result", "-o", str(out)]) == 0
+    digest = hashlib.sha256(out.read_bytes()).hexdigest()
+    assert capsys.readouterr().err == f"pack sha256: {digest}\n"
+    assert main(["pack", "field-result"]) == 0
+    got = capsys.readouterr()
+    assert got.err == f"pack sha256: {hashlib.sha256(got.out.encode()).hexdigest()}\n"
 
 
 def test_pack_cli(tmp_path: Path) -> None:

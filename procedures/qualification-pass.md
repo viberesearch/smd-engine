@@ -2,7 +2,7 @@
 id: qualification-pass
 title: Qualification pass over a board set
 step: 3
-version: 0.4.0
+version: 0.4.1
 role: методолог
 profile: program-three-boards
 inputs:
@@ -103,7 +103,7 @@ Numbers are those of the program's list. A row is a signature to look for; confi
 |---|---|---|
 | E1 | Small situation not analysed or not finished | small half empty, or one `situation` with no `fact` or `signal` |
 | E2 | Positional row not completed; positions drawn without restoring the plan of activity | positions with no `shift`, `flow` or `cooperation` between them |
-| E3 | Object content in isolation from positions and the concrete situation | `oo` elements with no `seen_from`, or no transition from `s` or `od` to them |
+| E3 | Object content in isolation from positions and the concrete situation | `oo` elements with no `seen_from` (a warning), or linked by no relation, transition, `in`, `performed_by`, move or ontology cooperation, however indirectly, to `s` or `od` (hint `object-isolated`) |
 | E4 | Concepts juggled without ground, or taken from experience rather than from the task | several `concept` or `model` elements, no feeding thesis with `grounds`; concepts replaced across cycles with no reason |
 | E5 | Ideological instead of ontological judgement: the concept is not correlated with the situation or with its meaning for the participants | a concept with no relation to a position or a situation fact; a common object for several positions with no `ontology` entry |
 | E6 | Background laid out, no conclusions drawn from it | many `fact` elements with no outgoing relation, and no thesis with a `consequence` |
@@ -112,10 +112,12 @@ Numbers are those of the program's list. A row is a signature to look for; confi
 | E9 | Working a fragment (one actor's equipment) without drawing the whole; a palliative solution | one function or position, no frame, no division of labour, no `cooperation` |
 | E10 | Mixing two positions with different products or customers in one | a position label that joins two roles |
 | E11 | Facts with no relation to action; unclear who conducts the analysis | `fact` or `situation` with no `seen_from`, no relation to a goal or position |
-| E12 | Jump to "organiser of another whole" without discussing the situation | a `shift` to a target position, and the next transition goes straight to a new frame with no `s` element seen from the starting position |
+| E12 | Jump to "organiser of another whole" without discussing the situation | a `shift` from a working position to a target position, a new frame on the record, and no `s` element seen from the starting position (hint `jump-to-frame`; whether the next transition goes straight to the frame is yours to read) |
 | E13 | Analysis stays inside the old frame | only `old` frames, or the new frame's functions repeat the old ones; the hint "reflection without a new scheme" |
 | E14 | Not anchored in a position: jumps, empty and fictive places | no `entry`; elements without `seen_from`; transitions with no element at either end that belongs to a position |
 | E15 | "Same activity, not a new industry" claimed too readily | `signal` or `garland` on the big half, and no new frame or function in the record |
+
+The validator reports five of these signatures as hints, so you need not trace them by hand: E2 `positions-unlinked` (positions, other than the cycle's reflexive one, with no `shift` or `flow` to another position, place or cooperation), E3 `object-isolated` (object-board content linked by no relation, transition, `in`, `performed_by`, move or ontology cooperation, however indirectly, to another board; `seen_from` does not count), E6 and E11 `isolated-facts` (facts with no relation, transition, `in` or thesis), E12 `jump-to-frame` (the starting position of a `shift`, other than the reflexive one, has nothing seen from it on the situation board while a new frame is drawn; the order of the transitions is not read) and E14 `transition-unanchored` (a transition with no end that is a position or seen from one). A hint is still a signature: confirm it by reading before raising a К.
 
 ### 3.3 Classic checks (`docs/method/encodable.md`, section 8.4)
 
@@ -139,16 +141,22 @@ Degeneration (GP1987), counted over the record's theses:
 
 - Mostly `mk` and no `m`: thought-communication cut off from schemes, "play with words". The validator hints this when there are at least three theses.
 - Any `m` and no `md`: schemes cut off from the situation. Also hinted.
-- All `md`, no `m` and no `mk`: action without a scheme, "mechanical reproduction". The validator does not hint this; you do.
-- Three cycles in a row (follow `revises`) each with the hint "reflection without a new scheme": reflection of reflection (GP1987). The count of three is an engine setting. Use the earlier records.
+- All `md`, no `m` and no `mk`: action without a scheme, "mechanical reproduction". Also hinted.
+- Three cycles in a row (follow `revises`) each with the hint "reflection without a new scheme": reflection of reflection (GP1987). The count of three is an engine setting. Use the earlier records: the validator compares a record with its previous one only, so this count stays yours.
 - Understanding that displaces thinking cannot be read from the record; do not claim it.
 
 ### 3.4 What to do with validator hints
 
+Each hint ends with the procedure and section that act on it ("→ procedures/functional-plan.md §4").
+
 | Hint | Action |
 |---|---|
 | no entry; empty board; small or big situation not laid out; one position and no places | evidence for C1 to C4; raise one К per cause, not one per hint |
-| new frame without functions, or functions with no performer | evidence for C6 |
+| new frame without functions, or functions with no performer; function-flows, unlinked-functions, idle-positions | evidence for C6 |
+| positions-unlinked, object-isolated, isolated-facts, jump-to-frame, transition-unanchored | evidence for the E-row the hint names (E2, E3, E6/E11, E12, E14); one К per cause |
+| ai-cooperation, cooperation-flows | realizability row |
+| garland, bridge-from, move-via, translation-loss | no К: the procedure that drew the item fixes its form (`visionary-tract`, `stakeholder-ontology`); list in the report |
+| board-dense | no К; a reading aid. List in the report |
 | open gap; gap with no scheme block; problem with no scheme block | check the scheme-named row. If `problematization` runs in this cycle, it resolves the finding and no К is raised for it. Raise a К only if it does not run; a К alone does not resolve a missing scheme |
 | ontology with no test or no cooperation | realizability row |
 | a hypothesis with no `revise_if`; a new cycle with no `difficulty` | К only if the gap changes how the screen is read; otherwise list in the report |
@@ -218,7 +226,7 @@ In Proposal mode, also give what that section requires of the reply.
 
 The К you raised are open and wait for the group's answer. Reading them aloud to the group is the next step: `reflexive-protocol`.
 
-Record the run: set `run: {procedure: qualification-pass, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs.
+Record the run: set `run: {procedure: qualification-pass, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs. Add the optional fields when you know them, and omit the rest, never inventing a value: `pack_sha256` (the hash `smd pack` printed, if you were given a pack), `inputs` (source id: sha256 of the file you read), `temperature` (a number), `sample` (the run index, when the procedure is run several times on one input).
 
 ## 7. Check
 

@@ -154,11 +154,18 @@ def evaluate(
     return result
 
 
+def _stamp_value(value: Any) -> str:
+    """A stamp value as text; `inputs` (source id to sha256) as `{s1: <sha256>, ...}`."""
+    if isinstance(value, dict):
+        return "{" + ", ".join(f"{k}: {v}" for k, v in value.items()) + "}"
+    return str(value)
+
+
 def _stamp(block: dict[str, Any] | None) -> str:
     """The `run` block as `key=value` pairs, or `none` when the record has no stamp."""
     if not block:
         return "none"
-    return ", ".join(f"{k}={v}" for k, v in block.items())
+    return ", ".join(f"{k}={_stamp_value(v)}" for k, v in block.items())
 
 
 def format_result(result: EvalResult) -> str:

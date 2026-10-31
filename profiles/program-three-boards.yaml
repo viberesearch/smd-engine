@@ -66,6 +66,12 @@ hints:
   - ontology-outlives-pace
   - difficulty
   - revise-if
+  - hypothesis-type
+  - hypothesis-rule
+  - rule-basis
+  - rule-n-min
+  - type-status
+  - verdict
   - ai-drafts
   - ai-variants
   - no-new-scheme
@@ -78,6 +84,23 @@ hints:
   - design-the-natural
   - information-without-cell
   - cells-from-information
+  # Method review 31.10.2026: board density, the typical errors of a group
+  # screen, the empty places of a functional plan, the procedures' self-checks
+  - board-dense
+  - positions-unlinked
+  - function-flows
+  - unlinked-functions
+  - idle-positions
+  - object-isolated
+  - isolated-facts
+  - jump-to-frame
+  - transition-unanchored
+  - garland
+  - bridge-from
+  - move-via
+  - ai-cooperation
+  - cooperation-flows
+  - translation-loss
 # Not matched by smd compare.
 compare_skip: [entry, note]
 compare_groups:

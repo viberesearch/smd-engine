@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
+from smd_engine.leverage import Leverage, leverage_order
 from smd_engine.profile import profile_of
 from smd_engine.render.text import (
     LABELS,
@@ -23,6 +24,8 @@ from smd_engine.render.text import (
     continuum_lines,
     element_lines,
     esc,
+    field_lines,
+    hypothesis_parts,
     pace_text,
     title_line,
     value_word,
@@ -166,11 +169,24 @@ class _Index:
         lines = continuum_lines(o, self.lang)
         return f"<br><small>{esc('; '.join(lines))}</small>" if lines else ""
 
+    def _hypothesis(self, h: dict[str, Any]) -> str:
+        """Type, decision rule and observed count of a hypothesis, under its
+        text; empty when it has none of them."""
+        lines = field_lines(hypothesis_parts(h, self.lang), self.lang)
+        return f"<br><small>{esc('; '.join(lines))}</small>" if lines else ""
+
     def _fields(self, x: dict[str, Any]) -> str:
         """Beer's systems, threshold, recovery time, the place a position takes
         and its stance, under the element's label; empty when it has none."""
         lines = element_lines(x, self.lang)
         return f"<br><small>{esc('; '.join(lines))}</small>" if lines else ""
+
+    def _reach(self, found: Leverage | None) -> str:
+        """The score of an untested hypothesis, its parts as the tooltip."""
+        if found is None:
+            return ""
+        parts = ", ".join(f"{k} {n}" for k, n in found.counts.items())
+        return f'<span title="{esc(parts)}">{found.score}</span>'
 
     def _where(self, sid: str) -> str:
         source = self.sources.get(sid)
@@ -235,14 +251,17 @@ class _Index:
             ]
             for t in d.get("theses", [])
         ]
+        # the reach of an untested hypothesis, a proposal (leverage.py)
+        reach = {x.id: x for x in leverage_order(d)}
         hypotheses = [
             [
                 anchor(h["id"]),
                 e(lab["hyp_status"].get(h["status"], h["status"])),
-                e(h["assumes"]),
+                e(h["assumes"]) + self._hypothesis(h),
                 e(h.get("action", "")),
                 e(h.get("revise_if", "")),
                 refs(h.get("targets")) + " · " + refs(h.get("qualifications")),
+                self._reach(reach.get(h["id"])),
                 cites(h.get("cites")),
             ]
             for h in d.get("hypotheses", [])

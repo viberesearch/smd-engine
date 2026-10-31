@@ -40,6 +40,11 @@ Plan approved 2026-10-25 (`docs/plan.md`). Each step is a branch and a PR. The s
 | Г8б | An optional short board name `short` in the profiles, used in the SVG legend's transitions, on the graph's planes and in the frames' element details | done in v0.5.9 |
 | Г8в | A transition's label after a dash in the SVG legend, not in brackets; the management profile's upper board renamed «Верхняя система ОРУ» | done in v0.5.9 |
 | Г8г | The index's record-boards table names a board by its own label, beside the template | done in v0.5.9 |
+| Ф1 | Run stamp v2: `pack_sha256`, `inputs`, `temperature`, `sample`; `smd pack` prints its hash; `smd revise` drops the stamp | done in v0.6.0 |
+| Ф2, Ф3 | Graph signatures and procedure self-checks in the validator (functional plan, E2-E14, garland, bridge, `via`, cooperation, translation loss); acyclicity errors; every hint names its procedure; `board-dense` | done in v0.6.0 |
+| Ф4 | `smd agree`: Krippendorff's alpha on the labels of N runs, coverage of cited addresses | done in v0.6.0 |
+| Ф5, У | `smd new`, `smd status`, `smd next`; hypothesis leverage order (a proposal); `docs/first-board.md`, `docs/glossary.md` | done in v0.6.0 |
+| М1, Ф6 | Hypothesis `type` (core, product, claim, estimate, probe, design), `rule` and `observed`; the Wilson interval proposes a verdict; six hints | done in v0.6.0 |
 
 ## Structural moves (Invention as a Structural Operation)
 

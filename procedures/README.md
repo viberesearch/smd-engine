@@ -24,6 +24,7 @@ Front matter, checked by `tests/test_procedures.py`:
 | `small-situation` | 3 | the human's answers to the four questions | the small situation, positions, places for others, hypotheses |
 | `visionary-tract` | 3 | the small situation | normality boundary, garland, model, bridge, view of oneself, goals: AI candidates with moves |
 | `positional-construction` | 3 | accepted candidates | the positional set, cooperation, ontology valid for named positions |
+| `stakeholder-ontology` | 3 | one stakeholder position (default, the owner, the tier-1 stakeholder) in a solo session or an interview | an ontology record valid for that position in its own words, the shareable part as a cited file, a note that the private part exists, the translation into the six-tier ontology with its losses |
 | `functional-plan` | 3 | the new frame and the positional set | functions with performer, payer and receiver; gaps for empty places |
 | `problematization` | 3 | a difficulty and a named scheme | plus/minus marking, gaps and problem theses, goals and themes |
 | `qualification-pass` | 3 | a board set | K items against the program's criteria and the classic checks |

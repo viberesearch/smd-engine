@@ -6,6 +6,8 @@ Start with `README.md` in the repository root. This folder holds the reference d
 
 | File | Content |
 |---|---|
+| `first-board.md` | a walkthrough from an empty folder to a first validated and drawn board, and the first procedure to run |
+| `glossary.md` | the terms a first-time user meets, one line each |
 | `data-model.md` | the record format: board sets, source manifests, taxonomies, patches, the `profile` key, migration |
 | `checks.md` | the checks the validator runs: errors, warnings and hints, and the profile and source of each hint |
 | `profiles.md` | the profile format: boards and their regions, kinds, the screen layout, the ids every profile defines, the checks of a profile file |

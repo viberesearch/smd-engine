@@ -10,7 +10,14 @@ from typing import Any
 from smd_engine.validate import AI_VOICES
 
 # Fields that describe the previous cycle only; the next cycle writes its own.
-CYCLE_ONLY = ("checked_by", "notes", "transitions", "reflected_from", "applied")
+CYCLE_ONLY = (
+    "checked_by",
+    "notes",
+    "transitions",
+    "reflected_from",
+    "applied",
+    "run",
+)
 
 
 def next_id(record_id: str) -> str:

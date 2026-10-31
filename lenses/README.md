@@ -84,6 +84,7 @@ Rows are procedure and step. "Q" is the question number in the lens file. Where 
 | `reflexive-protocol` | 6 Sign-offs | `schukin-interface-tax` | Q11 | As above |
 | `theses-to-board` | 5 Sign-offs | `schukin-interface-tax` | Q11 | As above |
 | `solo-session` | none of its own | all of the above | by step | It orders the step procedures and inherits their lenses; the human may call another lens at a gate |
+| `stakeholder-ontology` | none | none | | The position's answers are recorded in its own words; a lens would put the analyst's questions into them. The time answers fill `horizon` and `tempos` at the translation step without a lens |
 | `ingest-transcript`, `field-result` | none | none | | They turn a record of talk or a field artefact into theses or a result, and a lens would put the model's questions into that reading |
 
 The table is the engine's selection. The source materials do not say which lens belongs at which step. A procedure already names the source in these places: the scale test at tract step 5 and in `qualification-pass`, the four families and five grounds at functional-plan section 6, the ontology test at positional-construction section 5, the three positions at reflexive-protocol section 2, the sign-off rule everywhere.

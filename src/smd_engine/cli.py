@@ -1,9 +1,10 @@
-"""Command line: smd validate | migrate | render | frames | graph | index | publish | vault
-| sources | compare | eval | pack | revise | apply."""
+"""Command line: smd new | validate | migrate | render | frames | graph | index | publish
+| vault | sources | compare | eval | agree | pack | revise | apply | status | next."""
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -12,12 +13,15 @@ from typing import Any, Callable
 
 import yaml
 
+from smd_engine.agree import FIELDS, agree
+from smd_engine.agree import format_result as format_agreement
 from smd_engine.apply import PatchError, apply_patch
 from smd_engine.compare import merge, report
 from smd_engine.eval import evaluate, format_result
 from smd_engine.migrate import migrate, migrate_text
+from smd_engine.nextstep import render_next
 from smd_engine.pack import pack
-from smd_engine.profile import ProfileError
+from smd_engine.profile import DEFAULT_PROFILE, ProfileError
 from smd_engine.records import (
     RecordError,
     discover,
@@ -46,6 +50,7 @@ from smd_engine.render.sessionflow import render_sessionflow
 from smd_engine.render.svg import render_svg
 from smd_engine.render.vault import export_vault
 from smd_engine.revise import revise
+from smd_engine.scaffold import ScaffoldError, scaffold
 from smd_engine.sources import (
     check_files,
     clean_room,
@@ -56,7 +61,9 @@ from smd_engine.sources import (
     rewrite_line_counts,
     rewrite_sha_lines,
     source_ids,
+    source_kinds,
 )
+from smd_engine.status import render_status
 from smd_engine.validate import Finding, taxonomy_values, validate_record
 
 RENDERERS: dict[str, Callable[[dict[str, Any], str], str]] = {
@@ -78,10 +85,11 @@ def _load_manifest(path: Path) -> dict[str, Any]:
     return manifest
 
 
-def _manifest_ids(path: Path | None) -> set[str] | None:
+def _manifest_kinds(path: Path | None) -> dict[str, str] | None:
+    """Source id to its kind; its keys are the manifest's ids."""
     if path is None:
         return None
-    return source_ids(_load_manifest(path))
+    return source_kinds(_load_manifest(path))
 
 
 def _load_taxonomies(path: Path | None) -> dict[str, set[str]] | None:
@@ -97,7 +105,8 @@ def _load_taxonomies(path: Path | None) -> dict[str, set[str]] | None:
 
 
 def cmd_validate(args: argparse.Namespace) -> int:
-    ids = _manifest_ids(args.sources)
+    kinds = _manifest_kinds(args.sources)
+    ids = None if kinds is None else set(kinds)
     taxonomies = _load_taxonomies(args.taxonomies)
     files = discover([Path(p) for p in args.paths])
     if not files:
@@ -122,7 +131,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
             continue
         if data["record"] == "board_set":
             previous = boards.get(data.get("revises", ""))
-            findings = validate_record(data, ids, previous, taxonomies)
+            findings = validate_record(data, ids, previous, taxonomies, kinds)
         else:
             findings = validate_record(data)
         shown = [f for f in findings if args.hints or f.level != "hint"]
@@ -131,7 +140,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
         status = "FAIL" if any(f.level == "error" for f in findings) else "ok"
         print(f"{status} {path}")
         for f in shown:
-            print(f"  {f}")
+            print(f"  {f}" + (f" → {f.procedure}" if f.procedure else ""))
     print(f"{len(files)} record(s), {errors} error(s), {warnings} warning(s)")
     if errors or (args.strict and warnings):
         return 1
@@ -368,6 +377,35 @@ def cmd_eval(args: argparse.Namespace) -> int:
     return 1 if result.failures else 0
 
 
+def cmd_agree(args: argparse.Namespace) -> int:
+    if len(args.records) < 2:
+        print("agree takes two or more records", file=sys.stderr)
+        return 2
+    fields = args.fields.split(",") if args.fields else list(FIELDS)
+    unknown = [f for f in fields if f not in FIELDS]
+    if unknown:
+        print(
+            f"unknown field {', '.join(unknown)}; the fields are {', '.join(FIELDS)}",
+            file=sys.stderr,
+        )
+        return 2
+    records = [load_record(Path(p)) for p in args.records]
+    if any(r["record"] != "board_set" for r in records):
+        print("agree takes board_set records", file=sys.stderr)
+        return 2
+    names = [Path(p).name for p in args.records]
+    try:
+        result = agree(records, names, fields)
+    except ProfileError as exc:  # two profiles
+        print(exc, file=sys.stderr)
+        return 2
+    if args.json:
+        print(json.dumps(result.to_json(), indent=2, ensure_ascii=False))
+    else:
+        sys.stdout.write(format_agreement(result))
+    return 0
+
+
 def cmd_pack(args: argparse.Namespace) -> int:
     try:
         manifest = Path(args.sources) if args.sources else None
@@ -381,10 +419,21 @@ def cmd_pack(args: argparse.Namespace) -> int:
     except ValueError as exc:
         print(exc, file=sys.stderr)
         return 2
+    data = text.encode("utf-8")
     if args.output:
-        Path(args.output).write_text(text, encoding="utf-8")
+        Path(args.output).write_bytes(data)
     else:
-        sys.stdout.write(text)
+        # Bytes, so that what reaches a redirected file is what was hashed.
+        out = getattr(sys.stdout, "buffer", None)
+        if out is not None:
+            sys.stdout.flush()
+            out.write(data)
+            out.flush()
+        else:
+            sys.stdout.write(text)
+    # The hash a run records as `run.pack_sha256`; on stderr, so a pack sent to
+    # stdout stays the pack alone.
+    print(f"pack sha256: {hashlib.sha256(data).hexdigest()}", file=sys.stderr)
     return 0
 
 
@@ -442,7 +491,8 @@ def cmd_apply(args: argparse.Namespace) -> int:
     if isinstance(patch.get("version"), (int, float)):
         patch["version"] = str(patch["version"])
     invalid = [f for f in validate_record(patch) if f.level == "error"]
-    ids = _manifest_ids(args.sources)
+    kinds = _manifest_kinds(args.sources)
+    ids = None if kinds is None else set(kinds)
     if ids is not None:
         invalid += [
             Finding("error", "cites", f"cites unknown source '{c}'")
@@ -465,7 +515,7 @@ def cmd_apply(args: argparse.Namespace) -> int:
     result = parse_text(text)
     # The board as it will be read back; no cycle is revised, so no `previous`.
     taxonomies = _load_taxonomies(args.taxonomies)
-    findings = validate_record(result, ids, None, taxonomies)
+    findings = validate_record(result, ids, None, taxonomies, kinds)
     errors = [f for f in findings if f.level == "error"]
     for f in errors:
         print(_with_item_id(result, f), file=sys.stderr)
@@ -549,6 +599,7 @@ def cmd_publish(args: argparse.Namespace) -> int:
         return 2
     manifest = _load_manifest(Path(args.sources)) if args.sources else None
     ids = source_ids(manifest) if manifest else None
+    kinds = source_kinds(manifest) if manifest else None
     taxonomies = _load_taxonomies(args.taxonomies)
     chain = _chain(path, data)
     failed = False
@@ -556,7 +607,7 @@ def cmd_publish(args: argparse.Namespace) -> int:
     # published record, and those of the earlier cycles are reported
     for n, (file, rec) in enumerate(chain):
         prev = chain[n + 1][1] if n + 1 < len(chain) else None
-        for f in validate_record(rec, ids, prev, taxonomies):
+        for f in validate_record(rec, ids, prev, taxonomies, kinds):
             if f.level == "error" or (args.strict and f.level == "warning" and n == 0):
                 print(f"{file}: {f}", file=sys.stderr)
                 failed = True
@@ -614,9 +665,58 @@ def cmd_vault(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_new(args: argparse.Namespace) -> int:
+    try:
+        written = scaffold(
+            Path(args.folder), args.profile, args.lang, args.case, args.title
+        )
+    except (ScaffoldError, ProfileError) as exc:
+        print(exc, file=sys.stderr)
+        return 2
+    for path in written:
+        print(path)
+    print(
+        f"next: smd validate {args.folder} --sources {Path(args.folder) / 'sources.yaml'} --hints"
+    )
+    return 0
+
+
+def cmd_status(args: argparse.Namespace) -> int:
+    data = _board_or_error(args.file, "status")
+    if data is None:
+        return 1
+    text = render_status(data, args.lang)
+    if args.output:
+        Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.output).write_text(text, encoding="utf-8")
+    else:
+        sys.stdout.write(text)
+    return 0
+
+
+def cmd_next(args: argparse.Namespace) -> int:
+    data = _board_or_error(args.file, "next")
+    if data is None:
+        return 1
+    sys.stdout.write(render_next(data, args.file))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="smd", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
+
+    nw = sub.add_parser(
+        "new", help="scaffold a case folder: a first record, a manifest and a README"
+    )
+    nw.add_argument("folder", help="the case folder (made if missing)")
+    nw.add_argument(
+        "--profile", default=DEFAULT_PROFILE, help="profile id (default: %(default)s)"
+    )
+    nw.add_argument("--lang", choices=["ru", "en"], default="ru")
+    nw.add_argument("--case", help="case id (default: made from the folder name)")
+    nw.add_argument("--title", help="title of the first record")
+    nw.set_defaults(func=cmd_new)
 
     v = sub.add_parser("validate", help="check records (files or directories)")
     v.add_argument("paths", nargs="+")
@@ -721,6 +821,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ev.set_defaults(func=cmd_eval)
 
+    ag = sub.add_parser(
+        "agree", help="how stable are the labels across N runs of one procedure"
+    )
+    ag.add_argument("records", nargs="+", help="N board sets, runs of one procedure")
+    ag.add_argument(
+        "--fields",
+        help=f"comma-separated label fields (default: all of {', '.join(FIELDS)})",
+    )
+    ag.add_argument("--json", action="store_true", help="print JSON, not text")
+    ag.set_defaults(func=cmd_agree)
+
     pk = sub.add_parser(
         "pack", help="one Markdown file with a procedure and its context, for any model"
     )
@@ -812,6 +923,22 @@ def build_parser() -> argparse.ArgumentParser:
     vt.add_argument("--lang", choices=["ru", "en"], default="ru")
     vt.add_argument("--sources", help="source manifest: titles and links for sources")
     vt.set_defaults(func=cmd_vault)
+
+    st = sub.add_parser(
+        "status",
+        help="the core view of a board set on one page: open K, hypotheses, "
+        "waiting sign-offs, transitions, counts",
+    )
+    st.add_argument("file")
+    st.add_argument("--lang", choices=["ru", "en"], default="ru")
+    st.add_argument("-o", "--output", help="write the Markdown here")
+    st.set_defaults(func=cmd_status)
+
+    nx = sub.add_parser(
+        "next", help="the procedure to run next on a board set, by a rule table"
+    )
+    nx.add_argument("file")
+    nx.set_defaults(func=cmd_next)
     return parser
 
 

@@ -30,7 +30,16 @@
         "procedure": {"$ref": "#/$defs/id"},
         "version": {"type": "string"},
         "model": {"type": "string"},
-        "date": {"type": "string", "format": "date"}
+        "date": {"type": "string", "format": "date"},
+        "pack_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "sha256 of the `smd pack` output the run used"},
+        "inputs": {
+          "type": "object",
+          "propertyNames": {"$ref": "#/$defs/id"},
+          "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "description": "source id to the sha256 of the input files the run read"
+        },
+        "temperature": {"type": "number", "minimum": 0, "description": "sampling temperature the run used"},
+        "sample": {"type": "integer", "minimum": 1, "description": "run index when a procedure is run several times on one input"}
       }
     },
     "applied": {"type": "array", "items": {"$ref": "#/$defs/id"}, "uniqueItems": true, "description": "ids of the patches applied to the record"},
@@ -257,6 +266,34 @@
         "action": {"type": "string", "description": "каким действием проверяем"},
         "observe": {"type": "string", "description": "что будем наблюдать"},
         "revise_if": {"type": "string", "description": "какой результат заставит пересмотреть предположение"},
+        "type": {
+          "enum": ["core", "product", "claim", "estimate", "probe", "design"],
+          "description": "how the hypothesis is read (method review 31.10, gate М1 В): core of the programme, not tested directly; methodological product, tested for realizability in activity (GP1981); empirical claim, one claim falsified by a condition and threshold written before the field; estimate of a share, cost or frequency, an interval against a decision threshold; probe, a few interviews that produce hypotheses and test none; design choice or vision, not tested"
+        },
+        "rule": {
+          "type": "object",
+          "required": ["metric", "op", "threshold"],
+          "additionalProperties": false,
+          "description": "the pre-registered decision rule, a structured revise_if: the hypothesis is refuted when <metric> <op> <threshold> (gate Ф В)",
+          "properties": {
+            "metric": {"type": "string", "minLength": 1, "description": "what is measured, e.g. «доля 55+»; a share when the threshold is strictly between 0 and 1"},
+            "op": {"enum": ["<", "<=", ">", ">="], "description": "the refutation condition: refuted when the metric stands so to the threshold"},
+            "threshold": {"type": "number"},
+            "n_min": {"type": "integer", "minimum": 1, "description": "the fewest cases the rule is read on"},
+            "basis": {"type": "string", "minLength": 1, "description": "where the threshold comes from: the decision it changes, a minimum effect, a source"}
+          }
+        },
+        "observed": {
+          "type": "object",
+          "required": ["k", "n", "artefact"],
+          "additionalProperties": false,
+          "description": "what the field gave for the rule: k cases of n in the artefact",
+          "properties": {
+            "k": {"type": "integer", "minimum": 0},
+            "n": {"type": "integer", "minimum": 1},
+            "artefact": {"$ref": "#/$defs/cite", "description": "the field artefact counted (source id)"}
+          }
+        },
         "status": {"enum": ["untested", "testing", "confirmed", "refuted"]},
         "result": {"type": "string", "description": "what the field test gave"},
         "changes": {"type": "string", "description": "what the result changes on the boards"},

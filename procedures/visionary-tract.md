@@ -2,7 +2,7 @@
 id: visionary-tract
 title: Visionary tract with structural-move candidates
 step: 3
-version: 0.2.2
+version: 0.2.3
 role: визионер
 profile: program-three-boards
 inputs:
@@ -62,7 +62,7 @@ Steps 1-4 are the program's "four procedures"; steps 5 and 6 are its continuatio
 - `board`, `half` (for `s`) and `kind` as in the table above;
 - `label` in one sentence, in plain words, in the language of the human's materials;
 - `cites` the source address of every fact you take from a source; an element with no source states that it is your wording;
-- from step 3 on, `move: {op, from, via, status: candidate}` (docs/data-model.md, "Moves"). `from` lists the earlier accepted elements the move was applied to. In proposal mode it may also cite candidates, each named as the working assumption of its step. `via` is required in this procedure for every op and names the shared substructure, the changed links, the scale or the added axis, as each step says.
+- from step 3 on, `move: {op, from, via, status: candidate}` (docs/data-model.md, "Moves"). `from` lists the earlier accepted elements the move was applied to. In proposal mode it may also cite candidates, each named as the working assumption of its step. `via` is required in this procedure for every op and names the shared substructure, the changed links, the scale or the added axis, as each step says; the hint `move-via` names a candidate move of the tract's steps without one.
 
 Use only the fields of `docs/data-model.md`. Elements have no status field of their own: the move status and `voice: ai` are the marks that the wording is yours and awaits the human.
 
@@ -111,7 +111,7 @@ Do not start step n+1 until the human has selected at step n. If the human selec
 - A garland of events that all come from one source or one actor is flagged "one witness" in the presentation.
 - No move at this step.
 
-**Check.** Each garland has at least two `belongs` relations; each signal has a source or `unverified`.
+**Check.** Each garland has at least two `belongs` relations; each signal has a source or `unverified`. The validator reports the first (hint `garland`), and a garland whose events all cite one source, flagged "one witness"; events from one actor are yours to flag.
 
 ## 4. Step 3: model from another reality (glue)
 
@@ -146,7 +146,7 @@ Do not start step n+1 until the human has selected at step n. If the human selec
 
 **Transition.** `{n: <next>, from: <model>, to: <big situation>}` when accepted.
 
-**Check.** The bridge uses the garland and the model; one that mentions neither is dropped. Key actors the bridge needs (competitors, regulator, customer) are either on the boards or listed as missing (typical error: key actors absent, Girenko day 4).
+**Check.** The bridge uses the garland and the model; one that mentions neither is dropped. The hint `bridge-from` names a bridge (a situation on the big half with a `respecify` move) whose move `from` lacks a model, a garland, or both. Key actors the bridge needs (competitors, regulator, customer) are either on the boards or listed as missing (typical error: key actors absent, Girenko day 4).
 
 ## 6. Step 5: view of oneself (rescale)
 
@@ -211,7 +211,7 @@ In proposal mode, also give the working assumption of each step, the lenses appl
 
 Until the sign-offs are recorded the material is a draft for discussion.
 
-Record the run: set `run: {procedure: visionary-tract, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs.
+Record the run: set `run: {procedure: visionary-tract, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs. Add the optional fields when you know them, and omit the rest, never inventing a value: `pack_sha256` (the hash `smd pack` printed, if you were given a pack), `inputs` (source id: sha256 of the file you read), `temperature` (a number), `sample` (the run index, when the procedure is run several times on one input).
 
 ## Example (invented bakeries case)
 

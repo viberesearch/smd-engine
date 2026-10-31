@@ -2,7 +2,7 @@
 id: problematization
 title: Problematization by a named scheme
 step: 3
-version: 0.2.2
+version: 0.2.3
 role: методолог
 profile: any
 inputs:
@@ -173,7 +173,7 @@ Give in the reply:
 
 Until the group decides, all of this is "черновик к обсуждению".
 
-Record the run: set `run: {procedure: problematization, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs.
+Record the run: set `run: {procedure: problematization, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs. Add the optional fields when you know them, and omit the rest, never inventing a value: `pack_sha256` (the hash `smd pack` printed, if you were given a pack), `inputs` (source id: sha256 of the file you read), `temperature` (a number), `sample` (the run index, when the procedure is run several times on one input).
 
 ## 8. Check
 

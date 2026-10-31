@@ -2,7 +2,7 @@
 id: reflexive-protocol
 title: Reflexive protocol, close a cycle and open the next
 step: 3
-version: 0.3.1
+version: 0.3.2
 role: игротехник
 profile: any
 inputs:
@@ -173,4 +173,4 @@ uv run smd validate <closed-record> <its-previous-record> --sources <manifest> -
 uv run smd validate <next-record> <closed-record> --sources <manifest> --hints
 ```
 
-Record the run: set `run: {procedure: reflexive-protocol, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs.
+Record the run: set `run: {procedure: reflexive-protocol, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs. Add the optional fields when you know them, and omit the rest, never inventing a value: `pack_sha256` (the hash `smd pack` printed, if you were given a pack), `inputs` (source id: sha256 of the file you read), `temperature` (a number), `sample` (the run index, when the procedure is run several times on one input).

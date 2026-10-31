@@ -22,6 +22,7 @@ from smd_engine.render.text import (
     cut,
     element_parts,
     esc,
+    hypothesis_parts,
     screen_label,
     value_word,
 )
@@ -287,6 +288,8 @@ def graph_model(
         }
         if group == "ontology":
             extra |= continuum_parts(rec, lang)
+        if group == "hypothesis":
+            extra |= hypothesis_parts(rec, lang)
         nodes.append(
             {
                 "id": rec["id"],

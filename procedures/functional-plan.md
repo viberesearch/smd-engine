@@ -2,7 +2,7 @@
 id: functional-plan
 title: Functional plan inside the new frame
 step: 3
-version: 0.2.4
+version: 0.2.5
 role: визионер
 profile: any
 inputs:
@@ -110,6 +110,8 @@ Run these checks over the chain and over the positional set. Each failed check i
 | a result of the chain goes to nobody | `product` | `oo` |
 | a position in the set performs, pays for and receives nothing | none yet: ask the human (the position is not needed, or a function is missing) | n/a |
 
+The validator reports the graph checks of this table as hints (`smd validate --hints`), so you need not trace them by hand: `function-flows` names a function inside the new frame with no payer (no `flow` into it from a position or place for others), no input (no `flow` into it) or no receiver (no `flow` from it to a position or place for others), unless a gap with the matching `of` is linked to the function by a relation; `unlinked-functions` names the functions of the frame with no `flow` to another of its functions (the plan's links are `flow` only: `produces` and `uses` do not count); `idle-positions` names the positions that perform, pay for and receive nothing in the plan (not the reflexive position of the cycle). The rows on the receiver of the chain's result and on the method stay yours.
+
 `of` is mandatory: a gap with no scheme block gets the hint "gap names no scheme block it is missing from". The scheme here is the functional structure, and the number of gaps depends on it (GP-PP): another scheme gives other gaps. Say so in the reply.
 
 On the profile `management-four-boards`, the lens `beer-viable-system` (questions 2, 3, 6) adds three checks: who keeps the model of the firm (system 4) after the transfer: a `model` with `of_whole: true`, held by the places that `uses` it (the hint `no-model-of-whole` names a system-4 place that uses none, `model-of-whole-one-filler` a model held by one person alone); whether each red line, an `algedonic_channel`, has a `threshold`, a `recovery_time` and an `escalates` relation to the place that must act (the hint `line-without-recovery` names those without); what each place passes up (`filters`). A missing holder or address is a gap with `of: position`. Offer the lens in one line.
@@ -156,7 +158,7 @@ The H carries `voice: ai` until the human keeps it; the validator lists AI-draft
 ## 8. Self-check
 
 - Every function is `in` the new frame and has one of: `performed_by` a position or place for others (functions you added); a proposed performer thesis with `about` the function (functions already on the record); or a gap that says why not.
-- Every function has its payer and receiver as `flow` relations, or gaps (a missing payer: `of: position`; a missing receiver: `of: product`).
+- Every function has its payer and receiver as `flow` relations, or gaps (a missing payer: `of: position`; a missing receiver: `of: product`). The hint `function-flows` names the functions without.
 - No `performed_by` was set on an element the human wrote.
 - Every `gap` has `of`.
 - No operation is written as a function. No subject-object wording ("we must", "мы должны") on `oo`.
@@ -175,7 +177,7 @@ Ask for each AI element and move: сохраняем / уточняем / не �
 
 Set `state.open` to the gaps, candidate moves and unchecked links; `state.next_move` to `problematization` when the record has a trigger (a difficulty, a refuted H or an open K) and the gaps need a named scheme, otherwise to `qualification-pass`.
 
-Record the run: set `run: {procedure: functional-plan, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs.
+Record the run: set `run: {procedure: functional-plan, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs. Add the optional fields when you know them, and omit the rest, never inventing a value: `pack_sha256` (the hash `smd pack` printed, if you were given a pack), `inputs` (source id: sha256 of the file you read), `temperature` (a number), `sample` (the run index, when the procedure is run several times on one input).
 
 ## 10. Check
 

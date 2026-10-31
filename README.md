@@ -10,9 +10,11 @@
 4. Applies decisions as records: a patch to the current cycle, or the next cycle with the human's sign-offs.
 5. Packs a thinking procedure, its roles and lenses into one Markdown file that any model can run, and compares what a run produced with a reference record.
 
+New here? Start with [docs/first-board.md](docs/first-board.md), a walkthrough from an empty folder to a first validated and drawn board, and keep [docs/glossary.md](docs/glossary.md) open for the terms.
+
 The default screen is the three-board screen of the MIPT program "Третья ступень" (org-activity, object and situation boards). A profile can lay out other boards: `classic-two-boards` is the classic org-activity and object-ontological pair. Terms that belong to the program and not to the classic method are marked as such in `roles/README.md`.
 
-Version 0.3.6, schema 0.3. Python 3.14. The engine proposes and checks; a human decides, by sign-offs that each state a function.
+Version 0.5.9 (`pyproject.toml`), schema 0.3. Python 3.14. The engine proposes and checks; a human decides, by sign-offs that each state a function.
 
 ## Install
 
@@ -54,6 +56,7 @@ Examples with options are in `docs/commands.md`; `smd <command> --help` lists th
 
 | Command | What it does |
 |---|---|
+| `new` | Scaffolds a case folder that validates at once: the first record on a profile, a source manifest, a README with the next steps; overwrites nothing |
 | `validate` | Schema, errors, warnings and (with `--hints`) methodological hints for records or folders; exit 1 on errors |
 | `migrate` | Moves records from schema 0.2 to 0.3; reports by default, `--write` edits the changed lines in place |
 | `render` | One board set as SVG, HTML, Markdown, Mermaid or SessionFlow text |
@@ -65,9 +68,12 @@ Examples with options are in `docs/commands.md`; `smd <command> --help` lists th
 | `sources` | Lists a source manifest, checks files and sha256, splits sources for a clean-room run |
 | `compare` | Matches the elements of two board sets and classifies agreement, refinement, conflict; `--merge` drafts a cycle |
 | `eval` | Compares a procedure run with an expected record; exit 1 below the thresholds |
+| `agree` | Krippendorff's alpha of the labels (belt, kind, status, voice, move op, gap `of`) across N runs of one procedure, and the cite addresses every run found |
 | `revise` | Opens the next cycle of a board set and applies the human's sign-offs |
 | `apply` | Applies a patch (add, set and remove by id or by transition number `n`, `board_notes`, state) to a board set as its next sub-version, then validates |
 | `pack` | One Markdown file with a procedure, its roles, lenses, the data model, the cells to fill and the records, for any model |
+| `status` | The core view of a board set on one page: state line, open K, hypotheses (untested ones in leverage order, a proposal), AI items waiting for a sign-off, transitions, counts |
+| `next` | The procedure to run next, with one line why and at most two alternatives, by a rule table (`docs/commands.md`) |
 
 ## Data model on one screen
 
@@ -75,7 +81,7 @@ Full format: `docs/data-model.md`. Records are YAML; JSON Schemas are in `src/sm
 
 | Record | What it is |
 |---|---|
-| `board_set` | One cycle of a screen. Top level: `id`, `case`, `cycle`, `revises`, `status`, `sources`, `profile`, `run`, `applied`, `state` |
+| `board_set` | One cycle of a screen. Required top level: `record`, `schema_version`, `id`, `title`, `cycle`, `status`, `elements`. Optional: `case`, `revises`, `sources`, `profile`, `run`, `applied`, `state` and the record parts below |
 | `source_manifest` | The case's raw materials, listed and not copied: `id`, `kind`, `origin`, `file` or `url`, `sha256`, `lineage`, `clean_room` |
 | `taxonomies` | Values that `tags` and bound `detail` columns may take |
 | `board_patch` | A decision on the current cycle: `add`, `set`, `remove`, `state` |
@@ -116,7 +122,7 @@ A real case lives in the repository of its object of thinking; this repository h
 It runs the engine without a local copy, pinned to a release, for example in CI:
 
 ```bash
-uvx --from git+https://github.com/viberesearch/smd-engine@v0.3.6 smd validate . --sources sources.yaml --strict
+uvx --from git+https://github.com/viberesearch/smd-engine@v0.5.9 smd validate . --sources sources.yaml --strict
 ```
 
 Generated drawings (`smd publish`) are build output and are not committed. Records of an older schema are moved with `smd migrate`.
