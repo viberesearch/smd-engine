@@ -73,7 +73,7 @@
   },
   "$defs": {
     "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
-    "item_id": {"type": "string", "pattern": "^([a-z0-9][a-z0-9._-]*|[KTHO][0-9]+)$", "description": "element id, or K, T, H, O id"},
+    "item_id": {"type": "string", "pattern": "^([a-z0-9][a-z0-9._-]*|[KTO][0-9]+|H[0-9]+[a-z]?)$", "description": "element id, or K, T, H, O id; a part of a split hypothesis is H2a, H2b"},
     "n": {"type": "integer", "minimum": 1, "description": "transition number"},
     "items": {"type": "array", "items": {"type": "object"}},
     "cite": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*(#[a-z]+=[^\\s]+)?$"},

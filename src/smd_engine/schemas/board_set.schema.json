@@ -288,7 +288,7 @@
       "additionalProperties": false,
       "description": "inter-module hypothesis: what we assume, how we test it, what we got, what it changes",
       "properties": {
-        "id": {"type": "string", "pattern": "^H[0-9]+$"},
+        "id": {"type": "string", "pattern": "^H[0-9]+[a-z]?$", "description": "H1..Hn; a part of a split hypothesis adds one lowercase Latin letter: H2a, H2b"},
         "voice": {"type": "string", "description": "who formulated it: group, participant, AI (free text; AI, ai and ИИ all read as an AI voice)"},
         "lens": {"$ref": "#/$defs/id", "description": "id of the lens behind the hypothesis"},
         "tags": {"$ref": "#/$defs/taxonomy_tags"},
@@ -399,7 +399,7 @@
           "description": "the object taken apart, aspect name to text, e.g. activity, carrier, ownership, management, separation"
         },
         "tags": {"$ref": "#/$defs/taxonomy_tags"},
-        "test": {"type": "string", "pattern": "^H[0-9]+$", "description": "hypothesis that tests realizability in activity"},
+        "test": {"type": "string", "pattern": "^H[0-9]+[a-z]?$", "description": "hypothesis that tests realizability in activity"},
         "lens": {"$ref": "#/$defs/id", "description": "id of the lens behind the ontology record"},
         "voice": {"type": "string"},
         "note": {"type": "string"},

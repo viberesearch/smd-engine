@@ -162,7 +162,7 @@ The inter-module form: what we assume, how we test it, what we got, what it chan
 
 | Field | Meaning |
 |---|---|
-| `id` | `H1..Hn` |
+| `id` | `H1..Hn`; a part of a split hypothesis adds one lowercase Latin letter: `H2a`, `H2b` |
 | `assumes`, `action`, `observe`, `revise_if` | что предполагаем, каким действием проверяем, что будем наблюдать, какой результат заставит пересмотреть |
 | `status` | `untested`, `testing`, `confirmed`, `refuted` |
 | `result`, `changes` | what the test gave; what it changes on the boards |

@@ -66,6 +66,21 @@ def test_schema_refuses(board2: dict[str, Any], fields: dict[str, Any]) -> None:
     )
 
 
+@pytest.mark.parametrize("hid", ["H2a", "H2b", "H12z"])
+def test_split_hypothesis_part_ids_are_valid(board2: dict[str, Any], hid: str) -> None:
+    h2(board2)["id"] = hid
+    assert not [f for f in validate_record(board2) if f.level == "error"]
+
+
+@pytest.mark.parametrize("hid", ["H2A", "H2ab", "H2\u0430", "Ha"])
+def test_other_hypothesis_ids_are_refused(board2: dict[str, Any], hid: str) -> None:
+    h2(board2)["id"] = hid
+    assert any(
+        f.level == "error" and f.ref.startswith("hypotheses/1")
+        for f in validate_record(board2)
+    )
+
+
 def test_k_above_n_is_an_error(board2: dict[str, Any]) -> None:
     h2(board2).update(rule=RULE, observed={"k": 5, "n": 4, "artefact": "s4"})
     assert found(board2, "error", "H2") == ["observed k=5 exceeds n=4"]

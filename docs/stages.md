@@ -48,6 +48,7 @@ Plan approved 2026-10-25 (`docs/plan.md`). Each step is a branch and a PR. The s
 | 0.6.0 follow-ups | Example plans drawn; `carries` on `flow` and chain receivers; `smd next` from hint pointers; SessionFlow shows hypothesis fields | done in v0.6.1 |
 | ИИ1 | `ai: assists / performs` on roles and functions; `red_line`; hint `ai-decision-unanswered`; AI share line in `smd status` and the index | done in v0.6.1 |
 | КЛ1 | Structured red line `line` (corridor or yes/no, `since`/`until`, recovery) and `observed`; breach rule; hints for breach, expiry, pace; `docs/red-lines.md` | done in v0.6.1 |
+| ОТП1 | Lettered part ids for split hypotheses (`H2a`, `H2b`) in the board and patch schemas | done in v0.6.2 |
 
 ## Structural moves (Invention as a Structural Operation)
 

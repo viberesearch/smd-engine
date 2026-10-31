@@ -253,3 +253,22 @@ def test_patch_with_both_is_deterministic(board2: dict[str, Any]) -> None:
         {"n": 1, "from": "f-new", "to": "s-big", "label": "to the future"}
     ]
     assert new["notes"].splitlines()[0] == "Decided after session 3."
+
+
+def test_split_a_hypothesis_into_lettered_parts(board2: dict[str, Any]) -> None:
+    old = next(h for h in board2["hypotheses"] if h["id"] == "H2")
+    parts = [
+        {k: v for k, v in old.items() if k != "id"} | {"id": "H2a", "type": "claim"},
+        {"id": "H2b", "assumes": "second part", "status": "untested"},
+    ]
+    p = patch(
+        add={"hypotheses": parts},
+        remove=[{"id": "H2", "reason": "split into H2a and H2b"}],
+        set=[{"id": "H2b", "type": "estimate"}],
+    )
+    assert errors(p) == []
+    new = apply_patch(board2, p)
+    hyps = {h["id"]: h for h in new["hypotheses"]}
+    assert "H2" not in hyps and hyps["H2a"]["type"] == "claim"
+    assert hyps["H2b"]["type"] == "estimate"
+    assert errors(new) == []
