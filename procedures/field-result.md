@@ -2,7 +2,7 @@
 id: field-result
 title: Field artefact to hypothesis result
 step: 2
-version: 0.3.0
+version: 0.3.2
 role: игротехник
 profile: any
 inputs:
@@ -43,7 +43,7 @@ For each question, prefer two or more rival answers and one test that tells them
 
 A `claim` or an `estimate` carries a decision rule written before the field: `rule: {metric, op, threshold, n_min, basis}`. `op` states the refutation condition, as `revise_if` does: `{metric: "доля 55+", op: "<", threshold: 0.20, n_min: 30, basis: "..."}` is refuted if the share is below 0.20. `basis` says where the threshold comes from: the decision it changes, a minimum effect that would change it, a source. A threshold with no basis is a guess; the validator hints at it (`rule-basis`), at a claim or estimate with neither `rule` nor `revise_if` (`hypothesis-rule`), and at an estimate with no `n_min` (`rule-n-min`).
 
-When the field gives a count, record it as `observed: {k, n, artefact}`: k cases of n in the artefact (a registered `field_artefact`). For a share (a threshold strictly between 0 and 1) the engine proposes a verdict from the 95% Wilson score interval of k/n for an H still `untested` or `testing` (`smd validate --hints`, hint `verdict`; `smd status`). If the manifest says the counted source is not a `field_artefact`, the validator warns.
+When the field gives a count, record it as `observed: {k, n, artefact}`: k cases of n in the artefact (a registered `field_artefact`). For a share (a threshold strictly between 0 and 1) the engine proposes a verdict from the 95% Wilson score interval of k/n for an H that is `testing` (`smd validate --hints`, hint `verdict`; `smd status`); an H still `untested` with `observed` gets the hint to set it `testing` first. If the manifest says the counted source is not a `field_artefact`, the validator warns.
 - n below `n_min`: too few, H stays `testing`;
 - the whole interval on the refuting side of the threshold: `refuted`;
 - the whole interval on the holding side: `confirmed`;
@@ -77,6 +77,8 @@ For `confirmed` or `refuted`, propose `result` (one sentence, figures as in the 
 
 The status you propose is a proposal. The record changes only after an `accept_result` sign-off by the group or a named person. Request it with the grounds: the artefact and your comparison.
 
+Record the run: set `run: {procedure: field-result, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs. Add the optional fields when you know them, and omit the rest, never inventing a value: `pack_sha256` (the hash `smd pack` printed, if you were given a pack), `inputs` (source id: sha256 of the file you read), `temperature` (a number), `sample` (the run index, when the procedure is run several times on one input).
+
 ## 4. Carry the result onto the boards
 
 If the result changes the boards, open a new cycle (see `theses-to-board`, step 1). For example, a confirmed volume pledge turns a place for others into a counterpart with a stated function, or a refuted assumption reopens a K. Cite the artefact on every changed element. Then validate:
@@ -84,3 +86,7 @@ If the result changes the boards, open a new cycle (see `theses-to-board`, step 
 ```bash
 uv run smd validate <record> <previous-record> --sources <manifest> --hints
 ```
+
+## 5. Red lines from observations
+
+A red line is read from data, not proposed as a hypothesis result (gate КЛ1 В). For an element with `red_line: true` (or an algedonic channel) and a `line`, add each value the field artefact gives to its `observed`, as `{value, date, source}`: a number for a corridor (`min`, `max`), true or false for a yes/no (`expect`); `source` is the artefact's manifest id. Give one observation per date; observations before the line takes force (`since`, else the record's date) or after `until` are not read. The engine sorts the observations by date and reads each run of values outside the line from its first date to the next value inside it; a run still outside at the last observation runs to the record's date when that is later, and never past `until`. A run longer than the recovery time (`line.recovery_days`, else the channel's `recovery_time`; any run when neither is set) is a breach, and the hint `red-line-breach` gives its dates. Observations after `until`, or a record dated after it, give `red-line-expired`: the line has ended and the stakeholder renews or drops it. Report a breach with its dates and source in the reply; what follows from it (a K, a talk with the stakeholder, a sign-off) is the group's decision, as for a hypothesis result.

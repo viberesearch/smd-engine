@@ -73,7 +73,8 @@ def test_remove_drops_links_and_records_the_reason(board2: dict[str, Any]) -> No
     new = apply_patch(board2, patch(remove=[{"id": i, "reason": "x"} for i in gone]))
     els = {e["id"]: e for e in new["elements"]}
     assert not set(gone) & set(els) and "seen_from" not in els["f-old"]
-    assert new["relations"] == [] and "reflected_from" not in new
+    assert not [r for r in new["relations"] if {r["from"], r["to"]} & set(gone)]
+    assert len(new["relations"]) == 3 and "reflected_from" not in new
     # Transition 1 named p-reflect; the one after it moves up to 1.
     assert new["transitions"] == [{"n": 1, "from": "f-new", "to": "s-big"}]
     o1 = new["ontology"][0]

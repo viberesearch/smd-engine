@@ -14,7 +14,8 @@ from __future__ import annotations
 from typing import Any
 
 from smd_engine.profile import ProfileError, matches, profile_of
-from smd_engine.render.text import LABELS, value_word
+from smd_engine.render.text import LABELS, hypothesis_parts, value_word
+from smd_engine.verdict import of_hypothesis, verdict_line
 
 EMPTY = "в записи не приведено"
 MAX_MOVES = 3  # SessionFlow, station Б: at most three moves per iteration
@@ -49,6 +50,30 @@ def _marks(el: dict[str, Any]) -> str:
 
 def _item(el: dict[str, Any]) -> str:
     return f"- {el['label']}{_marks(el)}{_cites(el)}"
+
+
+def _typed(h: dict[str, Any]) -> list[str]:
+    """The typed standard of a hypothesis, one nested line each: its `type`, its
+    decision `rule`, what was `observed`, and for a testing one
+    the verdict the rule proposes (verdict.py; the group signs the result)."""
+    words, core = LABELS["ru"]["fields"], LABELS["ru"]["core"]
+    parts = hypothesis_parts(h, "ru")
+    out = [
+        f"  - {words[key]}: {parts[key]}"
+        for key in ("type", "rule", "observed")
+        if key in parts
+    ]
+    obs = h.get("observed")
+    if h.get("rule") and obs and obs["k"] <= obs["n"] and h["status"] == "testing":
+        v = of_hypothesis(h)
+        said = (
+            f"{verdict_line(v)}: {core['verdict'][v.outcome]}"
+            if v
+            else core["no_share"]
+        )
+        head = core["verdicts"]
+        out.append(f"  - {head[:1].lower()}{head[1:]}: {said}")
+    return out
 
 
 def _block(title: str, items: list[str]) -> list[str]:
@@ -114,6 +139,7 @@ def render_sessionflow(data: dict[str, Any], lang: str = "ru") -> str:
         if h.get("revise_if"):
             line += f"; пересмотрим, если: {h['revise_if']}"
         hyps.append(line + _cites(h))
+        hyps += _typed(h)
     out += ["## 1. Что уже можно сказать о нашей ситуации", ""]
     out += _block("Кто мы? Что мы делаем?", block("who"))
     out += _block("Где мы? В какой системе деятельности наша позиция?", block("where"))

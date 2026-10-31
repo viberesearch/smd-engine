@@ -75,6 +75,40 @@ def _flows(ctx: Ctx) -> list[dict[str, Any]]:
     return [r for r in ctx.record.get("relations", []) if r["kind"] == "flow"]
 
 
+def _is_input(rel: dict[str, Any]) -> bool:
+    """An incoming `flow` that brings something in: any flow that is not money
+    (a flow with no `carries` is read as before, as any flow)."""
+    return rel.get("carries") != "money"
+
+
+def _is_payer(ctx: Ctx, rel: dict[str, Any]) -> bool:
+    """An incoming `flow` from a position or place that pays: `carries: money`,
+    or no `carries` (read as before: any flow from a position or place)."""
+    return _kind(ctx, rel["from"]) in PLACES and rel.get("carries", "money") == "money"
+
+
+def _receives(
+    ctx: Ctx, fn_id: str, members: set[str], flows: list[dict[str, Any]]
+) -> bool:
+    """Whether a function reaches a receiver: a `flow` of anything but money to
+    a position or place, or to another function of the same frame that does
+    (the chain, followed as far as it goes; a cycle of functions is walked
+    once)."""
+    seen = {fn_id}
+    todo = [fn_id]
+    while todo:
+        here = todo.pop()
+        for rel in flows:
+            if rel["from"] != here or rel.get("carries") == "money":
+                continue
+            if _kind(ctx, rel["to"]) in PLACES:
+                return True
+            if rel["to"] in members and rel["to"] not in seen:
+                seen.add(rel["to"])
+                todo.append(rel["to"])
+    return False
+
+
 def _plan(ctx: Ctx) -> dict[str, list[dict[str, Any]]]:
     """The functions inside each new frame, by frame id."""
     framed = ctx.profile.kinds_shaped("frame")
@@ -118,34 +152,36 @@ def _linked_gaps(ctx: Ctx, el_id: str) -> set[str]:
 
 @hint("function-flows")
 def hint_function_flows(ctx: Ctx) -> list[Finding]:
-    """Each function of the plan: a payer (a `flow` into it from a position or
-    place), an input (any `flow` into it) and a receiver (a `flow` from it to
-    a position or place), or a gap of the block that stands for it."""
+    """Each function of the plan: a payer (a `flow` of money into it from a
+    position or place), an input (any other `flow` into it) and a receiver (a
+    `flow` from it to a position or place, directly or through the functions
+    after it), or a gap of the block that stands for it."""
     out: list[Finding] = []
     flows = _flows(ctx)
     seen: set[str] = set()
-    for fn in (f for fns in _plan(ctx).values() for f in fns):
+    plan = _plan(ctx)
+    for fn in (f for fns in plan.values() for f in fns):
         if fn["id"] in seen:
             continue
         seen.add(fn["id"])
-        ins = [r["from"] for r in flows if r["to"] == fn["id"]]
-        outs = [r["to"] for r in flows if r["from"] == fn["id"]]
+        into = [r for r in flows if r["to"] == fn["id"]]
         gaps = _linked_gaps(ctx, fn["id"])
+        members = {f["id"] for fns in plan.values() if fn in fns for f in fns}
         missing = []
-        if not ins and not gaps & INPUT_GAPS:
+        if not any(_is_input(r) for r in into) and not gaps & INPUT_GAPS:
             missing.append("input from nobody")
-        if not any(_kind(ctx, i) in PLACES for i in ins) and not gaps & PAYER_GAPS:
+        if not any(_is_payer(ctx, r) for r in into) and not gaps & PAYER_GAPS:
             missing.append("no payer")
-        if not any(_kind(ctx, o) in PLACES for o in outs) and not gaps & RECEIVER_GAPS:
+        if not _receives(ctx, fn["id"], members, flows) and not gaps & RECEIVER_GAPS:
             missing.append("no receiver")
         if missing:
             out.append(
                 Finding(
                     "hint",
                     fn["id"],
-                    "; ".join(missing) + ": a `flow` from the payer, from what "
-                    "it takes in, to the receiver, or a gap with `of` for the "
-                    "empty place",
+                    "; ".join(missing) + ": a `flow` from the payer (`carries: "
+                    "money`), from what it takes in, to the receiver, or a gap "
+                    "with `of` for the empty place",
                 )
             )
     return out

@@ -2,7 +2,7 @@
 id: positional-construction
 title: Positional construction, shifts and a common object
 step: 3
-version: 0.2.7
+version: 0.2.8
 role: визионер
 profile: any
 inputs:
@@ -62,7 +62,7 @@ For each candidate decide:
 | a role the move depends on, which the human leaves room for but does not play | `place_for_others` | its activity is needed, its inner view is not worked |
 | a place the move needs and nobody holds | `gap` with `of: position` | name the missing position in the label |
 
-Places and positions are roles: name what is done, not who does it. The actors that could take a role (the state, a fund, a bank) go in its `fillers`, not in the label and not as elements of their own; one actor may fill several roles (`docs/method/roles-and-actors.md`). A place for others is a position not yet taken. It may later become a position if someone takes it, and until then it can be named in `valid_for` of an ontology record (section 5).
+Places and positions are roles: name what is done, not who does it. The actors that could take a role (the state, a fund, a bank) go in its `fillers`, not in the label and not as elements of their own; one actor may fill several roles (`docs/method/roles-and-actors.md`). An AI agent is such an actor, in `fillers`; the role carries `ai` (`assists` or `performs`) when the human says AI helps in it or does it. A place for others is a position not yet taken. It may later become a position if someone takes it, and until then it can be named in `valid_for` of an ontology record (section 5).
 
 A position is organised by objects, tools, ways of thinking, norms and relations. A job title, a profession or a single operation done by an agent is not a position (Schukin). If you cannot say what a candidate does and with what means, it is a place or a gap.
 

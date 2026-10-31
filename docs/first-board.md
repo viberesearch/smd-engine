@@ -126,7 +126,7 @@ Bring material for the four questions the first procedure asks: who we are and w
 
 ## 6. The first procedure
 
-With the default profile the first step is `small-situation` (`procedures/solo-session.md`, section 3). It lays out the small situation, the positions and places for others, and the first hypotheses from the answers. With a recorded group talk, start with `ingest-transcript` and then `theses-to-board`; they work on any profile, and so does `stakeholder-ontology`.
+The first procedure depends on what you bring. With a transcript or notes of a session, start with `ingest-transcript` and then `theses-to-board`; they work on any profile, and so does `stakeholder-ontology`. For a solo session with no transcript, the first step is `small-situation` on the default profile and `positional-construction` on the others (`procedures/solo-session.md`, section 3). `small-situation` lays out the small situation, the positions and places for others, and the first hypotheses from the answers. This walkthrough takes the solo path.
 
 ```bash
 smd pack small-situation bakery-c1.board.yaml --sources sources.yaml -o pack.md

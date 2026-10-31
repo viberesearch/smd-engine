@@ -146,8 +146,37 @@
         "vsm_system": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "integer", "minimum": 1, "maximum": 5}, "description": "kinds the profile flags vsm only (posts and positions of management-four-boards): the systems 1-5 of Beer's viable system model the place or position fills, one or several (BEER1972, Гл. 9-15)"},
         "of_whole": {"type": "boolean", "description": "kinds the profile flags of_whole only (models of management-four-boards): true when the model is the firm's model of itself and its environment, the model Beer's system 4 keeps (BEER1972, Гл. 13)"},
         "written": {"type": "boolean", "description": "kinds the profile flags of_whole only (models of management-four-boards): true when the model is written down and kept apart from the people who hold it, so that it stays when a holder leaves; a model of the whole with written: true gets no hint model-of-whole-one-filler (gate Г5б Б)"},
-        "threshold": {"type": "string", "minLength": 1, "description": "algedonic channels only: the limit of the index past which the channel signals, e.g. a stakeholder's red line (BEER1972, Гл. 17)"},
+        "threshold": {"type": "string", "minLength": 1, "description": "algedonic channels, and any element with red_line: true (gate ИИ1 Б): the limit of the index past which the channel signals, e.g. a stakeholder's red line (BEER1972, Гл. 17), or the red line's value, a threshold or yes/no that data check"},
         "recovery_time": {"type": "number", "exclusiveMinimum": 0, "description": "algedonic channels only: days the unit has to bring the index back before the signal goes up (BEER1972, Гл. 17)"},
+        "ai": {"enum": ["assists", "performs"], "description": "roles (kinds the profile flags role; a gap only with of: position) and functions only: assists, people do the work with AI help; performs, AI does the work. A function without it takes the ai of the role in its performed_by (gate ИИ1 Б)"},
+        "red_line": {"type": "boolean", "description": "any element: true when it stands for a red line, a hard value a stakeholder set that is checked by data; an algedonic channel with a threshold is one without it; its value goes in line (threshold, free text, for old records). Not on kinds the profile flags light_off (notes). Read by the hints ai-decision-unanswered and red-line-without-value (gate ИИ1 Б)"},
+        "line": {
+          "type": "object", "additionalProperties": false, "required": ["until"],
+          "dependentRequired": {"expect": ["metric"]},
+          "description": "red lines only (red_line: true, or an algedonic channel): the line's value, a corridor (min and/or max) or a yes/no (expect), and when it is in force (gate КЛ1 В)",
+          "properties": {
+            "metric": {"type": "string", "minLength": 1, "description": "what is measured"},
+            "unit": {"type": "string", "minLength": 1},
+            "min": {"type": "number"},
+            "max": {"type": "number"},
+            "expect": {"type": "boolean", "description": "the yes/no line: what the data must show"},
+            "since": {"type": "string", "format": "date", "description": "when the line takes force; the record's date when absent"},
+            "until": {"type": "string", "format": "date", "description": "when the line ends"},
+            "recovery_days": {"type": "number", "exclusiveMinimum": 0, "description": "how long a value may stay outside before it counts as a breach"}
+          }
+        },
+        "observed": {
+          "type": "array", "minItems": 1,
+          "description": "elements with a line only: values the data gave, each with its date and the manifest id of its source (gate КЛ1 В)",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["value", "date", "source"],
+            "properties": {
+              "value": {"type": ["number", "boolean"]},
+              "date": {"type": "string", "format": "date"},
+              "source": {"type": "string", "minLength": 1}
+            }
+          }
+        },
         "geom": {
           "type": "array", "minItems": 4, "maxItems": 4,
           "items": {"type": "number", "minimum": 0, "maximum": 1},
@@ -184,6 +213,7 @@
         "to": {"$ref": "#/$defs/id"},
         "kind": {"type": "string", "minLength": 1, "description": "a relation kind of the record's profile: shift, flow, produces, uses, belongs, opposes, refers, represents, other"},
         "label": {"type": "string"},
+        "carries": {"enum": ["money", "material", "product", "information"], "description": "what a flow carries; the functional plan reads a payer as money in, an input as anything else in, a receiver as anything but money out"},
         "voice": {"type": "string", "description": "who drew the link, e.g. AI"},
         "cites": {"$ref": "#/$defs/cites"}
       }
@@ -259,7 +289,7 @@
       "description": "inter-module hypothesis: what we assume, how we test it, what we got, what it changes",
       "properties": {
         "id": {"type": "string", "pattern": "^H[0-9]+$"},
-        "voice": {"type": "string", "description": "who formulated it: group, participant, AI"},
+        "voice": {"type": "string", "description": "who formulated it: group, participant, AI (free text; AI, ai and ИИ all read as an AI voice)"},
         "lens": {"$ref": "#/$defs/id", "description": "id of the lens behind the hypothesis"},
         "tags": {"$ref": "#/$defs/taxonomy_tags"},
         "assumes": {"type": "string", "minLength": 1, "description": "что предполагаем"},

@@ -94,6 +94,13 @@ HINT_PROCEDURES = {
     "function-flows": "procedures/functional-plan.md §4",
     "unlinked-functions": "procedures/functional-plan.md §4",
     "idle-positions": "procedures/functional-plan.md §4",
+    # AI on the boards, gate ИИ1 Б (ai.py)
+    "ai-decision-unanswered": "procedures/functional-plan.md §3",
+    "red-line-without-value": "procedures/functional-plan.md §4",
+    "red-line-outlives-pace": "procedures/functional-plan.md §4",
+    # red lines read from observations, gate КЛ1 В (redlines.py)
+    "red-line-breach": "procedures/field-result.md §5",
+    "red-line-expired": "procedures/field-result.md §5",
     "positions-unlinked": "procedures/positional-construction.md §3",
     "object-isolated": "procedures/theses-to-board.md §3",
     "isolated-facts": "procedures/small-situation.md §3",

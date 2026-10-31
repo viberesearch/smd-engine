@@ -33,6 +33,10 @@ Examples from the invented bakeries case (`cases/example/`), as a group might fi
 | «банк, региональный фонд, регион — оплачивают часть лизинга оборудования…» | финансирующая сторона: платит за оборудование цеха в обмен на свои условия возврата | банк, региональный фонд, регион |
 | «гарантийные фонды» | гарант лизинга цеха | гарантийные фонды |
 
+## AI as an actor
+
+An AI agent is an actor like a fund or a bank: it goes in the `fillers` of the role it occupies, never on the board as an element of its own, and what it produces moves by a `flow` as information or product (gate ИИ1 Б, 31.10.2026). The role, or a function, says how AI takes part in it with `ai`: `assists` (people do the work with AI help) or `performs` (AI does the work). A function without `ai` takes the value of the role in its `performed_by`. Where AI performs a function linked to a red line, a role without `ai: performs` should answer for it; the hint `ai-decision-unanswered` names the functions where none does (`docs/checks.md`).
+
 ## Terms
 
 - **Stakeholder** (стейкхолдер, заинтересованная сторона) names the role of whoever has an interest in the object of thinking and in what continues after the change.

@@ -2,7 +2,7 @@
 id: functional-plan
 title: Functional plan inside the new frame
 step: 3
-version: 0.2.5
+version: 0.2.7
 role: визионер
 profile: any
 inputs:
@@ -92,6 +92,8 @@ A payer is a position or place that bears the cost. If the human or the sources 
 
 `about` names the function (and the proposed performer) without changing them. After the human accepts the thesis by `accept_thesis`, the human sets `performed_by` on the function. Until then the function counts as met in the self-check (section 8) by the proposed performer thesis.
 
+Where the human says AI takes part in a function, record it in `ai` on the function or on its performer: `assists` (people do it with AI help) or `performs` (AI does it); a function without `ai` takes its performer's, and the hint `ai-decision-unanswered` names a function AI performs at a red line (`red_line: true`, or an `algedonic_channel` with a `threshold` or a `line`) that no role without `ai: performs` answers for, by `performed_by`, an information `flow` back, `subordinates` or `escalates`.
+
 A function performed by an outside actor names that place for others in `performed_by`. If the whole plan depends on that actor's activity, ask whether the positional set is incomplete and the actor should become a position (return to `positional-construction`). If the performer is unknown, leave `performed_by` out: the validator hint then shows the empty place.
 
 ## 4. Empty places become gaps
@@ -110,11 +112,11 @@ Run these checks over the chain and over the positional set. Each failed check i
 | a result of the chain goes to nobody | `product` | `oo` |
 | a position in the set performs, pays for and receives nothing | none yet: ask the human (the position is not needed, or a function is missing) | n/a |
 
-The validator reports the graph checks of this table as hints (`smd validate --hints`), so you need not trace them by hand: `function-flows` names a function inside the new frame with no payer (no `flow` into it from a position or place for others), no input (no `flow` into it) or no receiver (no `flow` from it to a position or place for others), unless a gap with the matching `of` is linked to the function by a relation; `unlinked-functions` names the functions of the frame with no `flow` to another of its functions (the plan's links are `flow` only: `produces` and `uses` do not count); `idle-positions` names the positions that perform, pay for and receive nothing in the plan (not the reflexive position of the cycle). The rows on the receiver of the chain's result and on the method stay yours.
+The validator reports the graph checks of this table as hints (`smd validate --hints`), so you need not trace them by hand: `function-flows` names a function inside the new frame with no payer (no `flow` into it from a position or place for others), no input (no `flow` into it) or no receiver (no `flow` from it to a position or place for others), unless a gap with the matching `of` is linked to the function by a relation; `unlinked-functions` names the functions of the frame with no `flow` to another of its functions (the plan's links are `flow` only: `produces` and `uses` do not count); `idle-positions` names the positions that perform, pay for and receive nothing in the plan (not the reflexive position of the cycle). Set `carries` on each `flow` you draw (`money`, `material`, `product`, `information`): the hint reads a payer as a `flow` of `money` into the function, an input as any other flow into it, and a receiver as a flow out that is not money to a position or place, or to a later function of the frame that has one (the end of the chain must reach a position or place, so a middle function needs no line of its own); a flow with no `carries` counts as before (any flow from a position or place is the payer, any flow in an input). The rows on the receiver of the chain's result and on the method stay yours.
 
 `of` is mandatory: a gap with no scheme block gets the hint "gap names no scheme block it is missing from". The scheme here is the functional structure, and the number of gaps depends on it (GP-PP): another scheme gives other gaps. Say so in the reply.
 
-On the profile `management-four-boards`, the lens `beer-viable-system` (questions 2, 3, 6) adds three checks: who keeps the model of the firm (system 4) after the transfer: a `model` with `of_whole: true`, held by the places that `uses` it (the hint `no-model-of-whole` names a system-4 place that uses none, `model-of-whole-one-filler` a model held by one person alone); whether each red line, an `algedonic_channel`, has a `threshold`, a `recovery_time` and an `escalates` relation to the place that must act (the hint `line-without-recovery` names those without); what each place passes up (`filters`). A missing holder or address is a gap with `of: position`. Offer the lens in one line.
+On the profile `management-four-boards`, the lens `beer-viable-system` (questions 2, 3, 6) adds three checks: who keeps the model of the firm (system 4) after the transfer: a `model` with `of_whole: true`, held by the places that `uses` it (the hint `no-model-of-whole` names a system-4 place that uses none, `model-of-whole-one-filler` a model held by one person alone); whether each red line, an `algedonic_channel`, has a `threshold`, a `recovery_time` and an `escalates` relation to the place that must act (the hint `line-without-recovery` names those without); what each place passes up (`filters`). A missing holder or address is a gap with `of: position`. Offer the lens in one line. On any profile, an element marked `red_line: true` carries the line's value in `line` (`docs/red-lines.md`): a corridor (`min` and/or `max`, with `metric` and `unit`) or a yes/no (`expect`), in force from `since` (else the record's date) to `until`, with `recovery_days`; the hint `red-line-without-value` names one without, and `red-line-outlives-pace` one in force longer than the `pace` of an element it is linked to: set `until` by the pace of the line's tier (the case owner 26.10, H24).
 
 A gap is not yet a problem and not yet a goal. Turning it into a problem, a goal or a theme assignment is the work of `problematization` (GP-PP warns that the formal conversion is not real work). Offer options, and let the human choose.
 

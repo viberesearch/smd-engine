@@ -32,6 +32,7 @@ from smd_engine.validate.context import (
     Finding,
     build_ctx,
 )
+from smd_engine.validate.ai import hint_ai_decision_unanswered
 from smd_engine.validate.graph import (
     check_cycles,
     hint_function_flows,
@@ -101,6 +102,13 @@ from smd_engine.validate.ontology import (
     hint_cooperation_flows,
     hint_translation_loss,
 )
+from smd_engine.validate.redlines import (
+    check_lines,
+    hint_red_line_breach,
+    hint_red_line_expired,
+    hint_red_line_outlives_pace,
+    hint_red_line_without_value,
+)
 from smd_engine.validate.signoffs import (
     SIGNOFF_EFFECT,
     SIGNOFF_FAMILY,
@@ -146,6 +154,7 @@ REGISTRY: list[Check] = [
     check_thesis_raises,
     check_theses,
     check_hypotheses,
+    check_lines,
     check_ontology,
     check_signoffs,
     check_tags,
@@ -159,6 +168,11 @@ REGISTRY: list[Check] = [
     hint_function_flows,
     hint_unlinked_functions,
     hint_idle_positions,
+    hint_ai_decision_unanswered,
+    hint_red_line_without_value,
+    hint_red_line_breach,
+    hint_red_line_expired,
+    hint_red_line_outlives_pace,
     hint_object_isolated,
     hint_isolated_facts,
     hint_jump_to_frame,

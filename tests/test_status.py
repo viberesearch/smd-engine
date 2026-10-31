@@ -29,7 +29,7 @@ def test_status_sections_of_a_small_record(board2: dict[str, Any]) -> None:
         "## Waiting for a human sign-off",
         "- AI variants of theses 1: T3",
         "## Transitions (2)",
-        "## Counts: elements 15",
+        "## Counts: elements 16",
         "- by board: ",
         "- by kind: ",
     ):

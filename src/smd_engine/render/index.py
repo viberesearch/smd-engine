@@ -18,8 +18,10 @@ from urllib.parse import quote
 
 from smd_engine.leverage import Leverage, leverage_order
 from smd_engine.profile import profile_of
+from smd_engine.validate.ai import ai_share
 from smd_engine.render.text import (
     LABELS,
+    ai_text,
     board_text,
     continuum_lines,
     element_lines,
@@ -176,8 +178,9 @@ class _Index:
         return f"<br><small>{esc('; '.join(lines))}</small>" if lines else ""
 
     def _fields(self, x: dict[str, Any]) -> str:
-        """Beer's systems, threshold, recovery time, the place a position takes
-        and its stance, under the element's label; empty when it has none."""
+        """Beer's systems, threshold, recovery time, the place a position takes,
+        its stance, `ai` and `red_line`, under the element's label; empty when
+        it has none."""
         lines = element_lines(x, self.lang)
         return f"<br><small>{esc('; '.join(lines))}</small>" if lines else ""
 
@@ -380,6 +383,10 @@ class _Index:
             else esc(self.record.name)
         )
         hint = self.idx["hint" if self.base is None else "hint_relative"]
+        # the AI share of the functions, only when an element has `ai`, at the
+        # top of the page body (the sticky header keeps its height)
+        share = ai_share(self.data)
+        ai = f"<p>{esc(ai_text(share, self.lang))}</p>" if share else ""
         return (
             f'<!doctype html><html lang="{self.lang}"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width,initial-scale=1">'
@@ -387,7 +394,7 @@ class _Index:
             f"<style>{CSS}</style></head><body><header><h1>{esc(title)}</h1>"
             f"<div>{esc(self.idx['file'])}: {record}. "
             f"{esc(hint)} {nav}</div></header>"
-            f"<main>{body}</main></body></html>\n"
+            f"<main>{ai}{body}</main></body></html>\n"
         )
 
 

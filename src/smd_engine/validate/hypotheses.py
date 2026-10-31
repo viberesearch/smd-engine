@@ -103,7 +103,7 @@ def _artefact_kind(h: dict[str, Any], kinds: dict[str, str] | None) -> list[Find
     ]
 
 
-# Statuses with no recorded result: the verdict hint proposes one.
+# Statuses with no recorded result: the verdict hint reads them.
 OPEN = ("untested", "testing")
 # Types read without a refutation condition: not tested, or exploration.
 UNTESTED_TYPES = ("core", "design", "probe")
@@ -193,8 +193,9 @@ def hint_type_status(ctx: Ctx) -> list[Finding]:
 
 @hint("verdict")
 def hint_verdict(ctx: Ctx) -> list[Finding]:
-    """The verdict proposed by the rule for each hypothesis with `observed`;
-    the group signs `accept_result`."""
+    """The verdict proposed by the rule for each hypothesis in `testing` with
+    `observed`; the group signs `accept_result`. An `untested` one with
+    `observed` gets no proposal, only the advice to set it `testing`."""
     out: list[Finding] = []
     for h in ctx.record.get("hypotheses", []):
         obs = h.get("observed")
@@ -202,6 +203,16 @@ def hint_verdict(ctx: Ctx) -> list[Finding]:
         if not obs or obs["k"] > obs["n"] or h["status"] not in OPEN:
             continue
         rule = h.get("rule")
+        if h["status"] == "untested":
+            out.append(
+                Finding(
+                    "hint",
+                    h["id"],
+                    "observed data recorded but status is untested: set testing, "
+                    "then the rule proposes a verdict",
+                )
+            )
+            continue
         if not rule:
             message = "observed, but no rule to read it by"
         elif not is_share(rule):

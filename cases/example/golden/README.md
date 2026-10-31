@@ -9,6 +9,8 @@ An invented check for the pair `ingest-transcript` then `theses-to-board`. It te
 
 The expected record is a hand-checked reference, not the only right answer. `smd eval` shows how far a run is from it; read the unmatched lines before you call a run worse.
 
+It stops where the two procedures stop. The functional plan is drawn by `functional-plan`, so `smd validate --hints` on this record still reports the hints `function-flows`, `unlinked-functions` and `idle-positions`, which `../bakeries-c2.board.yaml` clears with `flow` relations. They are left here on purpose: `smd eval` compares elements, theses, K and H, not relations, and a record that carries a plan the transcript does not state would not be what the two procedures produce.
+
 ## Run it
 
 1. Pack the two procedures with the transcript's manifest and the previous cycle:

@@ -36,7 +36,11 @@ elements:
 relations:
   - {from: p-owner, to: p-organiser, kind: shift, label: "other position"}
   - {from: p-reflexive, to: p-owner, kind: refers, label: "looks back at"}
-  - {from: fn-dough, to: fn-logistics, kind: flow, label: "dough"}
+  - {from: fn-dough, to: fn-logistics, kind: flow, carries: product, label: "dough"}
+  - {from: place-mills, to: fn-dough, kind: flow, carries: material, label: "flour"}
+  - {from: fn-logistics, to: p-owner, kind: flow, carries: product, label: "dough before four in the morning"}
+  - {from: gap-payer, to: fn-dough, kind: refers, label: "payer missing"}
+  - {from: gap-payer, to: fn-logistics, kind: refers, label: "payer missing"}
 transitions:
   - {n: 1, from: p-organiser, to: f-new, label: "frame of a new object"}
 qualifications:

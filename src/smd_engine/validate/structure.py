@@ -37,6 +37,7 @@ KIND_FIELDS = {
     "assigned_by": ("goal", "goals"),
     # Beer layer of management-four-boards (gate Бир3 В): the kind the hint
     # line-without-recovery registers (validate/management.py)
+    # (or any element with `red_line: true`, gate ИИ1 Б)
     "threshold": ("algedonic_channel", "algedonic channels"),
     "recovery_time": ("algedonic_channel", "algedonic channels"),
 }
@@ -97,6 +98,10 @@ def _element_findings(ctx: Ctx, el: dict[str, Any], out: list[Finding]) -> None:
         if field in el and kind != "gap":
             out.append(Finding("error", eid, f"'{field}' is only for gaps"))
     for field, (only, name) in KIND_FIELDS.items():
+        # a red line's value, a threshold or yes/no, is its `threshold` on any
+        # element (gate ИИ1 Б, the case owner 26.10)
+        if field == "threshold" and el.get("red_line") is True:
+            continue
         if field in el and kind != only:
             out.append(Finding("error", eid, f"'{field}' is only for {name}"))
     stance = profile.kinds_where("stance")
@@ -154,6 +159,32 @@ def _element_findings(ctx: Ctx, el: dict[str, Any], out: list[Finding]) -> None:
                 "error",
                 eid,
                 "'fillers' is only for roles: " + ", ".join(sorted(roles)),
+            )
+        )
+    # A red line is a stakeholder's value, not a remark or the world's own
+    # form: not on the kinds left off the lighter screen (notes; facts and
+    # signals on the default profile).
+    if el.get("red_line") is not None and kind in profile.kinds_where("light_off"):
+        out.append(
+            Finding(
+                "error",
+                eid,
+                f"'red_line' is not for {profile.kind_label(kind, 'en')}",
+            )
+        )
+    # `ai` (gate ИИ1 Б) goes where `fillers` goes, and on functions; a gap
+    # takes it only as a missing role (`of: position`).
+    if "ai" in el and (
+        kind not in roles | {"function"}
+        or (kind == "gap" and el.get("of") != "position")
+    ):
+        out.append(
+            Finding(
+                "error",
+                eid,
+                "'ai' is only for functions and roles: "
+                + ", ".join(sorted(roles - {"gap"}))
+                + (", gap with of: position" if "gap" in roles else ""),
             )
         )
     if "detail" in el:

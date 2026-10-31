@@ -36,12 +36,17 @@ def test_new_takes_case_and_title_and_names_the_first_procedure(
     main(["new", str(default), "--case", "bakery", "--title", "Bakery: handover"])
     board = load_record(default / "bakery-c1.board.yaml")
     assert board["title"] == "Bakery: handover" and board["case"] == "bakery"
-    assert "smd pack small-situation" in (default / "README.md").read_text("utf-8")
+    readme_default = (default / "README.md").read_text("utf-8")
+    assert "smd pack small-situation" in readme_default
+    # a transcript or notes go to ingest-transcript first, on any profile
+    assert "smd pack ingest-transcript" in readme_default
+    assert "`ingest-transcript`, затем `theses-to-board`" in readme_default
     # the default profile's procedures do not run on the classic profile
     classic = tmp_path / "b"
     main(["new", str(classic), "--profile", "classic-two-boards", "--lang", "en"])
     readme = (classic / "README.md").read_text("utf-8")
     assert "smd pack positional-construction" in readme
+    assert "smd pack ingest-transcript" in readme
     assert "small-situation" not in readme
 
 

@@ -105,7 +105,7 @@ def test_report_and_cli(tmp_path: Path) -> None:
 def test_report_counts(board: dict[str, Any], board2: dict[str, Any]) -> None:
     text = report(board, board2)
     assert text.startswith("# Comparison: `bakeries-c1` (A) and `bakeries-c2` (B)")
-    assert "only_a 4" in text
+    assert "only_a 5" in text
 
 
 def test_report_lists_lenses(board: dict[str, Any], board2: dict[str, Any]) -> None:

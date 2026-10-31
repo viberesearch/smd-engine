@@ -92,10 +92,10 @@ Hints: the classic set and those of gates Ш8-Ш12, plus the hints of this schem
 |---|---|---|
 | flag `vsm` on `position` and `post`; field `vsm_system` | the systems 1-5 a position or place fills, a list | Гл. 9-15; one person can be the firm, Гл. 9 |
 | kind `algedonic_channel` on `ot`, fields `threshold`, `recovery_time` (days) | an alarm path that bypasses the filters; a stakeholder's red line is recorded as one | Гл. 17 |
-| relation `escalates` | from an algedonic channel to the place that must act once the recovery time has run out | Гл. 17 |
+| relation `escalates` | from an algedonic channel to the place that must act once the recovery time has run out, or from a function to the role that answers for it at a red line (gate ИИ1 Б) | Гл. 17 |
 | relation `filters` | what a place passes up to the place above | Гл. 7 |
 | hint `single-node-metasystem` | one filler fills systems 3, 4 and 5: the transfer will remove the metasystem with the person | Гл. 9, 13 |
-| hint `line-without-recovery` | a red line with a threshold and no recovery time or no escalation address | Гл. 17 |
+| hint `line-without-recovery` | a red line with a value (`threshold` or `line`) and no recovery time (`recovery_time` or `line.recovery_days`) or no escalation address | Гл. 17 |
 | hint `absorbed-into-system-1` | a place filling system 5 captures (`captures`) systems 4 and 5 of the business: it becomes part of the buyer's system 1, its name and identity at risk | Гл. 15 |
 | flag `of_whole` on `model`; field `of_whole` (gate Г2 В) | `true`: the firm's model of itself and its environment, the model system 4 keeps. The post or position that holds it `uses` it | Гл. 13 |
 | hint `no-model-of-whole` | a post or position filling system 4 holds no model of the whole: no model with `of_whole: true` on the boards, or none that it, a position belonging to it, the post it belongs to or another position of that post `uses` | Гл. 13 |

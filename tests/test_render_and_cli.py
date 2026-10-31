@@ -308,6 +308,8 @@ def test_relation_labels_in_a_narrow_half_cover_nothing(
             out.append((r[0][0], r[0][1], max(x[2] for x in r), r[-1][3]))
         return out
 
+    # only the shift is labelled; the functional plan's flows are left out
+    board["relations"] = [r for r in board["relations"] if r["kind"] == "shift"]
     alone = labels(render_svg(board, "en"))
     # three labelled links between the two items of the small half share a middle
     board["relations"] += [

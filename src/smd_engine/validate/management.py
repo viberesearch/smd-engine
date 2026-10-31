@@ -420,15 +420,16 @@ def hint_single_node_metasystem(ctx: Ctx) -> list[Finding]:
 
 @hint("line-without-recovery", kinds=(CHANNEL, "post"), relations=("escalates",))
 def hint_line_without_recovery(ctx: Ctx) -> list[Finding]:
-    """A red line (an algedonic channel with a threshold) with no recovery time
-    or no escalation address."""
+    """A red line (an algedonic channel with a value: a `threshold` or a
+    `line`, gate КЛ1 В) with no recovery time (`recovery_time` or
+    `line.recovery_days`) or no escalation address."""
     out: list[Finding] = []
     for e in ctx.by_id.values():
-        if e["kind"] != CHANNEL or "threshold" not in e:
+        if e["kind"] != CHANNEL or not ("threshold" in e or e.get("line")):
             continue
         missing = []
-        if "recovery_time" not in e:
-            missing.append("no recovery time (recovery_time)")
+        if "recovery_time" not in e and "recovery_days" not in e.get("line", {}):
+            missing.append("no recovery time (recovery_time or line.recovery_days)")
         if not any(
             r["from"] == e["id"] and _kind(ctx, r["to"]) in ADDRESSES
             for r in _rels(ctx, "escalates")
@@ -442,7 +443,9 @@ def hint_line_without_recovery(ctx: Ctx) -> list[Finding]:
                 Finding(
                     "hint",
                     e["id"],
-                    "a red line with a threshold and "
+                    "a red line with "
+                    + ("a threshold" if "threshold" in e else "a line")
+                    + " and "
                     + " and ".join(missing)
                     + ": for Beer a unit that cannot restore its index «в приемлемое "
                     "время» sends the signal up, and the people of that level set "

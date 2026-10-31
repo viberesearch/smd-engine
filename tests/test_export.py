@@ -38,6 +38,49 @@ def test_sessionflow_headings_and_thesis_table(board2: dict[str, Any]) -> None:
     assert "organiser of shared production: dough production" in text
 
 
+def test_sessionflow_shows_the_typed_hypothesis_and_its_verdict(
+    board2: dict[str, Any],
+) -> None:
+    plain = render_sessionflow(board2)
+    assert "тип гипотезы" not in plain and "наблюдено" not in plain
+    h = board2["hypotheses"][1]  # H2, in testing
+    h["type"] = "claim"
+    h["rule"] = {
+        "metric": "доля согласных",
+        "op": "<",
+        "threshold": 0.2,
+        "n_min": 30,
+        "basis": "порог программы",
+    }
+    h["observed"] = {"k": 12, "n": 100, "artefact": "s4"}
+    text = render_sessionflow(board2)
+    assert "  - тип гипотезы: эмпирическое утверждение" in text
+    assert (
+        "  - правило решения: доля согласных < 0.2, n >= 30 "
+        "(основание порога: порог программы)" in text
+    )
+    assert "  - наблюдено: 12/100 (s4)" in text
+    assert (
+        "  - вердикт по правилу решения (предложение; подписывает группа): "
+        "12/100 = 0.12, Wilson 95% 0.07-0.20: опровергнуто" in text
+    )
+    # an untested hypothesis shows what was observed and no proposal
+    h["status"] = "untested"
+    untested = render_sessionflow(board2)
+    assert "  - наблюдено: 12/100 (s4)" in untested
+    assert "вердикт по правилу" not in untested
+    h["status"] = "testing"
+    # a recorded result is shown as observed and is not proposed again
+    h["status"] = "refuted"
+    h["result"] = "x"
+    h["resolved_in"] = 2
+    assert "вердикт по правилу" not in render_sessionflow(board2)
+    # a threshold that is not a share has no verdict
+    h["status"] = "testing"
+    h["rule"]["threshold"] = 5
+    assert "предложения нет" in render_sessionflow(board2)
+
+
 def test_sessionflow_empty_blocks_and_move_limit(board: dict[str, Any]) -> None:
     board["qualifications"] += [
         dict(board["qualifications"][0], id=f"K{n}") for n in range(3, 6)

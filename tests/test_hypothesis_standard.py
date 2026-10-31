@@ -206,6 +206,13 @@ def test_verdict_only_for_untested_or_testing(board2: dict[str, Any]) -> None:
     del h1["resolved_in"]
     assert found(board2, "hint", "H1")[0].startswith("proposed by the rule")
     assert "- H1 (testing; " in render_status(board2, "en")
+    # untested with observed: no proposal, advice to set it testing
+    h1["status"] = "untested"
+    assert found(board2, "hint", "H1") == [
+        "observed data recorded but status is untested: set testing, then the "
+        "rule proposes a verdict"
+    ]
+    assert "Verdicts" not in render_status(board2, "en")
 
 
 # Hints

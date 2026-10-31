@@ -187,8 +187,8 @@ def test_single_node_metasystem(case: dict[str, Any]) -> None:
 
 def test_line_without_recovery(case: dict[str, Any]) -> None:
     assert found(case, "hint", "ch-orders")[0].startswith(
-        "ch-orders: a red line with a threshold and no recovery time (recovery_time) "
-        "and no escalation address (escalates to a post, position or place for "
+        "ch-orders: a red line with a threshold and no recovery time (recovery_time "
+        "or line.recovery_days) and no escalation address (escalates to a post, position or place for "
         "others): for Beer a unit that cannot restore its index «в приемлемое время» "
         "sends the signal up"
     )
@@ -203,10 +203,49 @@ def test_line_without_recovery(case: dict[str, Any]) -> None:
     assert found(case, "hint", "ch-orders") == []
     del el(case, "ch-flour")["recovery_time"]
     assert found(case, "hint", "ch-flour")[0].startswith(
-        "ch-flour: a red line with a threshold and no recovery time (recovery_time):"
+        "ch-flour: a red line with a threshold and no recovery time (recovery_time "
+        "or line.recovery_days):"
     )
     del el(case, "ch-flour")["threshold"]
     assert found(case, "hint", "ch-flour") == []
+
+
+@pytest.mark.parametrize(
+    ("value", "recovery", "hinted"),
+    [
+        # a value: threshold or line; a recovery: recovery_time or line.recovery_days
+        ("threshold", "recovery_time", False),
+        ("threshold", "recovery_days", False),
+        ("threshold", None, True),
+        ("line", "recovery_time", False),
+        ("line", "recovery_days", False),
+        ("line", None, True),
+        (None, None, False),
+    ],
+)
+def test_line_without_recovery_reads_line(
+    case: dict[str, Any], value: str | None, recovery: str | None, hinted: bool
+) -> None:
+    ch = el(case, "ch-flour")  # has an escalation address
+    for key in ("threshold", "recovery_time", "line"):
+        ch.pop(key, None)
+    line: dict[str, Any] = {"max": 5, "until": "2030-01-01"}
+    if value == "threshold":
+        ch["threshold"] = "5 %"
+    if value == "line" or recovery == "recovery_days":
+        ch["line"] = line
+    if recovery == "recovery_time":
+        ch["recovery_time"] = 7
+    if recovery == "recovery_days":
+        line["recovery_days"] = 7
+    word = "threshold" if value == "threshold" else "line"
+    start = (
+        f"ch-flour: a red line with a {word} and no recovery time "
+        "(recovery_time or line.recovery_days):"
+    )
+    hints = [h for h in found(case, "hint", "ch-flour") if "no recovery time" in h]
+    assert len(hints) == int(hinted)
+    assert all(h.startswith(start) for h in hints)
 
 
 def test_absorbed_into_system_1(case: dict[str, Any]) -> None:

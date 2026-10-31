@@ -69,19 +69,126 @@ def test_move_cycle_is_an_error_and_flow_cycle_is_not(board: dict[str, Any]) -> 
     assert found(board, "error") == ["move sources form a cycle: f-new, m-coop"]
 
 
+def undrawn(record: dict[str, Any]) -> dict[str, Any]:
+    """The record without the flows and gap links of its functional plan."""
+    record["relations"] = [
+        r for r in record["relations"] if r["kind"] not in ("flow", "refers")
+    ]
+    return record
+
+
+def test_example_plans_are_drawn() -> None:
+    names = ("example/bakeries-c1", "example/bakeries-c2", "example/two-boards-c1")
+    names += ("example_ru/pekarni-c1", "example_ru/pekarni-c2")
+    for name in names:
+        record = load_record(ROOT / "cases" / f"{name}.board.yaml")
+        flows = [f for f in validate_record(record) if "a `flow` from" in f.message]
+        flows += [
+            f for f in validate_record(record) if "linked by no `flow`" in f.message
+        ]
+        assert flows == [], name
+
+
+def flow(record: dict[str, Any], a: str, b: str, carries: str) -> None:
+    record["relations"].append({"from": a, "to": b, "kind": "flow", "carries": carries})
+
+
+def flows_missing(record: dict[str, Any], fn: str) -> str:
+    """What `function-flows` says is missing for one function ('' for none)."""
+    msg = found(record, "hint", fn)
+    return msg[0].split(":")[0] if msg else ""
+
+
+def test_function_flows_read_what_a_flow_carries(board: dict[str, Any]) -> None:
+    undrawn(board)
+    # a supplier is an input, not the payer
+    flow(board, "place-mills", "fn-dough", "material")
+    flow(board, "fn-dough", "p-owner", "product")
+    assert flows_missing(board, "fn-dough") == "no payer"
+    # money in is the payer, and is not an input
+    flow(board, "p-owner", "fn-quality", "money")
+    flow(board, "fn-quality", "p-owner", "information")
+    assert flows_missing(board, "fn-quality") == "input from nobody"
+    flow(board, "place-bank", "fn-dough", "money")
+    assert flows_missing(board, "fn-dough") == ""
+    # money out is not a receiver; anything else is
+    flow(board, "fn-logistics", "p-owner", "money")
+    flow(board, "place-mills", "fn-logistics", "product")
+    flow(board, "p-owner", "fn-logistics", "money")
+    assert flows_missing(board, "fn-logistics") == "no receiver"
+    flow(board, "fn-logistics", "p-owner", "product")
+    assert flows_missing(board, "fn-logistics") == ""
+    # a gap of the matching block still stands in for a missing place
+    undrawn(board)
+    flow(board, "place-mills", "fn-dough", "material")
+    rel(board, "gap-payer", "fn-dough", "refers")
+    assert flows_missing(board, "fn-dough") == ""
+
+
+def test_a_flow_without_carries_is_read_as_before(board: dict[str, Any]) -> None:
+    undrawn(board)
+    rel(board, "place-mills", "fn-dough")
+    rel(board, "fn-dough", "p-owner")
+    assert flows_missing(board, "fn-dough") == ""
+
+
+def test_carries_is_one_of_four_words_and_is_shown(board2: dict[str, Any]) -> None:
+    from smd_engine.render.markdown import render_markdown
+
+    board2["relations"][-1]["carries"] = "gold"
+    assert any(
+        "gold" in f.message for f in validate_record(board2) if f.level == "error"
+    )
+    board2["relations"][-1]["carries"] = "money"
+    assert not [f for f in validate_record(board2) if f.level == "error"]
+    assert ", деньги)" in render_markdown(board2, "ru")
+    assert "(flow, money)" in render_markdown(board2, "en")
+
+
+def test_a_receiver_can_be_reached_through_the_chain(board: dict[str, Any]) -> None:
+    undrawn(board)
+    for fn in ("fn-dough", "fn-logistics"):  # payer and input for both
+        flow(board, "p-owner", fn, "money")
+        flow(board, "place-mills", fn, "material")
+    flow(board, "fn-dough", "fn-logistics", "product")
+    # the chain ends nowhere: neither function reaches a position or a place
+    assert flows_missing(board, "fn-dough") == "no receiver"
+    assert flows_missing(board, "fn-logistics") == "no receiver"
+    # the last function delivers: the first reaches the owner through it
+    flow(board, "fn-logistics", "p-owner", "product")
+    assert flows_missing(board, "fn-dough") == ""
+    assert flows_missing(board, "fn-logistics") == ""
+    # money between functions is no link in the chain
+    board["relations"][-2]["carries"] = "money"  # fn-dough -> fn-logistics
+    assert flows_missing(board, "fn-dough") == "no receiver"
+    # a cycle of functions is walked once, and ends where one of them delivers
+    board["relations"][-2]["carries"] = "product"
+    flow(board, "fn-logistics", "fn-dough", "product")
+    assert flows_missing(board, "fn-dough") == ""
+    board["relations"] = [
+        r
+        for r in board["relations"]
+        if (r["from"], r["to"]) != ("fn-logistics", "p-owner")
+    ]
+    assert flows_missing(board, "fn-dough") == "no receiver"
+
+
 def test_function_flows(board: dict[str, Any]) -> None:
+    undrawn(board)
     rel(board, "place-bank", "fn-dough")
     rel(board, "fn-dough", "p-owner")
     rel(board, "fn-quality", "gap-payer", "refers")
     assert found(board, "hint", "fn-") == [
-        "input from nobody; no payer; no receiver: a `flow` from the payer, from "
-        "what it takes in, to the receiver, or a gap with `of` for the empty place",
-        "input from nobody: a `flow` from the payer, from what it takes in, to the "
-        "receiver, or a gap with `of` for the empty place",
+        "input from nobody; no payer; no receiver: a `flow` from the payer "
+        "(`carries: money`), from what it takes in, to the receiver, or a gap with "
+        "`of` for the empty place",
+        "input from nobody: a `flow` from the payer (`carries: money`), from what "
+        "it takes in, to the receiver, or a gap with `of` for the empty place",
     ]
 
 
 def test_unlinked_functions_and_idle_positions(board: dict[str, Any]) -> None:
+    undrawn(board)
     rel(board, "fn-dough", "fn-logistics")
     el(board, "fn-dough")["performed_by"] = "p-organiser"
     assert found(board, "hint", "f-new")[-1] == (
@@ -113,6 +220,9 @@ def test_object_isolated(board: dict[str, Any]) -> None:
 
 
 def test_ontology_cooperation_links_its_positions(board2: dict[str, Any]) -> None:
+    board2["relations"] = [
+        r for r in board2["relations"] if "coop-plant" not in (r["from"], r["to"])
+    ]
     assert not any("(E3)" in h for h in found(board2, "hint", "oo"))
     board2["ontology"][0]["cooperation"] = "ghost"
     board2["elements"].append(dict(el(board2, "coop-plant"), id="ghost"))
@@ -213,6 +323,10 @@ def test_valid_for_position_without_subject(board2: dict[str, Any]) -> None:
 
 
 def test_ai_cooperation_and_cooperation_flows(board2: dict[str, Any]) -> None:
+    assert found(board2, "hint", "O1") == []
+    board2["relations"] = [
+        r for r in board2["relations"] if "coop-plant" not in (r["from"], r["to"])
+    ]
     assert found(board2, "hint", "O1") == [
         "valid for positions with no `flow` to or from the cooperation "
         "'coop-plant' (what each gives or takes): p-owner, p-organiser"

@@ -10,6 +10,7 @@ Start with `README.md` in the repository root. This folder holds the reference d
 | `glossary.md` | the terms a first-time user meets, one line each |
 | `data-model.md` | the record format: board sets, source manifests, taxonomies, patches, the `profile` key, migration |
 | `checks.md` | the checks the validator runs: errors, warnings and hints, and the profile and source of each hint |
+| `red-lines.md` | red lines: `red_line`, the structured value `line`, `observed` values and the breach rule |
 | `profiles.md` | the profile format: boards and their regions, kinds, the screen layout, the ids every profile defines, the checks of a profile file |
 | `commands.md` | the commands of `smd` with examples, and the exit codes |
 | `plan.md` | the build plan approved 2026-10-25 and the architecture of the repository |

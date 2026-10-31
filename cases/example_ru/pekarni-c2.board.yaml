@@ -25,7 +25,8 @@ elements:
      label: "новая рамка: общее производство для независимых пекарен", seen_from: p-organiser,
      cites: ["s1#t=00:31:00"]}
   - {id: fn-dough, board: oo, kind: function, label: "производство теста, участники платят за тонну",
-     in: [f-new], seen_from: p-organiser, performed_by: p-organiser, cites: ["s3#t=00:14:20"]}
+     in: [f-new], seen_from: p-organiser, performed_by: p-organiser, cites: ["s3#t=00:14:20"],
+     ai: assists, label_note: "объём на ночь считают по заказам участников с прогнозом спроса от ИИ; решает организатор"}
   - {id: fn-logistics, board: oo, kind: function, label: "ночная логистика силами цеха",
      in: [f-new], seen_from: p-organiser, performed_by: p-organiser}
   - id: m-coop
@@ -42,9 +43,29 @@ elements:
   - {id: s-big, board: s, half: big, kind: situation, label: "независимые пекарни закрываются",
      seen_from: p-organiser}
   - {id: gap-risk, board: oo, kind: gap, label: "кто несёт риск непроданного теста?", of: position}
+  # Красная линия владельца на пилотный сезон (ворота КЛ1 В, docs/red-lines.md); наблюдений
+  # пока нет: ночные отчёты начнутся вместе с цехом.
+  - id: rl-unsold
+    board: oo
+    kind: standard
+    label: "непроданное тесто — не больше 5 % объёма ночи"
+    seen_from: p-owner
+    red_line: true
+    line: {metric: "доля непроданного теста от объёма ночи", unit: "%", max: 5,
+           since: "2026-03-01", until: "2027-02-28", recovery_days: 14}
 relations:
   - {from: p-owner, to: p-organiser, kind: shift, label: "другая позиция"}
   - {from: p-owner, to: f-old, kind: represents}
+  - {from: place-mills, to: fn-dough, kind: flow, carries: material, label: "мука"}
+  - {from: p-owner, to: fn-dough, kind: flow, carries: money, label: "платит за тонну"}
+  - {from: rl-unsold, to: fn-dough, kind: refers, label: "объём ночи планируют в пределах линии"}
+  - {from: fn-dough, to: fn-logistics, kind: flow, carries: product, label: "тесто к доставке"}
+  - {from: p-owner, to: fn-logistics, kind: flow, carries: money, label: "платит в цене теста, пока так"}
+  - {from: fn-logistics, to: p-owner, kind: flow, carries: product, label: "тесто к четырём утра"}
+  - {from: p-owner, to: coop-plant, kind: flow, carries: information, label: "заказывает тесто, обещает объём"}
+  - {from: coop-plant, to: p-owner, kind: flow, carries: product, label: "тесто дешевле своей ночной смены"}
+  - {from: p-organiser, to: coop-plant, kind: flow, carries: product, label: "тесто и доставка"}
+  - {from: coop-plant, to: p-organiser, kind: flow, carries: money, label: "оплата по использованию против обещанного объёма"}
 transitions:
   - {n: 1, from: p-reflect, to: f-new, label: "что сессия 1 оставила без плательщика"}
   - {n: 2, from: f-new, to: s-big}

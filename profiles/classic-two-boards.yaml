@@ -75,6 +75,12 @@ hints:
   - function-flows
   - unlinked-functions
   - idle-positions
+  # AI on the boards, gate ИИ1 Б (validate/ai.py)
+  - ai-decision-unanswered
+  - red-line-without-value
+  - red-line-outlives-pace
+  - red-line-breach
+  - red-line-expired
   - ai-cooperation
   - cooperation-flows
   - translation-loss

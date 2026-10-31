@@ -43,8 +43,18 @@ elements:
   - {id: s-big-signal, board: s, half: big, kind: signal,
      label: "сети переходят на централизованное производство", seen_from: p-organiser}
   - {id: gap-payer, board: od, kind: gap, label: "кто платит за общий цех?", of: position}
+  - {id: gap-receiver, board: od, kind: gap, label: "кто получает тесто? пекарен на экране нет", of: position}
 relations:
   - {from: p-owner, to: p-organiser, kind: shift, label: "другая позиция"}
+  - {from: place-mills, to: fn-dough, kind: flow, carries: material, label: "мука"}
+  - {from: fn-dough, to: fn-quality, kind: flow, carries: product, label: "тесто на проверку"}
+  - {from: fn-quality, to: fn-logistics, kind: flow, carries: product, label: "тесто, допущенное к доставке"}
+  - {from: gap-payer, to: fn-dough, kind: refers, label: "нет плательщика"}
+  - {from: gap-payer, to: fn-quality, kind: refers, label: "нет плательщика"}
+  - {from: gap-payer, to: fn-logistics, kind: refers, label: "нет плательщика"}
+  - {from: gap-receiver, to: fn-dough, kind: refers, label: "нет получателя"}
+  - {from: gap-receiver, to: fn-quality, kind: refers, label: "нет получателя"}
+  - {from: gap-receiver, to: fn-logistics, kind: refers, label: "нет получателя"}
 transitions:
   - {n: 1, from: p-owner, to: s-small, cites: ["s1#t=00:05:00"]}
   - {n: 2, from: s-small, to: s-big}

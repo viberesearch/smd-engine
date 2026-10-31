@@ -41,8 +41,11 @@ A case folder made by `smd new` on the profile `{profile}`.
    `smd sources sources.yaml --folder . --refresh s1`
 2. Check the folder: `smd validate . --sources sources.yaml --hints`. The hints say what the boards still lack.
 3. Draw it: `smd render {board} --lang {lang} -o out/screen.svg`
-4. Run the first procedure, `{procedure}`: {why}
-   `smd pack {procedure} {board} --sources sources.yaml -o pack.md`
+4. Run the first procedure. Which one depends on what you brought:
+   - a transcript or notes of a session: `ingest-transcript`, then `theses-to-board`
+     `smd pack ingest-transcript {board} --sources sources.yaml -o pack.md`
+   - a solo session with no transcript: `{procedure}`: {why}
+     `smd pack {procedure} {board} --sources sources.yaml -o pack.md`
    Attach `pack.md` and your notes to a model, or in Claude Code run `/procedure {procedure} <full path>/{board}`.
 5. Ask the engine what comes next: `smd next {board}`; read the open work on one page: `smd status {board} --lang {lang}`.
 
@@ -71,8 +74,11 @@ The walkthrough is `docs/first-board.md` in the smd-engine repository; the terms
    `smd sources sources.yaml --folder . --refresh s1`
 2. Проверьте папку: `smd validate . --sources sources.yaml --hints`. Подсказки говорят, чего ещё не хватает доскам.
 3. Нарисуйте: `smd render {board} --lang {lang} -o out/screen.svg`
-4. Запустите первую процедуру, `{procedure}`: {why}
-   `smd pack {procedure} {board} --sources sources.yaml -o pack.md`
+4. Запустите первую процедуру. Какую, зависит от того, что вы принесли:
+   - стенограмму или заметки сессии: `ingest-transcript`, затем `theses-to-board`
+     `smd pack ingest-transcript {board} --sources sources.yaml -o pack.md`
+   - сессию в одиночку, без стенограммы: `{procedure}`: {why}
+     `smd pack {procedure} {board} --sources sources.yaml -o pack.md`
    Приложите `pack.md` и заметки к модели; в Claude Code: `/procedure {procedure} <полный путь>/{board}`.
 5. Что дальше, скажет `smd next {board}`; открытое одной страницей: `smd status {board} --lang {lang}`.
 

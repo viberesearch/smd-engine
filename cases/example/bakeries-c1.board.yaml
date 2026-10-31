@@ -43,8 +43,18 @@ elements:
   - {id: s-big-signal, board: s, half: big, kind: signal,
      label: "chains move to central production", seen_from: p-organiser}
   - {id: gap-payer, board: od, kind: gap, label: "who pays for the shared plant?", of: position}
+  - {id: gap-receiver, board: od, kind: gap, label: "who receives the dough? no bakeries on the screen", of: position}
 relations:
   - {from: p-owner, to: p-organiser, kind: shift, label: "other position"}
+  - {from: place-mills, to: fn-dough, kind: flow, carries: material, label: "flour"}
+  - {from: fn-dough, to: fn-quality, kind: flow, carries: product, label: "dough to check"}
+  - {from: fn-quality, to: fn-logistics, kind: flow, carries: product, label: "dough cleared for delivery"}
+  - {from: gap-payer, to: fn-dough, kind: refers, label: "payer missing"}
+  - {from: gap-payer, to: fn-quality, kind: refers, label: "payer missing"}
+  - {from: gap-payer, to: fn-logistics, kind: refers, label: "payer missing"}
+  - {from: gap-receiver, to: fn-dough, kind: refers, label: "receiver missing"}
+  - {from: gap-receiver, to: fn-quality, kind: refers, label: "receiver missing"}
+  - {from: gap-receiver, to: fn-logistics, kind: refers, label: "receiver missing"}
 transitions:
   - {n: 1, from: p-owner, to: s-small, cites: ["s1#t=00:05:00"]}
   - {n: 2, from: s-small, to: s-big}

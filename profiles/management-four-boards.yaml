@@ -152,7 +152,8 @@ relations:
   - {id: symbiotic, label: {ru: симбиоз, en: symbiotic with}}
   - {id: mechanism_of, label: {ru: механизм для, en: mechanism of}}
   # Beer layer: from an algedonic channel to the place that must act once the
-  # recovery time has run out (BEER1972 Гл. 17)
+  # recovery time has run out (BEER1972 Гл. 17); or from a function to the role
+  # that answers for it at a red line (gate ИИ1 Б)
   - {id: escalates, label: {ru: сигнал наверх, en: escalates}}
   # Beer layer: what a place passes up to the place above (BEER1972 Гл. 7):
   # «фильтр как устройство для уменьшения разнообразия, сводящее многое к одному»
@@ -208,6 +209,12 @@ hints:
   - absorbed-into-system-1
   - no-model-of-whole
   - model-of-whole-one-filler
+  # AI on the boards, gate ИИ1 Б (validate/ai.py)
+  - ai-decision-unanswered
+  - red-line-without-value
+  - red-line-outlives-pace
+  - red-line-breach
+  - red-line-expired
 compare_skip: [note]
 compare_groups:
   positions: [position, reflexive_position, place_for_others]

@@ -5,9 +5,11 @@ engine's own strings."""
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 from xml.sax.saxutils import escape
 
+from smd_engine.redline import last_observed, outside
 from smd_engine.verdict import rule_line
 
 if TYPE_CHECKING:
@@ -44,6 +46,8 @@ LABELS: dict[str, dict[str, Any]] = {
             "recovery_time": "срок восстановления",
             "of_whole": "модель целого (Бир)",
             "written": "записана",
+            "ai": "участие ИИ",
+            "red_line": "красная линия",
             "acts_as": "занимает место",
             "stance": "позиция",
             "lives_in": "живёт в",
@@ -78,6 +82,8 @@ LABELS: dict[str, dict[str, Any]] = {
                 "reflexive": "рефлексивная",
                 "external": "внешняя",
             },
+            # how AI takes part in a role or a function (gate ИИ1 Б)
+            "ai": {"assists": "ИИ помогает", "performs": "выполняет ИИ"},
             # who brought an element or a thesis in (`voice`)
             "voice": {
                 "group": "группа",
@@ -103,6 +109,13 @@ LABELS: dict[str, dict[str, Any]] = {
                 "draft": "черновик",
                 "extracted": "извлечено",
                 "verified": "сверено",
+            },
+            # what a `flow` carries (functional-plan.md §4)
+            "carries": {
+                "money": "деньги",
+                "material": "материал",
+                "product": "продукт",
+                "information": "информация",
             },
             # a hypothesis's `type` (field-result.md §0.1)
             "hyp_type": {
@@ -165,6 +178,27 @@ LABELS: dict[str, dict[str, Any]] = {
                 "inconclusive": "не решено, остаётся в проверке",
             },
             "no_share": "порог не доля строго между 0 и 1, предложения нет",
+            "ai_share": "функции: выполняет ИИ {n}, ИИ помогает {k}, из {m}",
+            "breaches": "Красные линии с нарушением",
+            "breach": "вне линии с {start} по {end} ({days})",
+            "still": "и сейчас",
+        },
+        # words of a red line's `line` and its last observation (gate КЛ1 В)
+        "line_words": {
+            "between": "от {min} до {max}",
+            "at_least": "не ниже {min}",
+            "at_most": "не выше {max}",
+            "yes": "да",
+            "no": "нет",
+            "expected": "ожидается",
+            "since_until": "с {since} по {until}",
+            "until": "по {until}",
+            "recovery": "восстановление {days}",
+            "on": "{value} на {date}",
+            "inside": "в коридоре",
+            "outside": "вне коридора",
+            "kept": "соблюдается",
+            "broken": "нарушено",
         },
         "details": "Таблицы элементов",
         "relations": "Связи",
@@ -290,6 +324,8 @@ LABELS: dict[str, dict[str, Any]] = {
             "recovery_time": "recovery time",
             "of_whole": "model of the whole (Beer)",
             "written": "written down",
+            "ai": "AI's part",
+            "red_line": "red line",
             "acts_as": "acts as",
             "stance": "stance",
             "lives_in": "lives in",
@@ -321,6 +357,13 @@ LABELS: dict[str, dict[str, Any]] = {
                 "inside": "inside",
                 "reflexive": "reflexive",
                 "external": "external",
+            },
+            "ai": {"assists": "AI assists", "performs": "AI performs"},
+            "carries": {
+                "money": "money",
+                "material": "material",
+                "product": "product",
+                "information": "information",
             },
             "hyp_type": {
                 "core": "core of the programme",
@@ -376,6 +419,26 @@ LABELS: dict[str, dict[str, Any]] = {
                 "inconclusive": "inconclusive, stays testing",
             },
             "no_share": "the threshold is not a share strictly between 0 and 1, no proposal",
+            "ai_share": "functions: AI performs {n}, AI assists {k}, of {m}",
+            "breaches": "Red lines breached",
+            "breach": "outside the line from {start} to {end} ({days})",
+            "still": "still outside",
+        },
+        "line_words": {
+            "between": "from {min} to {max}",
+            "at_least": "at least {min}",
+            "at_most": "at most {max}",
+            "yes": "yes",
+            "no": "no",
+            "expected": "expected",
+            "since_until": "from {since} to {until}",
+            "until": "until {until}",
+            "recovery": "recovery {days}",
+            "on": "{value} on {date}",
+            "inside": "inside the corridor",
+            "outside": "outside the corridor",
+            "kept": "kept",
+            "broken": "broken",
         },
         "details": "Element tables",
         "relations": "Relations",
@@ -693,19 +756,112 @@ def beer_parts(el: dict[str, Any], lang: str = "en") -> dict[str, str]:
     return out
 
 
+def date_text(iso: str, lang: str) -> str:
+    """An ISO date as 01.01.2027 on the Russian pages, as recorded otherwise."""
+    if lang != "ru":
+        return str(iso)
+    y, m, d = str(iso)[:10].split("-")
+    return f"{d}.{m}.{y}"
+
+
+def number_text(n: float, lang: str) -> str:
+    """A number in plain digits, never in scientific notation; in Russian the
+    thousands are set off by a thin space and the decimal mark is a comma
+    («1 000 000», «2,5»)."""
+    text = format(Decimal(repr(n)).normalize(), "f")
+    whole, _, frac = text.partition(".")
+    if lang == "ru":
+        sign = "-" if whole.startswith("-") else ""
+        digits = whole.lstrip("-")
+        groups: list[str] = []
+        while digits:
+            groups.insert(0, digits[-3:])
+            digits = digits[:-3]
+        whole = sign + "\u2009".join(groups)
+    return whole + ((("," if lang == "ru" else ".") + frac) if frac else "")
+
+
+def _value_text(line: dict[str, Any], value: Any, lang: str) -> str:
+    words = LABELS[lang]["line_words"]
+    if isinstance(value, bool):
+        return str(words["yes" if value else "no"])
+    unit = f" {line['unit']}" if line.get("unit") else ""
+    return number_text(value, lang) + unit
+
+
+def line_text(line: dict[str, Any], lang: str) -> str:
+    """A red line in words: «доля ФОТ от 18 до 25 %, с 01.01.2027 по
+    31.12.2031, восстановление 90 дней»."""
+    words = LABELS[lang]["line_words"]
+    metric = line.get("metric", "")
+    if "expect" in line:
+        value = _value_text(line, line["expect"], lang)
+        head = f"{metric or words['expected']}: {value}"
+    else:
+        lo = number_text(line["min"], lang) if "min" in line else ""
+        hi = _value_text(line, line["max"], lang) if "max" in line else ""
+        if lo and hi:
+            span = words["between"].format(min=lo, max=hi)
+        elif lo:
+            span = words["at_least"].format(min=_value_text(line, line["min"], lang))
+        else:
+            span = words["at_most"].format(max=hi)
+        head = f"{metric} {span}".strip()
+    parts = [head]
+    until = date_text(line["until"], lang)
+    if "since" in line:
+        since = date_text(line["since"], lang)
+        parts.append(words["since_until"].format(since=since, until=until))
+    else:
+        parts.append(words["until"].format(until=until))
+    if "recovery_days" in line:
+        parts.append(
+            words["recovery"].format(days=days_text(line["recovery_days"], lang))
+        )
+    return ", ".join(parts)
+
+
+def observed_value_text(line: dict[str, Any], obs: dict[str, Any], lang: str) -> str:
+    """The last observation of a red line: «27 % на 01.03.2027, вне коридора»."""
+    words = LABELS[lang]["line_words"]
+    said = words["on"].format(
+        value=_value_text(line, obs["value"], lang), date=date_text(obs["date"], lang)
+    )
+    out = outside(line, obs["value"])
+    if "expect" in line:
+        verdict = words["broken" if out else "kept"]
+    else:
+        verdict = words["outside" if out else "inside"]
+    return f"{said}, {verdict}"
+
+
+def ai_text(share: tuple[int, int, int], lang: str) -> str:
+    """The AI share of the functions (validate/ai.py ai_share) as one line."""
+    n, k, m = share
+    return str(LABELS[lang]["core"]["ai_share"]).format(n=n, k=k, m=m)
+
+
 def element_parts(el: dict[str, Any], lang: str = "en") -> dict[str, str]:
     """The fields of an element that the renderers show beside its label, as
     plain text by field: `pace` as "<n years>", the Beer fields (beer_parts),
-    `acts_as` and `stance` as their words in the language; fields the element
-    lacks are left out."""
+    `acts_as`, `stance` and `ai` as their words in the language; a red line
+    as its `line` in words (line_text) with the last observation, or as yes
+    when it has no `line`; fields the element lacks are left out."""
     out: dict[str, str] = {}
     if "pace" in el:
         out["pace"] = years_text(el["pace"], lang)
     out |= beer_parts(el, lang)
     values = LABELS[lang]["values"]
-    for key in ("acts_as", "stance"):
+    for key in ("acts_as", "stance", "ai"):
         if el.get(key):
             out[key] = values[key].get(el[key], str(el[key]))
+    if el.get("line"):
+        out["red_line"] = line_text(el["line"], lang)
+        last = last_observed(el)
+        if last is not None:
+            out["observed"] = observed_value_text(el["line"], last, lang)
+    elif el.get("red_line") is True:
+        out["red_line"] = "да" if lang == "ru" else "yes"
     return out
 
 

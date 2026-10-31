@@ -2,7 +2,7 @@
 id: small-situation
 title: Small situation by the four questions
 step: 3
-version: 0.2.3
+version: 0.2.4
 role: игротехник
 profile: program-three-boards
 inputs:
@@ -164,6 +164,8 @@ State line: `version`, `difficulty` (what failed in the previous cycle, if any),
 Sign-offs to request, each with its function. A touchpoint with no function is paper-forwarding (Schukin, interface tax), so ask only where the status changes something:
 - `accept_thesis` for each `ai_variant` thesis that the human kept or corrected, as the grounds for `refined`. An AI variant the human drops is removed from the record together with the elements it alone fed, and the reply says so;
 - `close_k` for a K the human says is now answered, naming the criterion it answers. Do not close K yourself; checking the small situation against the criteria is the job of the qualification pass.
+
+Record the run: set `run: {procedure: small-situation, version: <this procedure's front-matter version>, model: <what your runner reports about the model, free text>, date: <today>}` in the record. A later procedure on the same record replaces it; `smd eval` compares two such runs. Add the optional fields when you know them, and omit the rest, never inventing a value: `pack_sha256` (the hash `smd pack` printed, if you were given a pack), `inputs` (source id: sha256 of the file you read), `temperature` (a number), `sample` (the run index, when the procedure is run several times on one input).
 
 ## 8. Check by a listener, and exit
 

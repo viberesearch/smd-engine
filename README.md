@@ -73,7 +73,7 @@ Examples with options are in `docs/commands.md`; `smd <command> --help` lists th
 | `apply` | Applies a patch (add, set and remove by id or by transition number `n`, `board_notes`, state) to a board set as its next sub-version, then validates |
 | `pack` | One Markdown file with a procedure, its roles, lenses, the data model, the cells to fill and the records, for any model |
 | `status` | The core view of a board set on one page: state line, open K, hypotheses (untested ones in leverage order, a proposal), AI items waiting for a sign-off, transitions, counts |
-| `next` | The procedure to run next, with one line why and at most two alternatives, by a rule table (`docs/commands.md`) |
+| `next` | The procedure to run next, with one line why and at most two alternatives, from the hint pointers and a few explicit rules, in the solo-session order (`docs/commands.md`) |
 
 ## Data model on one screen
 

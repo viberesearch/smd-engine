@@ -127,6 +127,8 @@ def render_markdown(data: dict[str, Any], lang: str = "ru") -> str:
         for r in data["relations"]:
             label = f" — {r['label']}" if r.get("label") else ""
             kind = kinds.get(r["kind"], r["kind"])
+            if r.get("carries"):
+                kind += ", " + value_word("carries", r["carries"], lang)
             out.append(f"- `{r['from']}` → `{r['to']}` ({kind}){label}")
         out.append("")
     if data.get("transitions"):

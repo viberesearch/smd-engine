@@ -66,11 +66,13 @@ Fields: `id` (no dot, since a dot separates a board from its half), `template`, 
 | `vsm_system` | kinds the profile flags `vsm` only (`position` and `post` of `management-four-boards`): the systems 1-5 of Beer's viable system model that the place or position fills, a list of distinct numbers, e.g. `[3, 4, 5]`. A list, because one person often fills several systems (BEER1972 Гл. 9), and the hint `single-node-metasystem` reads them together |
 | `of_whole` | kinds the profile flags `of_whole` only (`model` of `management-four-boards`): `true` when the model is the firm's model of itself and its environment, the model Beer's system 4 keeps (BEER1972 Гл. 13). The post or position that holds it has a `uses` relation to it; the hints `no-model-of-whole` and `model-of-whole-one-filler` read both |
 | `written` | kinds the profile flags `of_whole` only, as `of_whole` is (gate Г5б Б): `true` when the model is written down and kept apart from the people who hold it. A model of the whole with `written: true` gets no `model-of-whole-one-filler`: the person leaves, the record stays. `no-model-of-whole` does not read it, since a written model still needs a place that `uses` it. On a model without `of_whole: true` nothing reads it |
-| `threshold` | `algedonic_channel` only: the limit of the index past which the channel signals, as text. A stakeholder's red line is recorded as such a channel (BEER1972 Гл. 17) |
+| `threshold` | `algedonic_channel`, or any element with `red_line: true`: the limit of the index past which the channel signals, as text. A stakeholder's red line is recorded as such a channel (BEER1972 Гл. 17); a structured value goes in `line` (`docs/red-lines.md`), and `threshold` stays as the free-text fallback |
 | `recovery_time` | `algedonic_channel` only: days, a number > 0, that the unit has to bring the index back before the signal goes up by `escalates` (BEER1972 Гл. 17) |
+| `red_line`, `line`, `observed` | a red line, its value (a corridor or a yes/no, and the dates it is in force) and the values the data gave: `docs/red-lines.md` (gates ИИ1 Б, КЛ1 В) |
 | `modality` | `fact` or `ought` (модальность фактического и должного, GP-Guide11 ¶7); theses carry it too |
 | `nature` | elements of an object board only: `natural`, `artificial` or `both` (естественное, искусственное; GP-STS; GP-T5 p. 252) |
 | `performed_by` | functions only: the position or place for others that performs the function; the viewpoint stays in `seen_from` |
+| `ai` | roles (the kinds a profile flags `role`; a gap only with `of: position`) and functions only (gate ИИ1 Б): `assists` (ИИ помогает: people do the work with AI help) or `performs` (выполняет ИИ: AI does the work). AI is an actor: the agent goes in `fillers`, and what it produces moves by a `flow` as information or product, not as a `carries` value of its own (`docs/method/roles-and-actors.md`). A function's effective value is its own `ai`, else the `ai` of the role in its `performed_by`; `smd status` and `smd index` count functions by it, and the hint `ai-decision-unanswered` reads it |
 | `in` | containers, e.g. a function inside a frame |
 | `epistemic` | `stated`, `hypothesis`, `unverified`, `checked` |
 | `voice` | who introduced it, from the thesis voices: `group`, `participant`, `moderator`, `expert`, `organisers`, `ai` |
@@ -110,7 +112,7 @@ A thesis can carry a move too; there `from` may name theses as well as elements.
 
 ### Relations, transitions, qualifications, state
 
-- **Relations** (`shift`, `flow`, `produces`, `uses`, `belongs`, `opposes`, `refers`, `represents`, `other`, the `relations` of every profile; a profile may add its own, as the management profile does) link elements, normally within a board. `shift` links two positions; `represents` goes from a position to its representation of an object. Relations and transitions take an optional `voice` (e.g. AI), so links an AI drew stay visible as such.
+- **Relations** (`shift`, `flow`, `produces`, `uses`, `belongs`, `opposes`, `refers`, `represents`, `other`, the `relations` of every profile; a profile may add its own, as the management profile does) link elements, normally within a board. `shift` links two positions; `represents` goes from a position to its representation of an object. Relations and transitions take an optional `voice` (e.g. AI), so links an AI drew stay visible as such. A `flow` takes an optional `carries` (`money`, `material`, `product`, `information`): what passes; the functional-plan hints read a payer as money in, an input as anything else in and a receiver as anything but money out (`docs/checks.md`).
 - **Transitions** are numbered 1..n and move between boards. They draw the trajectory of the group's thinking.
 - **Qualifications** `K1..Kn`: `targets`, `text`, `short` (the legend's text when given), `by`, `voice` (who wrote it, e.g. AI drafting for the methodologist), `status` (`open` | `partly` | `closed`), `raised_in`, `closed_in` (cycle numbers).
 - **State** is the one-line state after a cycle: `version`, `difficulty` (what failed in the previous cycle), `accepted`, `open`, `next_move`.
@@ -167,14 +169,14 @@ The inter-module form: what we assume, how we test it, what we got, what it chan
 | `targets`, `qualifications` | element ids and K ids it is about |
 | `artefacts` | the field artefacts the result rests on: manifest ids of kind `field_artefact` |
 | `raised_in`, `resolved_in` | cycle numbers |
-| `voice` | who formulated it; AI-drafted K and H are listed as a hint until a human keeps or drops them |
+| `voice` | who formulated it, free text (no enum, unlike an element's); `AI`, `ai` and `ИИ` all mark an AI draft, which is listed as a hint until a human keeps or drops it |
 | `lens` | the lens behind it, as on elements; ontology records take `lens` too |
 | `tags` | as on elements; ontology records take `tags` too |
 | `type` | how it is read (gate М1 В; `procedures/field-result.md` §0.1): `core` (core of the programme, not tested directly), `product` (methodological product, tested for realizability, GP1981), `claim` (one empirical claim, falsified by a condition written before the field), `estimate` (a share, cost or frequency: an interval against a decision threshold), `probe` (a few interviews: produces hypotheses, tests none), `design` (design choice or vision, not tested) |
 | `rule` | the pre-registered decision rule, a structured `revise_if` (gate Ф В): `{metric, op, threshold, n_min, basis}`; refuted when `<metric> <op> <threshold>` (`op`: `<`, `<=`, `>`, `>=`); `n_min` (integer from 1) the fewest cases it is read on; `basis` where the threshold comes from. `metric`, `op` and `threshold` are required |
 | `observed` | what the field gave for the rule: `{k, n, artefact}`, k cases of n (k from 0, n from 1, k no more than n) in a source of kind `field_artefact` |
 
-A result (`confirmed` or `refuted`) needs `result`, `artefacts`, `resolved_in` and an `accept_result` sign-off. With `rule` and `observed`, a threshold strictly between 0 and 1, and the hypothesis still `untested` or `testing`, the engine proposes a verdict from the 95% Wilson score interval of k/n (`src/smd_engine/verdict.py`): too few (n below `n_min`), refuted (the whole interval on the refuting side), confirmed (on the holding side) or inconclusive (it straddles the threshold); `smd validate --hints` and `smd status` print it. The proposal changes nothing: the sign-off stays human.
+A result (`confirmed` or `refuted`) needs `result`, `artefacts`, `resolved_in` and an `accept_result` sign-off. With `rule` and `observed`, a threshold strictly between 0 and 1, and the hypothesis `testing`, the engine proposes a verdict from the 95% Wilson score interval of k/n (`src/smd_engine/verdict.py`): too few (n below `n_min`), refuted (the whole interval on the refuting side), confirmed (on the holding side) or inconclusive (it straddles the threshold); `smd validate --hints` and `smd status` print it. An `untested` hypothesis with `observed` gets no proposal, only the hint to set it `testing`. The proposal changes nothing: the sign-off stays human.
 
 ### Ontology (step 3)
 
@@ -287,7 +289,7 @@ The file format, the layout of boards by their regions and the checks of a profi
 
 `smd migrate <paths> [--write]` rewrites board sets and manifests (files or folders) to the current schema, one step per version (`src/smd_engine/migrate.py`). It prints what each file changes; without `--write` it only reports. A current record, of any type, is left as it is; an unquoted version (`schema_version: 0.2`) is read as text. The changes are made in the file's text, line by line, so comments and layout stay; the edited text is loaded back and compared with the migrated data. When they differ, the file is rewritten in the engine's YAML layout (JSON for a `.json` file) and the report says so ("rewritten, about N comment line(s) not kept"; the count is approximate).
 
-From 0.2 to 0.3: `schema_version` becomes `"0.3"`; an element `voice` outside the enum is set to its lowercase form when that is in the enum (`AI` to `ai`; `ИИ` also becomes `ai`), otherwise to `participant`, with the old text kept in `voice_note`. Nothing else in 0.3 is stricter than 0.2. The profile checks came later within 0.3 and need no migration: the default profile holds exactly the boards, kinds and relation kinds of the 0.3 enums.
+From 0.2 to 0.3: `schema_version` becomes `"0.3"`; an element `voice` outside the enum is set to its lowercase form when that is in the enum (`AI` to `ai`; `ИИ` also becomes `ai`), otherwise to `participant`, with the old text kept in `voice_note`. Nothing else in 0.3 is stricter than 0.2: the `voice` of a K, a hypothesis, a relation and a transition stays free text and is not rewritten (`AI` there is read as AI as `ai` is). The profile checks came later within 0.3 and need no migration: the default profile holds exactly the boards, kinds and relation kinds of the 0.3 enums.
 
 ## Checks
 

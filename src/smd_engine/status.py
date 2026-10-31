@@ -2,9 +2,11 @@
 
 What a person needs to know before reading the record: the state line, the K
 still open, the hypotheses in testing and the untested ones in leverage order
-(leverage.py, a proposal), the verdicts the decision rule proposes for the
+(leverage.py, a proposal), the red lines their observations breach
+(redline.py), the verdicts the decision rule proposes for the
 hypotheses with an observed count (verdict.py), the AI-voiced items waiting for a human sign-off, the
-transitions, and the counts. Nothing else. Lists are cut and end in "and N more",
+transitions, and the counts (with the AI share of the functions when an element
+has `ai`, validate/ai.py). Nothing else. Lists are cut and end in "and N more",
 so the page for a large record still fits on a screen."""
 
 from __future__ import annotations
@@ -14,13 +16,24 @@ from typing import Any
 
 from smd_engine.leverage import leverage_order
 from smd_engine.profile import profile_of
-from smd_engine.render.text import LABELS, cut, rule_text, value_word
+from smd_engine.redline import breaches
+from smd_engine.render.text import (
+    LABELS,
+    ai_text,
+    cut,
+    date_text,
+    days_text,
+    rule_text,
+    value_word,
+)
+from smd_engine.validate.ai import ai_share
 from smd_engine.validate.context import is_ai
 from smd_engine.verdict import is_share, of_hypothesis, verdict_line
 
 # How many items of each list the page shows.
 SHOWN = {
     "verdicts": 8,
+    "breaches": 8,
     "k": 8,
     "testing": 5,
     "untested": 5,
@@ -98,7 +111,7 @@ def _verdicts(data: dict[str, Any], lang: str) -> list[str]:
         if h.get("rule") and h.get("observed")
         if h["observed"]["k"] <= h["observed"]["n"]
         # a recorded result is not re-proposed; validate warns on a contradiction
-        and h["status"] in ("untested", "testing")
+        and h["status"] == "testing"
     ]
     if not ruled:
         return []
@@ -168,6 +181,29 @@ def _waiting(data: dict[str, Any], lang: str) -> list[str]:
     return [f"## {words['waiting']}", *lines] if lines else []
 
 
+def _breaches(data: dict[str, Any], lang: str) -> list[str]:
+    """The red lines their observations breach (redline.py), each with the
+    dates of its breaches."""
+    words = LABELS[lang]["core"]
+    found = [(e, breaches(e, data.get("date"))) for e in data["elements"]]
+    found = [(e, b) for e, b in found if b]
+    if not found:
+        return []
+    out = [f"## {words['breaches']} ({len(found)})"]
+    for e, runs in found[: SHOWN["breaches"]]:
+        said = "; ".join(
+            words["breach"].format(
+                start=date_text(b.start, lang),
+                end=date_text(b.end, lang),
+                days=days_text(b.days, lang)
+                + ("" if b.closed else f", {words['still']}"),
+            )
+            for b in runs
+        )
+        out.append(f"- {e['id']}: {cut(e.get('short', e['label']), WIDTH)}: {said}")
+    return out + _tail(words, len(found), SHOWN["breaches"])
+
+
 def _transitions(data: dict[str, Any], lang: str) -> list[str]:
     lab, rows = LABELS[lang], data.get("transitions", [])
     if not rows:
@@ -203,10 +239,13 @@ def _counts(data: dict[str, Any], lang: str) -> list[str]:
     ]
     if len(ranked) > SHOWN["kinds"]:
         shown.append(words["more"].format(n=len(ranked) - SHOWN["kinds"]))
+    # the AI share of the functions, only when an element has `ai` (gate ИИ1 Б)
+    share = ai_share(data)
     return [
         f"## {words['counts']}: {lab['elements'].lower()} {len(elements)}",
         f"- {words['boards']}: {'; '.join(boards)}",
         f"- {words['kinds']}: {'; '.join(shown)}",
+        *([f"- {ai_text(share, lang)}"] if share else []),
     ]
 
 
@@ -218,6 +257,7 @@ def render_status(data: dict[str, Any], lang: str = "ru") -> str:
         _testing(data, lang),
         _verdicts(data, lang),
         _untested(data, lang),
+        _breaches(data, lang),
         _waiting(data, lang),
         _transitions(data, lang),
         _counts(data, lang),
