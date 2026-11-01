@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/viberesearch/smd-engine/schemas/story.schema.json",
+  "title": "Story: a checked view over board sets, for one audience and one protagonist",
+  "type": "object",
+  "required": ["record", "schema_version", "id", "boards", "audience", "protagonist", "form", "allow", "path", "conflict", "resolution", "open", "sentences", "voice", "run"],
+  "additionalProperties": false,
+  "properties": {
+    "record": {"const": "story"},
+    "schema_version": {"const": "0.1"},
+    "id": {"$ref": "#/$defs/id"},
+    "title": {"type": "string", "description": "one line; for an invented story the title says so"},
+    "boards": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "version", "sha256"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"$ref": "#/$defs/id", "description": "id of the board set"},
+          "version": {"type": "string", "description": "its state.version when the story was made"},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "sha256 of the board file the story was made from"}
+        }
+      },
+      "description": "the stamp of each board set the story reads; a change of version or sha means regenerate"
+    },
+    "audience": {"$ref": "#/$defs/id", "description": "element id of the party the story is told to"},
+    "protagonist": {"$ref": "#/$defs/id", "description": "element id of the party the story is about; the audience may be the protagonist"},
+    "form": {"enum": ["scqa", "premortem", "scenarios"]},
+    "allow": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"},
+      "description": "curated allow-list: the only ids the audience may see; a human sets it, the engine only checks the sentences against it"
+    },
+    "path": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/id"}, "description": "element ids in the order of the walk; each neighbour pair is joined by a typed link"},
+    "conflict": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/id"}, "description": "the conflict objects: opposes pairs, normality boundaries, a series of linked events, red lines in breach"},
+    "resolution": {"type": "array", "items": {"$ref": "#/$defs/id"}, "description": "the cooperation, function chain or goal the path reaches; empty when the board has none, and the story says so"},
+    "open": {"type": "array", "items": {"$ref": "#/$defs/id"}, "description": "hypotheses the story ends on, as questions"},
+    "sentences": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["text", "ids", "level"],
+        "additionalProperties": false,
+        "properties": {
+          "text": {"type": "string", "minLength": 1},
+          "ids": {"type": "array", "items": {"$ref": "#/$defs/id"}, "description": "board ids the sentence rests on; empty is reported by the check (G1)"},
+          "level": {"enum": ["hypothesis", "unverified", "stated", "checked"], "description": "the strength the sentence claims; never above the weakest of its ids (G2)"},
+          "part": {"type": "string", "description": "the part of the form: situation, complication, question, answer for scqa"}
+        }
+      }
+    },
+    "voice": {"type": "string", "description": "who wrote the story; ai, since a story is always a draft of the engine (G7)"},
+    "run": {
+      "type": "object",
+      "required": ["procedure"],
+      "additionalProperties": false,
+      "description": "the procedure run that wrote the sentences, as on a board set",
+      "properties": {
+        "procedure": {"$ref": "#/$defs/id"},
+        "version": {"type": "string"},
+        "model": {"type": "string"},
+        "date": {"type": "string", "format": "date"},
+        "pack_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}
+  }
+}

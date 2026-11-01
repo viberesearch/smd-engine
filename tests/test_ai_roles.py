@@ -289,7 +289,7 @@ def test_threshold_on_a_red_line(plan: dict[str, Any]) -> None:
     line["threshold"] = "6 hours"
     assert messages(plan, "error") == []
     del line["red_line"]
-    assert any("'threshold' is only for" in m for m in messages(plan, "error"))
+    assert any("'threshold' is allowed on" in m for m in messages(plan, "error"))
 
 
 def test_red_line_without_value(plan: dict[str, Any]) -> None:

@@ -2,7 +2,7 @@
 id: field-result
 title: Field artefact to hypothesis result
 step: 2
-version: 0.3.2
+version: 0.3.3
 role: игротехник
 profile: any
 inputs:
@@ -51,6 +51,8 @@ When the field gives a count, record it as `observed: {k, n, artefact}`: k cases
 
 The interval is two-sided 95% but read on one side only (is it all below the threshold, or all above?), so the proposal is conservative: it refutes or confirms less often than a one-sided 95% test would. The proposal does not change the record: the group signs `accept_result` as before. A recorded result opposite to the proposal is a warning.
 
+Robustness (docs/method/robustness-rules.md). Four optional fields make the reading harder to fool. `rule.domain` names the ranges the rule is stated for (`{revenue_bn: [0.5, 2.5]}`) and `observed.sample` the ranges the field covered: a sample outside the domain gets the outcome `outside_domain` and no reading, and one that covers only part of it says which part; give the sample whenever the rule has a domain (hint `domain-sample`). Every share verdict reports `flips`, the number of observations whose recoding would change the outcome: a verdict that flips on a few cases is said to be firm only that far. If some cases of the artefact have no outcome (age unknown, no reply), record them as `observed.unknown`; the verdict is then also given with none and with all of them counted. Name rival hypotheses in `rivals`; never average them.
+
 ## 1. Check the artefact
 
 - It is in the manifest, with kind `field_artefact`, a sha256 and a clean-room decision. If not, stop and ask for it to be registered.
@@ -72,6 +74,8 @@ Take H's `type`, `assumes`, `action`, `observe`, `revise_if` and `rule`. Write i
 - `refuted`: the `revise_if` result occurred.
 - Otherwise H stays `testing`. This includes a result reported in a source with no field artefact (step 1). Say what further action would settle it.
 - With `rule` and `observed`, start from the engine's proposal (section 0.2; the hint `verdict`): too few or inconclusive means `testing`. If you propose otherwise, give the reason. A `probe`, a `core` and a `design` get no result (section 0.1).
+
+- If the result is refuted for the H and for each of its `rivals` (hint `surprise`), no hypothesis on the board expected it. Do not adjust the H to fit. Propose a dated surprise: a `signal` (a `note` on a profile with no signal kind) with `date` and `escaped: [the ids]`, and say what the group has not yet considered.
 
 For `confirmed` or `refuted`, propose `result` (one sentence, figures as in the artefact), `artefacts` (the source ids), `resolved_in` (the cycle) and `changes` (which elements, K or theses the result changes).
 

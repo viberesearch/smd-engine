@@ -57,6 +57,8 @@ hints:
   - rule-n-min
   - type-status
   - verdict
+  - domain-sample
+  - surprise
   - ai-drafts
   - ai-variants
   - no-new-scheme
@@ -81,6 +83,7 @@ hints:
   - red-line-outlives-pace
   - red-line-breach
   - red-line-expired
+  - line-without-recovery
   - ai-cooperation
   - cooperation-flows
   - translation-loss

@@ -15,7 +15,7 @@ from typing import Any
 
 from smd_engine.profile import ProfileError, matches, profile_of
 from smd_engine.render.text import LABELS, hypothesis_parts, value_word
-from smd_engine.verdict import of_hypothesis, verdict_line
+from smd_engine.verdict import detail_text, of_hypothesis, verdict_line
 
 EMPTY = "в записи не приведено"
 MAX_MOVES = 3  # SessionFlow, station Б: at most three moves per iteration
@@ -68,6 +68,7 @@ def _typed(h: dict[str, Any]) -> list[str]:
         v = of_hypothesis(h)
         said = (
             f"{verdict_line(v)}: {core['verdict'][v.outcome]}"
+            + "".join(f"; {x}" for x in [detail_text(v, "ru")] if x)
             if v
             else core["no_share"]
         )

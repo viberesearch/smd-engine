@@ -57,7 +57,7 @@ def alpha_nominal(units: Sequence[Sequence[Hashable | None]]) -> Alpha:
         D_e = sum_{c != k} n_c * n_k / (n - 1)
 
     Alpha is undefined (None) when D_e is 0: no unit is pairable, or only one value
-    occurs in all the pairable data.
+    occurs in all the pairable data (robustness rule R3: a status, never inf or NaN).
     """
     counted = [Counter(v for v in unit if v is not None) for unit in units]
     counted = [c for c in counted if c]
@@ -77,6 +77,9 @@ def alpha_nominal(units: Sequence[Sequence[Hashable | None]]) -> Alpha:
             len(counted), len(pairable), n, None, "only one value occurs in all units"
         )
     d_e = (n * n - sum(v * v for v in n_c.values())) / (n - 1)
+    # Robustness rule R3: never divide by an expected disagreement of 0.
+    if not d_e > 0:
+        return Alpha(len(counted), len(pairable), n, None, "expected disagreement is 0")
     return Alpha(len(counted), len(pairable), n, 1 - d_o / d_e)
 
 

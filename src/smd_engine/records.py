@@ -16,6 +16,7 @@ SCHEMA_FILES = {
     "source_manifest": "source_manifest.schema.json",
     "taxonomies": "taxonomies.schema.json",
     "board_patch": "board_patch.schema.json",
+    "story": "story.schema.json",
 }
 
 
@@ -58,7 +59,7 @@ def _dates_to_text(value: Any) -> Any:
 
 def is_record_file(path: Path) -> bool:
     return path.name == "sources.yaml" or path.name.endswith(
-        (".board.yaml", ".patch.yaml")
+        (".board.yaml", ".patch.yaml", ".story.yaml")
     )
 
 

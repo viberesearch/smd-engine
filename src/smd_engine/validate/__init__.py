@@ -74,10 +74,12 @@ from smd_engine.validate.hints import (
 )
 from smd_engine.validate.hypotheses import (
     check_hypotheses,
+    hint_domain_sample,
     hint_hypothesis_rule,
     hint_hypothesis_type,
     hint_rule_basis,
     hint_rule_n_min,
+    hint_surprise,
     hint_type_status,
     hint_verdict,
 )
@@ -198,6 +200,8 @@ REGISTRY: list[Check] = [
     hint_rule_n_min,
     hint_type_status,
     hint_verdict,
+    hint_domain_sample,
+    hint_surprise,
     hint_ai_drafts,
     hint_ai_variants,
     hint_no_new_scheme,

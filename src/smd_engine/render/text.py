@@ -176,6 +176,7 @@ LABELS: dict[str, dict[str, Any]] = {
                 "refuted": "опровергнуто",
                 "confirmed": "подтверждено",
                 "inconclusive": "не решено, остаётся в проверке",
+                "outside_domain": "выборка вне области правила, предложения нет",
             },
             "no_share": "порог не доля строго между 0 и 1, предложения нет",
             "ai_share": "функции: выполняет ИИ {n}, ИИ помогает {k}, из {m}",
@@ -276,6 +277,8 @@ LABELS: dict[str, dict[str, Any]] = {
                 "развёртывает",
                 "источники",
             ],
+            "f_title": "Потоки: что по ним передаётся",
+            "f_columns": ["откуда", "куда", "передаётся", "подпись", "источники"],
             "src_title": "Источники, на которые ссылается запись",
             "src_columns": ["id", "название", "где лежит"],
         },
@@ -417,6 +420,7 @@ LABELS: dict[str, dict[str, Any]] = {
                 "refuted": "refuted",
                 "confirmed": "confirmed",
                 "inconclusive": "inconclusive, stays testing",
+                "outside_domain": "the sample is outside the rule's domain, no proposal",
             },
             "no_share": "the threshold is not a share strictly between 0 and 1, no proposal",
             "ai_share": "functions: AI performs {n}, AI assists {k}, of {m}",
@@ -509,6 +513,8 @@ LABELS: dict[str, dict[str, Any]] = {
                 "cites",
             ],
             "b_columns": ["id", "template", "board", "seen from", "unfolds", "cites"],
+            "f_title": "Flows: what they carry",
+            "f_columns": ["from", "to", "carries", "label", "cites"],
             "src_title": "Sources the record cites",
             "src_columns": ["id", "title", "where it is"],
         },
@@ -577,9 +583,14 @@ def rule_text(rule: dict[str, Any], lang: str) -> str:
     return rule_line(rule) + (f" ({words['basis']}: {basis})" if basis else "")
 
 
-def observed_text(obs: dict[str, Any]) -> str:
-    """What the field gave for the rule: `12/40 (s7)`."""
-    return f"{obs['k']}/{obs['n']} ({obs['artefact']})"
+def observed_text(obs: dict[str, Any], lang: str = "ru") -> str:
+    """What the field gave for the rule: `12/40 (s7)`, and `, unknown 9` when
+    cases with a missing outcome are named."""
+    out = f"{obs['k']}/{obs['n']} ({obs['artefact']})"
+    if obs.get("unknown"):
+        word = "неизвестно" if lang == "ru" else "unknown"
+        out += f", {word} {obs['unknown']}"
+    return out
 
 
 def hypothesis_parts(h: dict[str, Any], lang: str) -> dict[str, str]:
@@ -591,7 +602,7 @@ def hypothesis_parts(h: dict[str, Any], lang: str) -> dict[str, str]:
     if "rule" in h:
         out["rule"] = rule_text(h["rule"], lang)
     if "observed" in h:
-        out["observed"] = observed_text(h["observed"])
+        out["observed"] = observed_text(h["observed"], lang)
     return out
 
 

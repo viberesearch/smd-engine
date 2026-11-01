@@ -200,8 +200,10 @@ def graph_model(
     nodes: list[dict[str, Any]] = []
     edges: list[dict[str, Any]] = []
 
-    def edge(src: str, dst: str, kind: str, label: str = "") -> None:
+    def edge(src: str, dst: str, kind: str, label: str = "", carries: str = "") -> None:
         edges.append({"s": src, "t": dst, "k": kind, "l": label})
+        if carries:  # the word for what a flow carries, in the language
+            edges[-1]["c"] = value_word("carries", carries, lang)
 
     for e in elements:
         x, y, z = pos.get(e["id"], (0.0, 0.0, plane_z[e["board"]] * LAYER))
@@ -239,7 +241,9 @@ def graph_model(
                 edge(e["id"], parent, "in")
     for r in data.get("relations", []):
         if r["from"] in by_id and r["to"] in by_id:
-            edge(r["from"], r["to"], r["kind"], r.get("label", ""))
+            edge(
+                r["from"], r["to"], r["kind"], r.get("label", ""), r.get("carries", "")
+            )
     for t in data.get("transitions", []):
         if t["from"] in by_id and t["to"] in by_id:
             edge(t["from"], t["to"], "transition", f"{t['n']}. {t.get('label', '')}")

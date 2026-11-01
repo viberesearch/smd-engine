@@ -27,7 +27,7 @@ A red line is an absolute value that a stakeholder sets and data check: a thresh
 | `until` | the date the line ends; required |
 | `recovery_days` | how many days a value may stay outside the line before it counts as a breach |
 
-A line is a corridor or a yes/no. Both at once is an error, and so is neither. `min` must be below `max`, and `until` after the start. On an `algedonic_channel`, the channel's own `recovery_time` stays: when both are set they must be equal, and the breach rule reads `line.recovery_days`, else `recovery_time`. The free-text `threshold` remains for records written before `line`. The hint `red-line-without-value` is satisfied by either.
+A line is a corridor or a yes/no. Both at once is an error, and so is neither. `min` must be below `max`, and `until` after the start. On an `algedonic_channel` or any element with `red_line: true`, a `recovery_time` (days) may stay beside the `line`: when both are set they must be equal, and the breach rule reads `line.recovery_days`, else `recovery_time`. The free-text `threshold` remains for records written before `line`. The hint `red-line-without-value` is satisfied by either.
 
 ## `observed`: what the data gave
 
@@ -46,6 +46,8 @@ The rule is in `src/smd_engine/redline.py`, and it gives the same answer for the
 2. A value is outside when it is below `min`, above `max`, or differs from `expect`.
 3. Each run of consecutive outside values spans from its first date to the date of the next inside value. When no inside value follows, the run is still open. It spans to the record's `date` when that is later than the last observation, and otherwise to the last observation. It never spans past `until`. Beer's recovery time runs from the deviation to now, not to the last reading.
 4. A run whose span in days is longer than the recovery time is a breach. With no recovery time, every run is a breach.
+
+The hint `line-without-recovery` (all three profiles, robustness rule R6) names a red line with no recovery time (`recovery_days` or `recovery_time`) or no escalation address: an `escalates` relation to a post, position or place for others where the profile has `escalates` (`management-four-boards`: only that counts), or on the other profiles a `flow` with `carries: information` from the line to one. The example cases send the nightly report of `rl-unsold` to the owner this way.
 
 The hint `red-line-breach` lists each breach with its dates, and `smd status` lists the red lines with a breach. Observations dated after `until`, or a record dated after it, get `red-line-expired`: "the line ended on <until>: renew or drop". `red-line-outlives-pace` names a line in force longer, in years, than the `pace` of an element it is linked to. The span is `until` minus `since`, or minus the record's `date` when there is no `since`. Linked means the line itself, the elements it is `in` or that are `in` it, `performed_by` either way, or a relation of any kind either way. The procedures act in `procedures/field-result.md` §5 and `procedures/functional-plan.md` §4.
 

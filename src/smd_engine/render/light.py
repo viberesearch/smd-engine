@@ -6,7 +6,8 @@ frames with their functions, concepts, models, cooperations, situations,
 boundaries of normality, series of linked events, visionaries) and the К layer.
 The `light_off` kinds (facts, signals and notes), moves still awaiting a
 decision, `refers` links, link labels and the list of open items leave the
-screen; they stay in the record, in the HTML tables and in the frame texts.
+screen; they stay in the record, in the HTML tables and in the frame texts. A
+flow keeps the word for what it carries (`carries`), which becomes its only text.
 
 `fold` goes further for an overview: each board keeps its skeleton (the kinds
 the profile marks `skeleton`: entry, positions, frames with their functions,

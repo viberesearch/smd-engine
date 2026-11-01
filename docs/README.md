@@ -10,6 +10,8 @@ Start with `README.md` in the repository root. This folder holds the reference d
 | `glossary.md` | the terms a first-time user meets, one line each |
 | `data-model.md` | the record format: board sets, source manifests, taxonomies, patches, the `profile` key, migration |
 | `checks.md` | the checks the validator runs: errors, warnings and hints, and the profile and source of each hint |
+| `hypotheses.md` | hypothesis fields: `type`, `rule`, `observed`, `rivals`, the verdict and its robustness fields |
+| `stories.md` | stories as a checked view over the boards: `smd story paths` and `smd story check`, the story file, rules G1-G7 |
 | `red-lines.md` | red lines: `red_line`, the structured value `line`, `observed` values and the breach rule |
 | `profiles.md` | the profile format: boards and their regions, kinds, the screen layout, the ids every profile defines, the checks of a profile file |
 | `commands.md` | the commands of `smd` with examples, and the exit codes |
@@ -35,6 +37,7 @@ Start with `README.md` in the repository root. This folder holds the reference d
 |---|---|
 | `../cases/example/` | an invented case in English: two cycles, a patch, a classic-profile record, a golden run |
 | `../cases/example_ru/` | the same case with Russian labels, and two records on the management profile: G.P.'s scheme of ОРУ (`pekarni-oru-c1`) and its Beer layer, one bakery sold to a holding (`pekarnya-holding-c1`) |
+| `../cases/spectra_coffee/` | an invented business map in Russian with all six tiers tagged, a red line in breach and four checked stories (owner, buyer, bank, a premortem for the successor) |
 | `../cases/example/golden/README.md` | how to check a procedure run against a reference record with `smd eval` |
 
 ## Other files in the root

@@ -37,10 +37,13 @@ KIND_FIELDS = {
     "assigned_by": ("goal", "goals"),
     # Beer layer of management-four-boards (gate Бир3 В): the kind the hint
     # line-without-recovery registers (validate/management.py)
-    # (or any element with `red_line: true`, gate ИИ1 Б)
+    # (or any element with `red_line: true`, gate ИИ1 Б). The hint reads any
+    # red line, on every profile (robustness rule R6).
     "threshold": ("algedonic_channel", "algedonic channels"),
     "recovery_time": ("algedonic_channel", "algedonic channels"),
 }
+# the fields of KIND_FIELDS that an element with `red_line: true` takes too
+RED_LINE_FIELDS = ("threshold", "recovery_time")
 SEEN_FROM_ERROR = "seen_from must be a position or a reflexive position"
 REFLECTED_FROM_ERROR = "reflected_from must be a position or a reflexive position"
 # What a goal may arise from: a breakdown on the board or in the talk
@@ -99,11 +102,19 @@ def _element_findings(ctx: Ctx, el: dict[str, Any], out: list[Finding]) -> None:
             out.append(Finding("error", eid, f"'{field}' is only for gaps"))
     for field, (only, name) in KIND_FIELDS.items():
         # a red line's value, a threshold or yes/no, is its `threshold` on any
-        # element (gate ИИ1 Б, the case owner 26.10)
-        if field == "threshold" and el.get("red_line") is True:
+        # element (gate ИИ1 Б, the case owner 26.10), and its `recovery_time`
+        # too (robustness rule R6: the hint line-without-recovery asks for it)
+        if field in RED_LINE_FIELDS and el.get("red_line") is True:
             continue
         if field in el and kind != only:
-            out.append(Finding("error", eid, f"'{field}' is only for {name}"))
+            if field in RED_LINE_FIELDS:
+                text = (
+                    f"'{field}' is allowed on {name} and on elements "
+                    "with `red_line: true`"
+                )
+            else:
+                text = f"'{field}' is only for {name}"
+            out.append(Finding("error", eid, text))
     stance = profile.kinds_where("stance")
     if "stance" in el and kind not in stance:
         out.append(

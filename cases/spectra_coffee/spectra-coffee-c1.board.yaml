@@ -1,0 +1,282 @@
+# ВЫМЫШЛЕННЫЙ ПРИМЕР (черновик ИИ). Кофейня «Спектра Кофе», её основатель, покупатель
+# и банк выдуманы. Цифры меню, ролей и контрольных точек взяты из публичной
+# демонстрационной спецификации (источник s-spec), которая сама описывает вымышленное
+# предприятие; всё остальное придумано и помечено lineage: [fictional], voice: ai.
+# Доски собраны по шести уровням OST (замысел, модель, юрлицо и права, продукт,
+# процесс, организация): теги tier. Уровни L0-L5 спецификации не те же самые: см. README.md.
+record: board_set
+schema_version: "0.3"
+id: spectra-coffee-c1
+case: spectra-coffee-fiction
+title: "Вымышленный пример: «Спектра Кофе», передача дела основателем, карта по шести уровням"
+date: "2026-11-01"
+cycle: 1
+status: draft
+sources: [s-spec, s-talk, s-log, s-books, s-trial, s-fork]
+notes: "ВЫМЫШЛЕННЫЙ ПРИМЕР, черновик ИИ, людьми не проверялся. Основатель, старший бариста, покупатель, банк и все их слова придуманы. Красные линии rl-dialin и rl-cover и их наблюдения придуманы, чтобы пример показывал нарушение. Карта нужна как образец для истории (smd story) и для вопросов группы: какие уровни пусты и какие связи ещё не проведены."
+elements:
+  # --- доска оргдеятельности: позиции, места для других, цель ---
+  - {id: entry, board: od, kind: entry, label: "вход: вымышленный пример «Спектра Кофе»", lineage: [fictional], voice: ai}
+  - {id: p-founder, board: od, kind: position, label: "основатель и владелец, 61 год (вымышленное лицо)",
+     stance: inside, epistemic: stated, tags: {tier: [intent]}, cites: ["s-talk#t=00:02:10"], lineage: [fictional], voice: ai}
+  - {id: p-lead, board: od, kind: position, label: "старший бариста, ведёт смены (вымышленное лицо)",
+     stance: inside, epistemic: stated, tags: {tier: [organisation]}, cites: ["s-talk#t=00:09:30"], lineage: [fictional], voice: ai}
+  - {id: p-broker, board: od, kind: position, label: "посредник, готовящий карту к передаче (вымышленное лицо)",
+     stance: external, epistemic: stated, lineage: [fictional], voice: ai}
+  - {id: place-successor, board: od, kind: place_for_others, label: "место управляющего после передачи",
+     fillers: ["старший бариста (кандидат)"], epistemic: hypothesis, tags: {tier: [organisation]}, lineage: [fictional], voice: ai}
+  - {id: place-buyer, board: od, kind: place_for_others, label: "покупатель: региональная сеть обжарочных (вымышленная)",
+     fillers: ["региональная сеть обжарочных"], epistemic: hypothesis, tags: {tier: [entity]}, lineage: [fictional], voice: ai}
+  - {id: place-bank, board: od, kind: place_for_others, label: "банк, финансирующий покупателя (вымышленный)",
+     fillers: ["банк покупателя"], epistemic: hypothesis, tags: {tier: [entity]}, lineage: [fictional], voice: ai}
+  - {id: place-guests, board: od, kind: place_for_others, label: "постоянные гости: городские специалисты",
+     fillers: ["городские специалисты"], epistemic: stated, tags: {tier: [model]}, cites: [s-spec], lineage: [fictional], voice: ai}
+  - {id: place-suppliers, board: od, kind: place_for_others, label: "поставщики зерна и молока",
+     fillers: ["обжарщик зерна", "молочная ферма"], epistemic: stated, tags: {tier: [entity]}, lineage: [fictional], voice: ai}
+  - {id: place-landlord, board: od, kind: place_for_others, label: "арендодатель флагманского кафе",
+     fillers: ["арендодатель"], epistemic: stated, tags: {tier: [entity]}, lineage: [fictional], voice: ai}
+  - {id: goal-handover, board: od, kind: goal, label: "передать дело в течение 3 лет и сохранить вкус напитков",
+     seen_from: p-founder, goal_source: own, epistemic: stated, tags: {tier: [intent]}, cites: ["s-talk#t=00:03:40"], lineage: [fictional], voice: ai}
+  # --- объектная доска: рамки, функции, модель, стандарты, кооперация ---
+  - {id: f-old, board: oo, kind: frame, frame_state: old, label: "старая рамка: кафе, где настройку помола держит основатель",
+     seen_from: p-broker, epistemic: stated, tags: {tier: [organisation]}, lineage: [fictional], voice: ai}
+  - {id: f-new, board: oo, kind: frame, frame_state: new, label: "новая рамка: кафе, где настройка записана и её ведёт смена",
+     seen_from: p-broker, epistemic: hypothesis, tags: {tier: [process]}, lineage: [fictional], voice: ai}
+  - {id: fn-dialin, board: oo, kind: function, label: "утренняя настройка помола перед открытием", in: [f-new],
+     seen_from: p-broker, performed_by: p-lead, epistemic: stated, tags: {tier: [process]}, cites: [s-spec], lineage: [fictional], voice: ai}
+  - {id: fn-shot, board: oo, kind: function, label: "приготовление напитка по спецификации, 6 позиций меню", in: [f-new],
+     seen_from: p-broker, performed_by: p-lead, epistemic: checked, tags: {tier: [product]}, cites: [s-spec], lineage: [fictional], voice: ai}
+  - {id: fn-journal, board: oo, kind: function, label: "запись настройки в журнал смены", in: [f-new],
+     seen_from: p-broker, performed_by: p-lead, epistemic: stated, tags: {tier: [process]}, cites: [s-log], lineage: [fictional], voice: ai}
+  - {id: fn-books, board: oo, kind: function, label: "учёт и отчётность двух кафе для банка", in: [f-new],
+     seen_from: p-broker, performed_by: p-founder, epistemic: stated, tags: {tier: [process]}, cites: [s-books], lineage: [fictional], voice: ai}
+  - {id: fn-tranche, short: "траншевое финансирование", board: oo, kind: function, label: "поэтапное финансирование: транши привязаны к покрытию платежа", in: [f-new],
+     seen_from: p-broker, performed_by: place-bank, epistemic: hypothesis, tags: {tier: [entity]}, lineage: [fictional], voice: ai}
+  - {id: fn-train, board: oo, kind: function, label: "обучение управляющего: настройки, закупки, отчётность", in: [f-new],
+     seen_from: p-broker, performed_by: p-founder, epistemic: hypothesis, tags: {tier: [organisation]}, lineage: [fictional], voice: ai}
+  - {id: m-model, short: "модель: записанные напитки для городских специалистов", board: oo, kind: model, label: "модель бизнеса: напитки по записанной спецификации для городских специалистов, цена выше сетевой, но не премиальная",
+     seen_from: p-broker, epistemic: stated, tags: {tier: [model]}, cites: [s-spec], lineage: [fictional], voice: ai}
+  - {id: c-spec, short: "спецификация кафе как данные", board: oo, kind: concept, label: "спецификация кафе: меню, процессы, контрольные точки и роли записаны как данные",
+     seen_from: p-broker, epistemic: checked, tags: {tier: [product, process]}, cites: [s-spec], lineage: [fictional], voice: ai}
+  - id: rl-dialin
+    short: "линия основателя: настройка записана"
+    board: oo
+    kind: standard
+    label: "красная линия основателя: настройка помола записана в журнал каждую неделю проверки"
+    seen_from: p-broker
+    epistemic: checked
+    red_line: true
+    line: {metric: "настройка помола записана в журнал смены", expect: true,
+           since: "2026-01-01", until: "2026-12-31", recovery_days: 3}
+    observed:
+      - {value: true, date: "2026-06-29", source: s-log}
+      - {value: true, date: "2026-07-27", source: s-log}
+      - {value: false, date: "2026-08-03", source: s-log}
+      - {value: false, date: "2026-08-10", source: s-log}
+      - {value: true, date: "2026-08-17", source: s-log}
+      - {value: true, date: "2026-09-21", source: s-log}
+    tags: {tier: [process]}
+    cites: [s-log]
+    lineage: [fictional]
+    voice: ai
+  - id: rl-cover
+    short: "линия банка: покрытие не ниже 1,3"
+    board: oo
+    kind: standard
+    label: "красная линия банка: покрытие платежа по кредиту покупателя не ниже 1,3"
+    seen_from: p-broker
+    epistemic: checked
+    red_line: true
+    line: {metric: "покрытие платежа по кредиту покупателя (расчёт банка по отчётности кафе)", unit: "раз",
+           min: 1.3, since: "2026-01-01", until: "2026-12-31", recovery_days: 60}
+    observed:
+      - {value: 1.6, date: "2026-03-31", source: s-books}
+      - {value: 1.1, date: "2026-06-30", source: s-books}
+      - {value: 1.5, date: "2026-09-30", source: s-books}
+    tags: {tier: [entity]}
+    cites: [s-books]
+    lineage: [fictional]
+    voice: ai
+  - {id: coop-transfer, short: "передача дела: четыре участника", board: oo, kind: cooperation,
+     label: "передача дела: основатель вводит управляющего, покупатель принимает, банк финансирует",
+     epistemic: hypothesis, tags: {tier: [intent, entity]}, lineage: [fictional], voice: ai}
+  # --- ситуационная доска ---
+  - {id: s-small, short: "два кафе, 9 человек, всё держит основатель", board: s, half: small, kind: situation, label: "два кафе, 9 человек, настройку помола и закупки держит основатель",
+     seen_from: p-founder, epistemic: stated, tags: {tier: [organisation]}, cites: ["s-talk#t=00:05:00"], lineage: [fictional], voice: ai}
+  - {id: s-big, short: "покупатели просят записанные процессы", board: s, half: big, kind: situation, label: "покупатели специализированных кофеен просят записанные процессы до сделки",
+     seen_from: p-broker, epistemic: hypothesis, tags: {tier: [model]}, lineage: [fictional], voice: ai}
+  - {id: fact-staff, short: "9 человек в двух кафе", board: s, half: small, kind: fact, label: "в двух кафе работают 9 человек: 6 бариста, 2 старших бариста и основатель в роли управляющего",
+     seen_from: p-founder, epistemic: stated, tags: {tier: [organisation]}, cites: ["s-talk#t=00:05:20"], lineage: [fictional], voice: ai}
+  - {id: fact-spec, short: "6 позиций меню, 5 точек, 14 аллергенов", board: s, half: small, kind: fact, label: "спецификация описывает 6 позиций меню, 5 критических контрольных точек и 14 аллергенов ЕС",
+     seen_from: p-broker, epistemic: checked, tags: {tier: [product]}, cites: [s-spec], lineage: [fictional], voice: ai}
+  - {id: fact-price, short: "капучино 4,20 евро, маржа 82,9 %", board: s, half: small, kind: fact, label: "капучино стоит 4,20 евро, маржа по ингредиентам 82,9 %, затраты на труд не входят",
+     seen_from: p-broker, epistemic: checked, tags: {tier: [product]}, cites: [s-spec], lineage: [fictional], voice: ai}
+  - {id: fact-revenue, board: s, half: small, kind: fact, label: "основатель оценивает выручку 2025 года в 0,95 млн евро",
+     seen_from: p-founder, epistemic: unverified, tags: {tier: [model]}, cites: ["s-talk#t=00:12:00"], lineage: [fictional], voice: ai}
+  - {id: fact-dialin-share, board: s, half: small, kind: fact, label: "основатель сам настраивает помол в 5 из 7 утренних смен",
+     seen_from: p-founder, epistemic: unverified, tags: {tier: [process]}, cites: ["s-talk#t=00:14:10"], lineage: [fictional], voice: ai}
+  - {id: fact-trademark, short: "знак записан на основателя лично", board: s, half: small, kind: fact, label: "товарный знак записан на основателя лично, а не на юридическое лицо кафе",
+     seen_from: p-founder, epistemic: stated, tags: {tier: [entity]}, cites: ["s-talk#t=00:17:00"], lineage: [fictional], voice: ai}
+  - {id: fact-lease, short: "аренда: согласие арендодателя", board: s, half: small, kind: fact, label: "аренда флагманского кафе требует согласия арендодателя при смене владельца",
+     seen_from: p-founder, epistemic: stated, tags: {tier: [entity]}, cites: ["s-talk#t=00:18:30"], lineage: [fictional], voice: ai}
+  - {id: nb-qual, short: "норма: смена работает без основателя", board: s, half: small, kind: normality_boundary, label: "норма: в любой смене напиток выходит по спецификации, а настройка помола записана, даже когда основателя нет в кафе",
+     seen_from: p-broker, modality: ought, epistemic: hypothesis, tags: {tier: [process]}, lineage: [fictional], voice: ai}
+  - {id: sig-august, short: "август 2026: 14 дней без записи", board: s, half: small, kind: signal, label: "в августе 2026 запись настройки помола отсутствовала 14 дней подряд, пока основатель был в отъезде",
+     seen_from: p-broker, epistemic: checked, tags: {tier: [process]}, cites: [s-log], lineage: [fictional], voice: ai}
+  - {id: ev-intro, short: "событие: представление", board: s, half: small, kind: situation, label: "событие: основатель представляет старшего бариста поставщикам и банку",
+     seen_from: p-founder, epistemic: hypothesis, tags: {tier: [organisation]}, lineage: [fictional], voice: ai}
+  - {id: ev-trial, short: "событие: пробный месяц", board: s, half: small, kind: situation, label: "событие: пробный месяц, старший бариста ведёт оба кафе 28 дней без основателя",
+     seen_from: p-founder, epistemic: hypothesis, tags: {tier: [organisation]}, lineage: [fictional], voice: ai}
+  - {id: ev-sign, board: s, half: small, kind: situation, label: "событие: подписание сделки с покупателем до конца 2029 года",
+     seen_from: p-founder, epistemic: hypothesis, tags: {tier: [entity]}, lineage: [fictional], voice: ai}
+  - {id: gl-handover, short: "серия событий передачи", board: s, half: small, kind: garland, label: "серия связанных событий передачи: представление, пробный месяц, подписание",
+     seen_from: p-founder, epistemic: hypothesis, tags: {tier: [intent, organisation]}, lineage: [fictional], voice: ai}
+relations:
+  # поставка и рабочий день
+  - {from: place-suppliers, to: fn-dialin, kind: flow, carries: material, label: "свежее зерно"}
+  - {from: p-founder, to: fn-dialin, kind: flow, carries: information, label: "личная настройка и приёмка рецепта дня", voice: ai}
+  - {from: p-founder, to: fn-dialin, kind: flow, carries: money, label: "оплата смен", voice: ai}
+  - {from: fn-dialin, to: fn-shot, kind: flow, carries: information, label: "рецепт дня: помол, доза, время", voice: ai}
+  - {from: place-guests, to: fn-shot, kind: flow, carries: money, label: "оплата напитков", voice: ai}
+  - {from: fn-shot, to: place-guests, kind: flow, carries: product, label: "напиток", voice: ai}
+  # журнал, отчётность, финансирование, обучение
+  - {from: fn-dialin, to: fn-journal, kind: flow, carries: information, label: "настройка для записи", voice: ai}
+  - {from: p-founder, to: fn-journal, kind: flow, carries: money, label: "оплата времени на запись", voice: ai}
+  - {from: fn-journal, to: place-successor, kind: flow, carries: information, label: "журнал для будущего управляющего", voice: ai}
+  - {from: fn-journal, to: place-buyer, kind: flow, carries: information, label: "журнал для покупателя до сделки", voice: ai}
+  - {from: fn-journal, to: coop-transfer, kind: flow, carries: information, label: "журнал виден участникам передачи", voice: ai}
+  - {from: fn-journal, to: p-broker, kind: flow, carries: information, label: "журнал читает посредник при подготовке карты", voice: ai}
+  - {from: fn-shot, to: fn-books, kind: flow, carries: information, label: "выручка по сменам", voice: ai}
+  - {from: p-founder, to: fn-books, kind: flow, carries: money, label: "оплата бухгалтера", voice: ai}
+  - {from: fn-books, to: place-bank, kind: flow, carries: information, label: "отчётность для расчёта покрытия", voice: ai}
+  - {from: fn-books, to: fn-tranche, kind: flow, carries: information, label: "отчётность под условия траншей", voice: ai}
+  - {from: place-buyer, to: fn-tranche, kind: flow, carries: money, label: "платежи по кредиту", voice: ai}
+  - {from: fn-tranche, to: place-buyer, kind: flow, carries: information, label: "условия траншей", voice: ai}
+  - {from: p-founder, to: fn-train, kind: flow, carries: information, label: "обучает", voice: ai}
+  - {from: fn-journal, to: fn-train, kind: flow, carries: information, label: "записанные настройки как материал обучения", voice: ai}
+  - {from: fn-train, to: place-successor, kind: flow, carries: product, label: "подготовленный управляющий", voice: ai}
+  # кооперация передачи
+  - {from: p-founder, to: coop-transfer, kind: flow, carries: information, label: "передаёт знание настроек; состав передачи открыт (K2)", voice: ai}
+  - {from: place-successor, to: coop-transfer, kind: flow, carries: information, label: "принимает дела", voice: ai}
+  - {from: place-buyer, to: coop-transfer, kind: flow, carries: information, label: "условия покупки", voice: ai}
+  - {from: place-bank, to: coop-transfer, kind: flow, carries: money, label: "финансирование покупки", voice: ai}
+  # права и условия
+  - {from: fact-trademark, to: place-buyer, kind: flow, carries: information, label: "права на знак, которые надо переоформить", voice: ai}
+  - {from: fact-lease, to: place-buyer, kind: flow, carries: information, label: "условие аренды", voice: ai}
+  # функции используют стандарты, нормы и понятия
+  - {from: fn-dialin, to: rl-dialin, kind: uses, label: "работает внутри красной линии", voice: ai}
+  - {from: fn-journal, to: rl-dialin, kind: uses, label: "журнал и есть проверка линии", voice: ai}
+  - {from: fn-books, to: rl-cover, kind: uses, label: "отчётность считается под линию банка", voice: ai}
+  - {from: fn-tranche, to: rl-cover, kind: uses, label: "транши открываются под линию", voice: ai}
+  - {from: fn-shot, to: nb-qual, kind: uses, label: "напиток в границах нормы", voice: ai}
+  - {from: fn-train, to: nb-qual, kind: uses, label: "обучение держит норму без основателя", voice: ai}
+  - {from: fn-shot, to: c-spec, kind: uses, label: "готовит по спецификации", voice: ai}
+  # что порождает что
+  - {from: fn-journal, to: sig-august, kind: produces, label: "журнал показал пропуск", voice: ai}
+  - {from: fn-train, to: ev-trial, kind: produces, label: "обучение ведёт к пробному месяцу", voice: ai}
+  - {from: coop-transfer, to: gl-handover, kind: produces, label: "кооперация порождает серию событий", voice: ai}
+  - {from: coop-transfer, to: goal-handover, kind: produces, label: "кооперация ведёт к цели основателя", voice: ai}
+  # серия событий и противоречие
+  - {from: ev-intro, to: gl-handover, kind: belongs, voice: ai}
+  - {from: ev-trial, to: gl-handover, kind: belongs, voice: ai}
+  - {from: ev-sign, to: gl-handover, kind: belongs, voice: ai}
+  - {from: sig-august, to: nb-qual, kind: opposes, label: "пропуск записи против нормы", voice: ai}
+  # позиции
+  - {from: p-founder, to: p-lead, kind: shift, label: "другая позиция: настройки переходят к смене", voice: ai}
+  - {from: p-broker, to: p-founder, kind: shift, label: "другая позиция: посредник, не владелец", voice: ai}
+  - {from: p-founder, to: f-old, kind: represents, voice: ai}
+  # слабые связи (refers): их ещё не назвали точнее
+  - {from: s-big, to: m-model, kind: refers, label: "покупатели читают модель по записанным процессам", voice: ai}
+  - {from: fact-revenue, to: m-model, kind: refers, voice: ai}
+  - {from: fact-price, to: m-model, kind: refers, voice: ai}
+  - {from: fact-dialin-share, to: fn-dialin, kind: refers, voice: ai}
+  - {from: fact-staff, to: s-small, kind: refers, voice: ai}
+  - {from: fact-spec, to: c-spec, kind: refers, voice: ai}
+  - {from: place-landlord, to: fact-lease, kind: refers, voice: ai}
+transitions:
+  - {n: 1, from: p-founder, to: f-old, label: "с чего начал основатель"}
+  - {n: 2, from: f-old, to: s-small}
+qualifications:
+  - {id: K1, targets: [fn-train], text: "не названо, кто платит за обучение управляющего", by: methodologist,
+     voice: ai, status: open, raised_in: 1}
+  - {id: K2, targets: [coop-transfer], text: "назвать, что даёт и что берёт каждый участник передачи: основатель, управляющий, покупатель, банк",
+     by: methodologist, voice: ai, status: open, raised_in: 1}
+hypotheses:
+  - id: H1
+    type: claim
+    assumes: "Старший бариста ведёт запись настройки помола без основателя: не больше 10 % смен остаются без записи."
+    action: "28 пробных дней без основателя в обоих кафе."
+    observe: "Смены без записи в журнале."
+    revise_if: "Больше 10 % смен без записи."
+    rule: {metric: "доля смен без записи настройки", op: ">", threshold: 0.1, n_min: 40, basis: "условие покупателя: журнал ведётся почти каждую смену"}
+    observed: {k: 4, n: 56, artefact: s-trial}
+    status: testing
+    targets: [fn-journal, place-successor, rl-dialin]
+    raised_in: 1
+    voice: ai
+  - id: H2
+    type: estimate
+    assumes: "Покупатель называет цену не позже чем через 6 месяцев непрерывного журнала настройки."
+    action: "Показать журнал покупателю и спросить срок."
+    observe: "Месяцы журнала до цены."
+    revise_if: "Покупателю нужно больше 6 месяцев."
+    rule: {metric: "месяцев непрерывного журнала до цены покупателя", op: ">", threshold: 6, n_min: 3, basis: "срок, который основатель готов ждать"}
+    status: untested
+    targets: [place-buyer, fn-journal]
+    raised_in: 1
+    voice: ai
+  - id: H3
+    type: estimate
+    assumes: "Банк финансирует покупку, если покрытие платежа не ниже 1,3 в трёх кварталах подряд."
+    action: "Спросить условия у банка с отчётностью в руках."
+    observe: "Кварталы подряд с покрытием не ниже 1,3 до решения банка."
+    revise_if: "Банк просит больше 3 кварталов."
+    rule: {metric: "кварталов подряд с покрытием не ниже 1,3 до решения банка", op: ">", threshold: 3, n_min: 2, basis: "срок, в который покупатель готов закрыть сделку"}
+    status: untested
+    targets: [place-bank, rl-cover, fn-books]
+    raised_in: 1
+    voice: ai
+  - id: H4
+    type: product
+    assumes: "Спецификацию кафе можно воспроизвести во втором кафе без изменения контрактов качества."
+    action: "Запустить второе кафе по той же спецификации."
+    observe: "Совпадение контрактов качества двух кафе."
+    revise_if: "Во втором кафе пришлось менять контракты качества."
+    status: confirmed
+    result: "Второе кафе запущено по той же спецификации; контракты качества остались прежними."
+    changes: "Покупатель может читать оба кафе как одну спецификацию."
+    artefacts: [s-fork]
+    targets: [c-spec, fn-shot]
+    raised_in: 1
+    resolved_in: 1
+    voice: ai
+  - id: H5
+    type: probe
+    assumes: "Основатель готов передать закупки управляющему."
+    action: "Спросить основателя на втором разговоре."
+    observe: "Кто решает о закупке зерна."
+    revise_if: "Основатель оставляет закупки за собой."
+    status: untested
+    targets: [p-founder, place-successor]
+    raised_in: 1
+    voice: ai
+ontology:
+  - id: O1
+    object: "дело как записанная спецификация, которую можно передать другому"
+    valid_for: [p-founder, place-buyer]
+    subjects:
+      - {position: p-founder, subject: "кафе, которое держится на моих настройках"}
+      - {position: place-buyer, subject: "кафе, которое я могу прочитать до покупки"}
+    cooperation: coop-transfer
+    competes: "покупатель читает кафе как набор записей, основатель как дело своего вкуса"
+    test: H2
+    tags: {tier: [intent]}
+signoffs:
+  - {function: accept_result, target: H4, by: group, cycle: 1, date: "2026-10-31",
+     note: "вымышленная подпись: отчёт о запуске второго кафе сверен со спецификацией"}
+state:
+  version: "1.0"
+  difficulty: "карта первая; порядок настройки помола держится на основателе"
+  accepted: ["H4 подтверждена вымышленной подписью"]
+  open: ["K1", "K2", "H1", "H2", "H3", "H5"]
+  next_move: "проверить журнал настройки без основателя и спросить банк об условиях"

@@ -1,0 +1,14 @@
+# Значения тегов вымышленного дела: шесть уровней OST, те же id, что в деле
+# mipt-transfer (замысел -> организация). Уровни OST и слои L0-L5 публичной
+# спецификации не совпадают: соответствие в README.md этой папки.
+record: taxonomies
+schema_version: "0.1"
+case: spectra-coffee-fiction
+taxonomies:
+  tier:
+    - {id: intent, ru: "замысел собственника", en: "owner intent"}
+    - {id: model, ru: "модель бизнеса", en: "business model"}
+    - {id: entity, ru: "юрлицо и права", en: "business entity (legal person and registered rights)"}
+    - {id: product, ru: "продукт", en: "product"}
+    - {id: process, ru: "процесс", en: "process"}
+    - {id: organisation, ru: "организация", en: "organisation"}

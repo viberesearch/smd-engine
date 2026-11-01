@@ -46,6 +46,12 @@ SCALARS = (
 )
 
 
+# A `set` entry for a relation names it by these, and by `match_label` when
+# the three fit several relations; the other keys are the fields it sets.
+RELATION_KEY = ("from", "to", "kind")
+RELATION_FIELDS = ("carries", "label", "voice", "cites")
+
+
 class PatchError(ValueError):
     """The patch does not fit the board: a wrong board or an unknown id."""
 
@@ -56,7 +62,8 @@ def apply_patch(board: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
     Applies add, set, board_notes, remove, sources, state and title in that
     order, then sets state.version and appends the patch id to `applied`.
     `set` and `remove` address a transition by its number `n` as it is after
-    `add`, before this patch renumbers. Raises PatchError for a patch made for
+    `add`, before this patch renumbers; `set` also addresses a relation by its
+    `from`, `to` and `kind`. Raises PatchError for a patch made for
     another board or naming an unknown id or transition number, and ValueError
     for a patch that was already applied.
     """
@@ -173,10 +180,67 @@ def _transition(board: dict[str, Any], n: int) -> dict[str, Any] | None:
     return None
 
 
+def _relation(board: dict[str, Any], change: dict[str, Any]) -> dict[str, Any]:
+    """The one relation a `set` entry names by `from`, `to` and `kind` (and
+    `match_label`, the label it has now, when given); PatchError naming the
+    candidates when none or several fit."""
+    key = tuple(change[k] for k in RELATION_KEY)
+    wanted = f"{key[0]} -> {key[1]} ({key[2]})"
+    hits = [
+        r
+        for r in board.get("relations", [])
+        if tuple(r[k] for k in RELATION_KEY) == key
+    ]
+    if "match_label" in change:
+        hits = [r for r in hits if r.get("label") == change["match_label"]]
+        wanted += f" with label '{change['match_label']}'"
+    if len(hits) == 1:
+        found: dict[str, Any] = hits[0]
+        return found
+    if not hits:
+        raise PatchError(f"set: no relation {wanted}")
+    named = "; ".join(f"'{r['label']}'" if r.get("label") else "no label" for r in hits)
+    raise PatchError(
+        f"set: {len(hits)} relations {wanted} fit: {named}; "
+        "name one by `match_label`, its current label"
+    )
+
+
+def _set_relation(board: dict[str, Any], change: dict[str, Any]) -> None:
+    """Set `carries`, `label`, `voice` or `cites` of the relation the entry
+    names; a field already there is replaced in place, a new one is added at
+    the end in the order carries, label, voice, cites; null deletes a field."""
+    extra = set(change) - set(RELATION_KEY) - set(RELATION_FIELDS) - {"match_label"}
+    if extra:
+        raise PatchError(
+            f"set: a relation entry takes {', '.join(RELATION_FIELDS)}, not "
+            + ", ".join(sorted(extra))
+        )
+    rel = _relation(board, change)
+    for field in RELATION_FIELDS:
+        if field not in change:
+            continue
+        if change[field] is None:
+            rel.pop(field, None)
+        else:
+            rel[field] = copy.deepcopy(change[field])
+
+
 def _set(board: dict[str, Any], change: dict[str, Any]) -> None:
-    """Merge the change into its item, the record of an id or the transition
-    numbered `n`: a mapping merges into a mapping one level deep, key by key;
-    null deletes a field or a key; lists and scalars replace."""
+    """Merge the change into its item, the record of an id, the transition
+    numbered `n` or the relation named by `from`, `to` and `kind`: a mapping
+    merges into a mapping one level deep, key by key; null deletes a field or a
+    key; lists and scalars replace."""
+    if "id" in change and all(k in change for k in RELATION_KEY):
+        raise PatchError(
+            f"set: an entry names an id ('{change['id']}') or a relation by "
+            "from, to and kind, not both"
+        )
+    if "id" not in change and "n" not in change:
+        if all(k in change for k in RELATION_KEY):
+            _set_relation(board, change)
+            return
+        raise PatchError("set: an entry names an id, a transition n, or a relation")
     if "id" in change:
         item = _find(board, change["id"])
         if item is None:

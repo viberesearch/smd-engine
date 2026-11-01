@@ -1,0 +1,52 @@
+# ВЫМЫШЛЕННЫЙ ПРИМЕР. «Спектра Кофе» здесь выдуманная кофейня; всё, что про неё
+# сказано ниже, придумано, кроме перечня того, что описано в публичной
+# демонстрационной спецификации (s-spec), и та сама вымышлена. Файлов нет:
+# адреса example.org ведут в никуда.
+record: source_manifest
+schema_version: "0.3"
+case: spectra-coffee-fiction
+location: "вымышленный пример; файлов нет"
+sources:
+  - id: s-spec
+    title: "Публичная демонстрационная спецификация кофейни «Спектра Кофе» (сама вымышленная организация); из неё взяты цифры меню, ролей и контрольных точек"
+    kind: external
+    origin: external
+    date: "2026-05-29"
+    url: https://orgschema.com/demo
+    note: "Единственный источник, не придуманный здесь; но и он описывает вымышленное предприятие."
+    clean_room: allow
+  - id: s-talk
+    title: "Вымышленная беседа с вымышленным основателем, составлена ИИ (черновик ИИ)"
+    kind: transcript
+    origin: team
+    date: "2026-10-20"
+    url: https://example.org/spectra-fiction/talk
+    clean_room: allow
+  - id: s-log
+    title: "Вымышленный журнал настройки помола, 2026 год"
+    kind: field_artefact
+    origin: team
+    date: "2026-10-31"
+    url: https://example.org/spectra-fiction/dialin-log
+    clean_room: allow
+  - id: s-books
+    title: "Вымышленная отчётность двух кафе для расчёта банка, 2026 год"
+    kind: field_artefact
+    origin: team
+    date: "2026-10-31"
+    url: https://example.org/spectra-fiction/books
+    clean_room: allow
+  - id: s-trial
+    title: "Вымышленный протокол пробных смен старшего бариста без основателя"
+    kind: field_artefact
+    origin: team
+    date: "2026-10-31"
+    url: https://example.org/spectra-fiction/trial
+    clean_room: allow
+  - id: s-fork
+    title: "Вымышленный отчёт о запуске второго кафе по той же спецификации"
+    kind: field_artefact
+    origin: team
+    date: "2025-09-30"
+    url: https://example.org/spectra-fiction/second-cafe
+    clean_room: allow

@@ -123,7 +123,7 @@ function select(id) {
     list.forEach(e => (by[e.k] = by[e.k] || []).push(e));
     for (const [k, es] of Object.entries(by)) {
       info.append(el('div', {class: 'meta'}, `${M.edge_kinds[k]} — ${side}`));
-      info.append(el('ul', {}, es.map(e => el('li', {}, link(side === U.out ? e.t : e.s), e.l ? ` — ${e.l}` : ''))));
+      info.append(el('ul', {}, es.map(e => el('li', {}, link(side === U.out ? e.t : e.s), e.l ? ` — ${e.l}` : '', e.c ? [' · ', el('b', {}, e.c)] : ''))));
     }
   };
   group(out.get(id), U.out);
@@ -194,6 +194,13 @@ function draw() {
       ctx.lineTo(b.x - (6 + r) * Math.cos(ang - 0.4), b.y - (6 + r) * Math.sin(ang - 0.4));
       ctx.lineTo(b.x - (6 + r) * Math.cos(ang + 0.4), b.y - (6 + r) * Math.sin(ang + 0.4));
       ctx.closePath(); ctx.fillStyle = edgeColor(e.k); ctx.fill();
+    }
+    if (lit && keep && e.c) { // what a flow carries, written on the link
+      ctx.font = '600 11px sans-serif'; ctx.textAlign = 'center';
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, w = ctx.measureText(e.c).width;
+      ctx.fillStyle = '#ffffffdd'; ctx.fillRect(mx - w / 2 - 2, my - 11, w + 4, 14);
+      ctx.fillStyle = edgeColor(e.k); ctx.fillText(e.c, mx, my);
+      ctx.textAlign = 'start';
     }
   });
   ctx.setLineDash([]);

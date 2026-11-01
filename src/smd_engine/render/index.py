@@ -314,6 +314,19 @@ class _Index:
             ]
             for x in d["elements"]
         ]
+        by_label = {x["id"]: x["label"] for x in d["elements"]}
+        flows = [
+            [
+                refs([r["from"]])
+                + f"<br><small>{e(by_label.get(r['from'], ''))}</small>",
+                refs([r["to"]]) + f"<br><small>{e(by_label.get(r['to'], ''))}</small>",
+                f"<b>{e(value_word('carries', r['carries'], self.lang))}</b>",
+                e(r.get("label", "")),
+                cites(r.get("cites")),
+            ]
+            for r in d.get("relations", [])
+            if r.get("carries")
+        ]
         boards = [
             [
                 anchor(x["id"]),
@@ -358,6 +371,8 @@ class _Index:
         ]
         # the boards a record makes of templates, only in a record that has them
         made = [("b", lab["record_boards"], idx["b_columns"], boards)] if boards else []
+        # what the flows carry, only in a record where a relation says it
+        carried = [("f", idx["f_title"], idx["f_columns"], flows)] if flows else []
         return [
             ("k", lab["qualifications"], idx["k_columns"], qualifications),
             ("t", lab["theses"], idx["t_columns"], theses),
@@ -365,6 +380,7 @@ class _Index:
             ("o", lab["ontology"], idx["o_columns"], ontology),
             ("s", lab["signoffs"], idx["s_columns"], signoffs),
             *made,
+            *carried,
             ("e", lab["elements"], idx["e_columns"], elements),
             ("src", idx["src_title"], idx["src_columns"], sources),
         ]

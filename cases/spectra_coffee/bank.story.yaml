@@ -1,0 +1,50 @@
+# ВЫМЫШЛЕННЫЙ ПРИМЕР, черновик ИИ. История для банка; не подписывается.
+record: story
+schema_version: "0.1"
+id: spectra-bank-scqa
+title: "Вымышленный пример: история для банка покупателя «Спектры Кофе», SCQA, черновик ИИ"
+boards:
+  - {id: spectra-coffee-c1, version: "1.0", sha256: 9f373ea726ef28d3294f770ba56baec88f122963b048713c8646095e951a703c}
+audience: place-bank
+protagonist: place-bank
+form: scqa
+allow: [place-bank, place-buyer, s-small, fact-revenue, fact-price, rl-cover, fn-books, fn-tranche, H3, coop-transfer]
+path: [place-bank, fn-books, rl-cover, fn-tranche, place-buyer, coop-transfer]
+conflict: [rl-cover]
+resolution: [coop-transfer]
+open: [H3]
+sentences:
+  - part: situation
+    level: hypothesis
+    ids: [place-bank, place-buyer, s-small]
+    text: "Допустим, банк рассматривает финансирование покупки двух кафе «Спектра Кофе» региональной сетью обжарочных."
+  - part: situation
+    level: unverified
+    ids: [fact-revenue]
+    text: "Выручку 2025 года основатель оценивает в 0,95 млн евро; эту оценку никто не проверял."
+  - part: situation
+    level: checked
+    ids: [fact-price]
+    text: "Капучино стоит 4,20 евро, маржа по ингредиентам 82,9 %, затраты на труд в неё не входят."
+  - part: complication
+    level: checked
+    ids: [rl-cover]
+    text: "Расчёт банка по отчётности кафе дал покрытие платежа 1,6 в марте 2026 года, 1,1 в июне и 1,5 в сентябре при красной линии не ниже 1,3."
+  - part: complication
+    level: checked
+    ids: [rl-cover]
+    text: "Между замерами 30 июня и 30 сентября 2026 года прошло 92 дня, и в начале этого срока покрытие было ниже линии."
+  - part: complication
+    level: checked
+    ids: [rl-cover]
+    text: "Этот срок длиннее восстановления в 60 дней, которое допускает линия."
+  - part: question
+    level: hypothesis
+    ids: [H3]
+    text: "Закроет ли покупатель сделку, если банк потребует покрытие не ниже 1,3 в трёх кварталах подряд?"
+  - part: answer
+    level: hypothesis
+    ids: [fn-tranche, fn-books, rl-cover]
+    text: "Предлагается поэтапное финансирование: транши открываются под линию покрытия, а отчётность кафе идёт банку каждый квартал."
+voice: ai
+run: {procedure: story, version: "0.1.0", model: claude-sonnet-5-5, date: "2026-11-01"}

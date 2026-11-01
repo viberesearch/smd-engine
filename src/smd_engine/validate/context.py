@@ -81,6 +81,9 @@ HINT_PROCEDURES = {
     "rule-basis": "procedures/field-result.md §0.2",
     "rule-n-min": "procedures/field-result.md §0.2",
     "verdict": "procedures/field-result.md §3",
+    # robustness rules R1 and R6 (docs/method/robustness-rules.md)
+    "domain-sample": "procedures/field-result.md §0.2",
+    "surprise": "procedures/field-result.md §3",
     # G.P.'s «Программа действий» (hints.py)
     "object-from-inside": "procedures/positional-construction.md §4",
     "external-without-reflection": "procedures/reflexive-protocol.md §2",

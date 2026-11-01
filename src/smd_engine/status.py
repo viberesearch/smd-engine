@@ -28,7 +28,7 @@ from smd_engine.render.text import (
 )
 from smd_engine.validate.ai import ai_share
 from smd_engine.validate.context import is_ai
-from smd_engine.verdict import is_share, of_hypothesis, verdict_line
+from smd_engine.verdict import detail_text, is_share, of_hypothesis, verdict_line
 
 # How many items of each list the page shows.
 SHOWN = {
@@ -120,6 +120,7 @@ def _verdicts(data: dict[str, Any], lang: str) -> list[str]:
         v = of_hypothesis(h)
         said = (
             f"{verdict_line(v)}: {words['verdict'][v.outcome]}"
+            + "".join(f"; {x}" for x in [detail_text(v, lang)] if x)
             if v and is_share(h["rule"])
             else words["no_share"]
         )

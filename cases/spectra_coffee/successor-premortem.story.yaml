@@ -1,0 +1,47 @@
+# ВЫМЫШЛЕННЫЙ ПРИМЕР, черновик ИИ. Премортем для преемника: от провала назад к причинам.
+# Форма premortem: число 3 (годы взгляда назад) входит в саму форму.
+record: story
+schema_version: "0.1"
+id: spectra-successor-premortem
+title: "Вымышленный пример: премортем для будущего управляющего «Спектры Кофе», черновик ИИ"
+boards:
+  - {id: spectra-coffee-c1, version: "1.0", sha256: 9f373ea726ef28d3294f770ba56baec88f122963b048713c8646095e951a703c}
+audience: place-successor
+protagonist: place-successor
+form: premortem
+allow: [place-successor, goal-handover, sig-august, rl-dialin, H5, fn-train, K1, ev-trial, gl-handover, H1, fn-journal, coop-transfer]
+path: [place-successor, fn-journal, fn-train, ev-trial, gl-handover, coop-transfer]
+conflict: [ev-trial, gl-handover]
+resolution: [coop-transfer]
+open: [H1, H5]
+sentences:
+  - part: failure
+    level: hypothesis
+    ids: [goal-handover, place-successor]
+    text: "Представим, что прошло 3 года и передача дела не удалась: вы не стали управляющим."
+  - part: cause
+    level: hypothesis
+    ids: [sig-august, rl-dialin]
+    text: "Первая возможная причина: запись настройки помола снова перестала вестись, как в августе 2026 года, когда её не было 14 дней."
+  - part: cause
+    level: hypothesis
+    ids: [H5, fn-train]
+    text: "Вторая возможная причина: основатель оставил закупки за собой, и обучение не передало их вам."
+  - part: cause
+    level: hypothesis
+    ids: [K1, fn-train]
+    text: "Третья возможная причина: не было названо, кто платит за обучение управляющего, и оно не состоялось."
+  - part: cause
+    level: hypothesis
+    ids: [ev-trial, gl-handover]
+    text: "Четвёртая возможная причина: пробный месяц в 28 дней без основателя не прошёл, и серия событий передачи остановилась."
+  - part: early_signal
+    level: hypothesis
+    ids: [H1]
+    text: "Ранний признак, который можно проверить: больше 10 % смен без записи настройки в пробном месяце; в пробных днях их было 4 из 56."
+  - part: early_signal
+    level: hypothesis
+    ids: [H1, fn-journal, coop-transfer]
+    text: "Чтобы проверить это первым, надо смотреть журнал настройки, который виден всем участникам передачи."
+voice: ai
+run: {procedure: story, version: "0.1.0", model: claude-sonnet-5-5, date: "2026-11-01"}

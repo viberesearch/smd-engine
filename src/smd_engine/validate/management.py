@@ -32,6 +32,7 @@ from __future__ import annotations
 from typing import Any
 
 from smd_engine.validate.context import Ctx, Finding, hint
+from smd_engine.validate.redlines import is_red_line
 
 KNOWLEDGE = {
     "knowledge_retro": "retrospective",
@@ -418,34 +419,52 @@ def hint_single_node_metasystem(ctx: Ctx) -> list[Finding]:
     return out
 
 
-@hint("line-without-recovery", kinds=(CHANNEL, "post"), relations=("escalates",))
+@hint("line-without-recovery")
 def hint_line_without_recovery(ctx: Ctx) -> list[Finding]:
-    """A red line (an algedonic channel with a value: a `threshold` or a
-    `line`, gate КЛ1 В) with no recovery time (`recovery_time` or
-    `line.recovery_days`) or no escalation address."""
+    """A red line with no recovery time (`recovery_time` or
+    `line.recovery_days`) or no escalation address. A red line is an element
+    with `red_line: true` or an algedonic channel with a value (a `threshold`
+    or a `line`, gate КЛ1 В); robustness rule R6, on every profile. The
+    address is an `escalates` relation from it to a post, position or place
+    for others where the profile has the relation (`management-four-boards`:
+    only that counts); on a profile without it, a `flow` with
+    `carries: information` from it to one: the report that reaches whoever
+    answers for the line. `recovery_time` is allowed on any red line."""
+    can_escalate = "escalates" in ctx.profile.relations
     out: list[Finding] = []
     for e in ctx.by_id.values():
-        if e["kind"] != CHANNEL or not ("threshold" in e or e.get("line")):
+        if not is_red_line(e):
             continue
         missing = []
         if "recovery_time" not in e and "recovery_days" not in e.get("line", {}):
             missing.append("no recovery time (recovery_time or line.recovery_days)")
-        if not any(
-            r["from"] == e["id"] and _kind(ctx, r["to"]) in ADDRESSES
-            for r in _rels(ctx, "escalates")
-        ):
+        addressed = any(
+            r["from"] == e["id"]
+            and _kind(ctx, r["to"]) in ADDRESSES
+            and (
+                r["kind"] == "escalates"
+                if can_escalate
+                else r["kind"] == "flow" and r.get("carries") == "information"
+            )
+            for r in ctx.record.get("relations", [])
+            if r["kind"] in ("escalates", "flow")
+        )
+        if not addressed:
+            what = "escalates to" if can_escalate else "a flow of information to"
             missing.append(
-                "no escalation address (escalates to a post, position or place "
-                "for others)"
+                f"no escalation address ({what} a post, position or place for others)"
             )
         if missing:
+            has = (
+                "a threshold"
+                if "threshold" in e
+                else "a line" if "line" in e else "no value"
+            )
             out.append(
                 Finding(
                     "hint",
                     e["id"],
-                    "a red line with "
-                    + ("a threshold" if "threshold" in e else "a line")
-                    + " and "
+                    f"a red line with {has} and "
                     + " and ".join(missing)
                     + ": for Beer a unit that cannot restore its index «в приемлемое "
                     "время» sends the signal up, and the people of that level set "

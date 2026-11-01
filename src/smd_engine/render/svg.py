@@ -307,8 +307,21 @@ def _candidates(x: float, y: float, label: str) -> Iterator[Spot]:
                 yield x + dx * width, top, lines
 
 
+def link_text(rel: dict[str, Any], lang: str) -> str:
+    """What is written at a relation: its label, then what it carries as a word
+    of the language after " · " (`carries` is the only text of a relation whose
+    label the lighter screen dropped)."""
+    parts = [rel.get("label", "")]
+    if rel.get("carries"):
+        parts.append(value_word("carries", rel["carries"], lang))
+    return " · ".join(p for p in parts if p)
+
+
 def _label_spots(
-    relations: list[dict[str, Any]], boxes: dict[str, Box], obstacles: list[Rect]
+    relations: list[dict[str, Any]],
+    boxes: dict[str, Box],
+    obstacles: list[Rect],
+    lang: str = "ru",
 ) -> list[Spot | None]:
     """Where each relation label goes, in record order: in one line above the
     middle of its link, unless that covers a label placed before it or one of
@@ -320,12 +333,13 @@ def _label_spots(
     placed: list[Rect] = []
     spots: list[Spot | None] = []
     for rel in relations:
-        if not rel.get("label") or rel["from"] not in boxes or rel["to"] not in boxes:
+        text = link_text(rel, lang)
+        if not text or rel["from"] not in boxes or rel["to"] not in boxes:
             spots.append(None)
             continue
         _, x, y = _curve(boxes[rel["from"]], boxes[rel["to"]], _bend(rel))
         best: tuple[float, Spot, Rect] | None = None
-        for spot in _candidates(x, y - 6, rel["label"]):
+        for spot in _candidates(x, y - 6, text):
             rect = _label_box(spot)
             cost = _overlap(rect, placed) + _overlap(rect, obstacles)
             if best is None or cost < best[0]:
@@ -610,7 +624,9 @@ def render_svg(
             if els[i]["board"] == part and (not half or els[i].get("half") == half)
         }
     relations = data.get("relations", [])
-    spots = _label_spots(relations, boxes, _obstacles(data, boxes, profile, screen))
+    spots = _label_spots(
+        relations, boxes, _obstacles(data, boxes, profile, screen), lang
+    )
     for rel, spot in zip(relations, spots):
         if rel["from"] not in linked or rel["to"] not in linked:
             continue

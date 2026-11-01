@@ -272,3 +272,133 @@ def test_split_a_hypothesis_into_lettered_parts(board2: dict[str, Any]) -> None:
     assert "H2" not in hyps and hyps["H2a"]["type"] == "claim"
     assert hyps["H2b"]["type"] == "estimate"
     assert errors(new) == []
+
+
+SHIFT = {"from": "p-owner", "to": "p-organiser", "kind": "shift"}
+FLOW = {"from": "p-owner", "to": "fn-dough", "kind": "flow"}
+
+
+def test_set_a_relation_by_from_to_and_kind(board2: dict[str, Any]) -> None:
+    changes = [
+        {**SHIFT, "carries": "information", "voice": "ai", "cites": ["s3#p=2"]},
+        {**FLOW, "carries": "product", "label": "pays per tonne of flour"},
+    ]
+    new = apply_patch(board2, patch(set=changes))
+    shift, _, mills, owner = new["relations"][:4]
+    # A field already there is replaced in place, a new one goes to the end
+    # in the order carries, label, voice, cites.
+    assert list(shift) == ["from", "to", "kind", "label", "carries", "voice", "cites"]
+    assert shift["carries"] == "information" and shift["cites"] == ["s3#p=2"]
+    assert owner["carries"] == "product" and owner["label"] == "pays per tonne of flour"
+    assert list(owner) == ["from", "to", "kind", "carries", "label"]
+    assert mills == board2["relations"][2]
+    assert board2["relations"][0].get("carries") is None
+    assert errors(new) == []
+
+
+def test_set_a_relation_deletes_a_field_with_null(board2: dict[str, Any]) -> None:
+    new = apply_patch(board2, patch(set=[{**FLOW, "carries": None, "label": None}]))
+    assert new["relations"][3] == {**FLOW}
+    assert errors(new) == []
+
+
+def test_set_a_relation_after_add_and_with_a_transition_in_the_same_patch(
+    board2: dict[str, Any],
+) -> None:
+    added = {"from": "p-owner", "to": "fn-logistics", "kind": "uses"}
+    new = apply_patch(
+        board2,
+        patch(
+            add={"relations": [added]},
+            set=[{**added, "label": "uses it"}, {"n": 1, "label": "moved"}],
+        ),
+    )
+    assert new["relations"][-1]["label"] == "uses it"
+    assert new["transitions"][0]["label"] == "moved"
+
+
+def test_set_a_relation_names_the_candidates_when_several_fit(
+    board2: dict[str, Any],
+) -> None:
+    second = {**FLOW, "carries": "information", "label": "asks for a price"}
+    board2["relations"].append(second)
+    with pytest.raises(PatchError) as raised:
+        apply_patch(board2, patch(set=[{**FLOW, "carries": "money"}]))
+    text = str(raised.value)
+    assert "2 relations p-owner -> fn-dough (flow)" in text
+    assert "'pays per tonne'" in text and "'asks for a price'" in text
+    assert "match_label" in text
+    # `match_label` is the label a relation has now; `label` sets the new one.
+    new = apply_patch(
+        board2,
+        patch(set=[{**FLOW, "match_label": "asks for a price", "label": "asks"}]),
+    )
+    owner_flows = [
+        r for r in new["relations"] if (r["from"], r["to"]) == ("p-owner", "fn-dough")
+    ]
+    assert [r["label"] for r in owner_flows] == ["pays per tonne", "asks"]
+
+
+@pytest.mark.parametrize(
+    "entry, message",
+    [
+        (
+            {"from": "p-owner", "to": "p-organiser", "kind": "flow", "voice": "x"},
+            "no relation",
+        ),
+        ({**SHIFT, "match_label": "other", "voice": "x"}, "with label 'other'"),
+        ({**SHIFT, "label_note": "x"}, "takes carries, label, voice, cites"),
+    ],
+)
+def test_set_a_relation_that_fits_nothing_is_an_error(
+    board2: dict[str, Any], entry: dict[str, Any], message: str
+) -> None:
+    with pytest.raises(PatchError, match=message):
+        apply_patch(board2, patch(set=[entry]))
+
+
+def test_set_entry_with_an_id_and_a_relation_key_is_refused(
+    board2: dict[str, Any],
+) -> None:
+    with pytest.raises(PatchError, match="not both"):
+        apply_patch(board2, patch(set=[{"id": "entry", **FLOW, "carries": "money"}]))
+
+
+def test_set_a_relation_is_reproducible(tmp_path: Path) -> None:
+    board = str(EXAMPLE / "bakeries-c2.board.yaml")
+    changes = [
+        {**SHIFT, "carries": "information", "voice": "ai"},
+        {**FLOW, "voice": "ai"},
+    ]
+    given = tmp_path / "rel.patch.yaml"
+    given.write_text(yaml.safe_dump(patch(set=changes)), "utf-8")
+    first, second = tmp_path / "1.board.yaml", tmp_path / "2.board.yaml"
+    assert main(["apply", board, str(given), "-o", str(first)]) == 0
+    assert main(["apply", board, str(given), "-o", str(second)]) == 0
+    assert first.read_bytes() == second.read_bytes()
+    assert "kind: shift, label: other position, carries: information, voice: ai}" in (
+        first.read_text("utf-8")
+    )
+    # A patch applies once; its relation changes do not apply a second time.
+    assert main(["apply", str(first), str(given), "-o", str(second)]) == 1
+
+
+def test_the_schema_checks_a_relation_entry(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    board = str(EXAMPLE / "bakeries-c2.board.yaml")
+    out = tmp_path / "out.board.yaml"
+    given = tmp_path / "rel.patch.yaml"
+    for entry in (
+        {**SHIFT, "carries": "gold"},
+        {**SHIFT},
+        {**SHIFT, "label_note": "x", "voice": "ai"},
+    ):
+        given.write_text(yaml.safe_dump(patch(set=[entry])), "utf-8")
+        assert main(["apply", board, str(given), "-o", str(out)]) == 2
+    assert not out.exists()
+    # A set entry for an element may still set its `kind`.
+    given.write_text(
+        yaml.safe_dump(patch(set=[{"id": "gap-risk", "kind": "gap"}])), "utf-8"
+    )
+    assert main(["apply", board, str(given), "-o", str(out)]) == 0

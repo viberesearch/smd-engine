@@ -36,12 +36,15 @@
     },
     "set": {
       "type": "array",
-      "description": "fields merged into the record board, element, K, thesis, hypothesis or ontology record of that id, or into the transition numbered n; null deletes a field",
+      "description": "fields merged into the record board, element, K, thesis, hypothesis or ontology record of that id, into the transition numbered n, or into the one relation named by from, to and kind; null deletes a field",
       "items": {
         "type": "object",
-        "oneOf": [{"required": ["id"]}, {"required": ["n"]}],
-        "minProperties": 2,
-        "properties": {"id": {"$ref": "#/$defs/item_id"}, "n": {"$ref": "#/$defs/n"}}
+        "oneOf": [
+          {"required": ["id"], "properties": {"id": {"$ref": "#/$defs/item_id"}}},
+          {"required": ["n"], "properties": {"n": {"$ref": "#/$defs/n"}}},
+          {"$ref": "#/$defs/set_relation"}
+        ],
+        "minProperties": 2
       }
     },
     "remove": {
@@ -75,6 +78,23 @@
     "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
     "item_id": {"type": "string", "pattern": "^([a-z0-9][a-z0-9._-]*|[KTO][0-9]+|H[0-9]+[a-z]?)$", "description": "element id, or K, T, H, O id; a part of a split hypothesis is H2a, H2b"},
     "n": {"type": "integer", "minimum": 1, "description": "transition number"},
+    "set_relation": {
+      "type": "object",
+      "description": "a relation addressed by from, to and kind (exactly one must fit; match_label is the label it has now, to tell apart relations that share the three); sets the fields given, null deletes one",
+      "required": ["from", "to", "kind"],
+      "additionalProperties": false,
+      "anyOf": [{"required": ["carries"]}, {"required": ["label"]}, {"required": ["voice"]}, {"required": ["cites"]}],
+      "properties": {
+        "from": {"$ref": "#/$defs/id"},
+        "to": {"$ref": "#/$defs/id"},
+        "kind": {"type": "string", "minLength": 1},
+        "match_label": {"type": "string"},
+        "carries": {"enum": ["money", "material", "product", "information", null]},
+        "label": {"type": ["string", "null"]},
+        "voice": {"type": ["string", "null"]},
+        "cites": {"anyOf": [{"$ref": "#/$defs/cites"}, {"type": "null"}]}
+      }
+    },
     "items": {"type": "array", "items": {"type": "object"}},
     "cite": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*(#[a-z]+=[^\\s]+)?$"},
     "cites": {"type": "array", "items": {"$ref": "#/$defs/cite"}}

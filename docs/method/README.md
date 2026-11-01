@@ -11,6 +11,8 @@ The method from external primary sources, so that the engine does not rest on on
 | `encodable.md` | element kinds, relation kinds, procedures and checks for the schema, each with a source |
 | `reconciliation.md` | what the classic method changes in the engine compared with the MIPT program's version, by build step |
 | `roles-and-actors.md` | boards hold roles; actors that can occupy them go in `fillers`; stakeholder as the term; a role with structure keeps a `detail` table (adopted 27.10.2026) |
+| `formal-stance.md` | where the engine uses mathematics (gate Ж1 Б): formulas only on natural components, answers as sets, design mathematics for artificial ones; grounds; the six robustness rules |
+| `robustness-rules.md` | rules R1-R6: domain, intervals, bounded sensitivity, fragility, rivals, unknown unknowns by procedure; the fields and checks, and the audit of the numeric code |
 | `structural-moves.md` | the preprint behind the `move` field: the four operations, the selection functional, its limits and the running demonstration |
 
 Sources: the main texts are from G.P. Shchedrovitsky's *Избранные труды* (1995) and *Философия. Наука. Методология* (1997), read on gtmarket.ru, and Altshuller's texts on altshuller.ru. Stafford Beer's «Мозг фирмы» (BEER1972, read on gtmarket.ru) is the source of the Beer layer of the management profile (`docs/profiles.md`).

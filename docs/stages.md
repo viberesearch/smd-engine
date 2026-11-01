@@ -49,6 +49,9 @@ Plan approved 2026-10-25 (`docs/plan.md`). Each step is a branch and a PR. The s
 | ИИ1 | `ai: assists / performs` on roles and functions; `red_line`; hint `ai-decision-unanswered`; AI share line in `smd status` and the index | done in v0.6.1 |
 | КЛ1 | Structured red line `line` (corridor or yes/no, `since`/`until`, recovery) and `observed`; breach rule; hints for breach, expiry, pace; `docs/red-lines.md` | done in v0.6.1 |
 | ОТП1 | Lettered part ids for split hypotheses (`H2a`, `H2b`) in the board and patch schemas | done in v0.6.2 |
+| Ж1, Ж2 | Formal stance and robustness rules R1-R6 (`docs/method/robustness-rules.md`) | done in v0.6.3 |
+| ИСТ1 | Story view: `smd story paths`, `check`, `render`; record `story`; the invented case `cases/spectra_coffee/` | done in v0.6.3 |
+| Патчи | `set` on a relation by `from`, `to`, `kind`; `carries` shown in the renders | done in v0.6.3 |
 
 ## Structural moves (Invention as a Structural Operation)
 

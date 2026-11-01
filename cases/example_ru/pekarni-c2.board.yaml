@@ -59,6 +59,7 @@ relations:
   - {from: place-mills, to: fn-dough, kind: flow, carries: material, label: "мука"}
   - {from: p-owner, to: fn-dough, kind: flow, carries: money, label: "платит за тонну"}
   - {from: rl-unsold, to: fn-dough, kind: refers, label: "объём ночи планируют в пределах линии"}
+  - {from: rl-unsold, to: p-owner, kind: flow, carries: information, label: "ночной отчёт идёт владельцу, он задал линию"}
   - {from: fn-dough, to: fn-logistics, kind: flow, carries: product, label: "тесто к доставке"}
   - {from: p-owner, to: fn-logistics, kind: flow, carries: money, label: "платит в цене теста, пока так"}
   - {from: fn-logistics, to: p-owner, kind: flow, carries: product, label: "тесто к четырём утра"}

@@ -185,6 +185,7 @@ def test_verdict_hint_and_contradiction(board2: dict[str, Any]) -> None:
     assert found(board2, "hint", "H2") == [
         "proposed by the rule (доля 55+ < 0.2, n >= 30): 12/40 = 0.30, "
         "Wilson 95% 0.18-0.45: inconclusive, stays testing; "
+        "recoding 1 of 40 observations changes the outcome; "
         "the group signs accept_result"
     ]
     assert not found(board2, "warning", "H2")
@@ -193,7 +194,8 @@ def test_verdict_hint_and_contradiction(board2: dict[str, Any]) -> None:
     h1.update(rule=RULE, observed={"k": 2, "n": 100, "artefact": "s4"})
     assert found(board2, "warning", "H1") == [
         "recorded confirmed, but by the rule (доля 55+ < 0.2, n >= 30) "
-        "2/100 = 0.02, Wilson 95% 0.01-0.07 proposes refuted"
+        "2/100 = 0.02, Wilson 95% 0.01-0.07 proposes refuted; "
+        "recoding 11 of 100 observations changes the outcome"
     ]
     h1["observed"] = {"k": 40, "n": 100, "artefact": "s4"}
     assert not found(board2, "warning", "H1")

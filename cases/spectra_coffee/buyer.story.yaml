@@ -1,0 +1,48 @@
+# ВЫМЫШЛЕННЫЙ ПРИМЕР, черновик ИИ. История для покупателя; не подписывается.
+# Список allow короче, чем у основателя: частные оценки основателя в него не входят.
+record: story
+schema_version: "0.1"
+id: spectra-buyer-scqa
+title: "Вымышленный пример: история для покупателя «Спектры Кофе», SCQA, черновик ИИ"
+boards:
+  - {id: spectra-coffee-c1, version: "1.0", sha256: 9f373ea726ef28d3294f770ba56baec88f122963b048713c8646095e951a703c}
+audience: place-buyer
+protagonist: place-buyer
+form: scqa
+allow: [place-buyer, s-small, fact-spec, H4, fact-revenue, fact-trademark, fact-lease,
+        H1, H2, fn-train, fn-journal, coop-transfer, ev-trial, gl-handover]
+path: [place-buyer, fn-journal, fn-train, ev-trial, gl-handover, coop-transfer]
+conflict: [ev-trial, gl-handover]
+resolution: [coop-transfer]
+open: [H1, H2]
+sentences:
+  - part: situation
+    level: hypothesis
+    ids: [place-buyer, s-small]
+    text: "Предположим, вы, региональная сеть обжарочных, рассматриваете покупку двух кафе «Спектра Кофе»."
+  - part: situation
+    level: checked
+    ids: [fact-spec, H4]
+    text: "Кафе работают по спецификации: 6 позиций меню, 5 критических контрольных точек, 14 аллергенов ЕС, а второе кафе запущено по той же спецификации без изменения контрактов качества."
+  - part: situation
+    level: unverified
+    ids: [fact-revenue]
+    text: "Выручку 2025 года основатель оценивает в 0,95 млн евро; эту оценку никто не проверял."
+  - part: situation
+    level: stated
+    ids: [fact-trademark, fact-lease]
+    text: "Товарный знак записан на основателя лично, а аренда флагманского кафе требует согласия арендодателя при смене владельца."
+  - part: complication
+    level: hypothesis
+    ids: [gl-handover, ev-trial]
+    text: "Передача идёт серией связанных событий: представление, пробный месяц, подписание; в пробный месяц старший бариста ведёт оба кафе 28 дней без основателя, и до него неизвестно, будет ли напиток выходить по спецификации без основателя."
+  - part: question
+    level: hypothesis
+    ids: [H1, H2]
+    text: "Будет ли старший бариста вести запись без основателя, и назовёте ли вы цену не позже чем через 6 месяцев непрерывного журнала?"
+  - part: answer
+    level: hypothesis
+    ids: [fn-train, ev-trial, fn-journal, coop-transfer]
+    text: "Предлагается пробный месяц на 28 дней: основатель обучает управляющего, а журнал настройки виден вам до сделки и входит в кооперацию передачи."
+voice: ai
+run: {procedure: story, version: "0.1.0", model: claude-sonnet-5-5, date: "2026-11-01"}

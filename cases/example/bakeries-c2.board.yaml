@@ -59,6 +59,7 @@ relations:
   - {from: place-mills, to: fn-dough, kind: flow, carries: material, label: "flour"}
   - {from: p-owner, to: fn-dough, kind: flow, carries: money, label: "pays per tonne"}
   - {from: rl-unsold, to: fn-dough, kind: refers, label: "the night's volume is planned inside the line"}
+  - {from: rl-unsold, to: p-owner, kind: flow, carries: information, label: "the nightly report goes to the owner, who set the line"}
   - {from: fn-dough, to: fn-logistics, kind: flow, carries: product, label: "dough to deliver"}
   - {from: p-owner, to: fn-logistics, kind: flow, carries: money, label: "pays inside the dough price, for now"}
   - {from: fn-logistics, to: p-owner, kind: flow, carries: product, label: "dough before four in the morning"}

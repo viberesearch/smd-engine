@@ -1,0 +1,56 @@
+# ВЫМЫШЛЕННЫЙ ПРИМЕР, черновик ИИ. История для основателя; не подписывается.
+# Исправления вносятся в карту (spectra-coffee-c1.board.yaml), потом текст пишется заново.
+record: story
+schema_version: "0.1"
+id: spectra-owner-scqa
+title: "Вымышленный пример: история для основателя «Спектры Кофе», SCQA, черновик ИИ"
+boards:
+  - {id: spectra-coffee-c1, version: "1.0", sha256: 9f373ea726ef28d3294f770ba56baec88f122963b048713c8646095e951a703c}
+audience: p-founder
+protagonist: p-founder
+form: scqa
+allow: [p-founder, goal-handover, fact-staff, fact-spec, s-small, fact-dialin-share, rl-dialin,
+        sig-august, nb-qual, H1, H2, H5, fn-dialin, fn-journal, coop-transfer, K1, fn-train, place-successor]
+path: [p-founder, fn-dialin, rl-dialin, fn-journal, coop-transfer]
+conflict: [rl-dialin]
+resolution: [coop-transfer]
+open: [H1, H2, H5]
+sentences:
+  - part: situation
+    level: stated
+    ids: [p-founder, goal-handover]
+    text: "Вам 61 год, вы основали «Спектру Кофе» и хотите передать дело в течение 3 лет, сохранив вкус напитков."
+  - part: situation
+    level: stated
+    ids: [s-small, fact-staff, fact-spec]
+    text: "В двух кафе работают 9 человек, а меню и процессы записаны в спецификации: 6 позиций меню, 5 критических контрольных точек, 14 аллергенов ЕС."
+  - part: situation
+    level: unverified
+    ids: [fact-dialin-share]
+    text: "По вашей оценке, вы сами настраиваете помол в 5 из 7 утренних смен; эту оценку никто не проверял."
+  - part: complication
+    level: checked
+    ids: [rl-dialin]
+    text: "Вы задали красную линию: настройка помола записана в журнал каждую неделю проверки."
+  - part: complication
+    level: checked
+    ids: [sig-august, rl-dialin]
+    text: "С 3 по 17 августа 2026 года, пока вы были в отъезде, записи не было 14 дней подряд, и это нарушение линии."
+  - part: complication
+    level: hypothesis
+    ids: [nb-qual, sig-august]
+    text: "Возможно, это значит, что норма «смена работает без основателя» пока не держится."
+  - part: question
+    level: hypothesis
+    ids: [H1]
+    text: "Будет ли старший бариста вести запись без вас так, чтобы не больше 10 % смен оставались без записи?"
+  - part: question
+    level: hypothesis
+    ids: [H1]
+    text: "В пробные дни записи не было в 4 сменах из 56, а порог равен 10 %; правило пока не даёт вывода."
+  - part: answer
+    level: hypothesis
+    ids: [fn-journal, coop-transfer, goal-handover]
+    text: "Предлагается связать журнал с передачей: он виден управляющему и покупателю, а кооперация передачи ведёт к вашей цели."
+voice: ai
+run: {procedure: story, version: "0.1.0", model: claude-sonnet-5-5, date: "2026-11-01"}

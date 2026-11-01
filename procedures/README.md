@@ -29,6 +29,7 @@ Front matter, checked by `tests/test_procedures.py`:
 | `problematization` | 3 | a difficulty and a named scheme | plus/minus marking, gaps and problem theses, goals and themes |
 | `qualification-pass` | 3 | a board set | K items against the program's criteria and the classic checks |
 | `reflexive-protocol` | 3 | a finished cycle | what failed, the reflexive position, the next cycle |
+| `story` | 3 | one story skeleton, the boards, the shareable ontology part | a story file in the audience's language, checked by `smd story check`, a draft of the engine and never signed |
 | `solo-session` | 3 | a case and its records | the order of the step-3 procedures, with stops for the human's decisions |
 
 Common rules:

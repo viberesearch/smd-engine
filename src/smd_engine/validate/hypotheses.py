@@ -9,8 +9,10 @@ from typing import Any
 from smd_engine.validate.context import Ctx, Finding, board_set, cite_findings, hint
 from smd_engine.verdict import (
     CONTRADICTS,
+    detail_text,
     is_share,
     of_hypothesis,
+    propose,
     rule_line,
     verdict_line,
 )
@@ -56,11 +58,104 @@ def check_hypotheses(ctx: Ctx) -> list[Finding]:
         if h.get("resolved_in", 10**6) < h.get("raised_in", 0):
             out.append(Finding("error", hid, "resolved before it was raised"))
         out += _observed_findings(h)
+        out += _domain_findings(h)
+        out += _rival_findings(h, ctx.hyps)
         out += cite_findings(h.get("artefacts", []), hid, ctx.source_ids)
         if "observed" in h:
             out += cite_findings([h["observed"]["artefact"]], hid, ctx.source_ids)
             out += _artefact_kind(h, ctx.source_kinds)
         out += cite_findings(h.get("cites", []), hid, ctx.source_ids)
+    out += _escaped_findings(ctx)
+    return out
+
+
+def _range_errors(found: Any, what: str, where: str) -> list[Finding]:
+    """A range with its minimum above its maximum (the schema checks the shape)."""
+    return [
+        Finding(
+            "error", where, f"{what} '{name}': min {pair[0]:g} is above max {pair[1]:g}"
+        )
+        for name, pair in (found or {}).items()
+        if pair[0] > pair[1]
+    ]
+
+
+def _domain_findings(h: dict[str, Any]) -> list[Finding]:
+    """R1: ranges the right way round; sample names the domain does not name;
+    a recorded result on a sample outside the domain."""
+    rule, obs = h.get("rule") or {}, h.get("observed") or {}
+    hid = h["id"]
+    out = _range_errors(rule.get("domain"), "domain", hid)
+    out += _range_errors(obs.get("sample"), "sample", hid)
+    if rule.get("domain") and obs.get("sample"):
+        extra = sorted(set(obs["sample"]) - set(rule["domain"]))
+        if extra:
+            out.append(
+                Finding(
+                    "warning",
+                    hid,
+                    f"sample names {', '.join(extra)}, which the rule's domain does not",
+                )
+            )
+    v = None if any(f.level == "error" for f in out) else of_hypothesis(h)
+    if v and v.outcome == "outside_domain" and h["status"] in ("confirmed", "refuted"):
+        out.append(
+            Finding(
+                "warning",
+                hid,
+                f"recorded {h['status']}, but the sample leaves the rule's domain: "
+                f"{detail_text(v)}",
+            )
+        )
+    return out
+
+
+def _rival_findings(
+    h: dict[str, Any], hyps: dict[str, dict[str, Any]]
+) -> list[Finding]:
+    """R5: a rival is another hypothesis of the record."""
+    out = []
+    for r in h.get("rivals", []):
+        if r == h["id"]:
+            out.append(Finding("error", h["id"], "a hypothesis is not its own rival"))
+        elif r not in hyps:
+            out.append(Finding("error", h["id"], f"rival '{r}' is not a hypothesis"))
+    return out
+
+
+# Kinds that may record a surprise: the default profile's signal, else a note.
+SURPRISE_KINDS = ("signal", "note")
+
+
+def _escaped_findings(ctx: Ctx) -> list[Finding]:
+    """R6: `escaped` names hypotheses of the record, is for a signal or a
+    note, and goes with the `date` of the surprise."""
+    out: list[Finding] = []
+    for el in ctx.by_id.values():
+        eid = el["id"]
+        if "date" in el and "escaped" not in el:
+            out.append(
+                Finding(
+                    "error", eid, "'date' is only for a surprise: it needs 'escaped'"
+                )
+            )
+        if "escaped" not in el:
+            continue
+        if el["kind"] not in SURPRISE_KINDS:
+            out.append(
+                Finding(
+                    "error", eid, "'escaped' is only for " + " or ".join(SURPRISE_KINDS)
+                )
+            )
+        if "date" not in el:
+            out.append(
+                Finding("error", eid, "'escaped' needs the 'date' of the surprise")
+            )
+        out += [
+            Finding("error", eid, f"escaped '{h}' is not a hypothesis")
+            for h in el["escaped"]
+            if h not in ctx.hyps
+        ]
     return out
 
 
@@ -76,12 +171,14 @@ def _observed_findings(h: dict[str, Any]) -> list[Finding]:
         ]
     v = of_hypothesis(h)
     if v and CONTRADICTS.get(h["status"]) == v.outcome:
+        detail = detail_text(v)
         return [
             Finding(
                 "warning",
                 h["id"],
                 f"recorded {h['status']}, but by the rule ({rule_line(h['rule'])}) "
-                f"{verdict_line(v)} proposes {v.outcome}",
+                f"{verdict_line(v)} proposes {v.outcome}"
+                + (f"; {detail}" if detail else ""),
             )
         ]
     return []
@@ -228,10 +325,96 @@ def hint_verdict(ctx: Ctx) -> list[Finding]:
                 "refuted": "refuted",
                 "confirmed": "confirmed",
                 "inconclusive": "inconclusive, stays testing",
+                "outside_domain": "outside the rule's domain, no proposal",
             }[v.outcome]
+            detail = detail_text(v)
             message = (
                 f"proposed by the rule ({rule_line(rule)}): {verdict_line(v)}: "
-                f"{word}; the group signs accept_result"
+                f"{word}; "
+                + (f"{detail}; " if detail else "")
+                + "the group signs accept_result"
             )
         out.append(Finding("hint", h["id"], message))
     return out
+
+
+@hint("domain-sample")
+def hint_domain_sample(ctx: Ctx) -> list[Finding]:
+    """R1: a rule with a `domain` and an `observed` with no `sample`, or a
+    `sample` that omits some of the domain's names: the verdict cannot say
+    whether the field covered that part of the domain."""
+    out: list[Finding] = []
+    for h in ctx.record.get("hypotheses", []):
+        domain = (h.get("rule") or {}).get("domain")
+        if not domain or not h.get("observed"):
+            continue
+        sample = h["observed"].get("sample")
+        if not sample:
+            message = (
+                "the rule has a domain, but observed has no sample: give the "
+                f"ranges the field covered ({', '.join(domain)})"
+            )
+        elif missing := [name for name in domain if name not in sample]:
+            message = (
+                "the rule has a domain, but the sample omits "
+                f"{', '.join(missing)}: give the ranges the field covered"
+            )
+        else:
+            continue
+        out.append(Finding("hint", h["id"], message))
+    return out
+
+
+def _rivals_of(hid: str, hyps: dict[str, dict[str, Any]]) -> list[str]:
+    """The rivals of a hypothesis, either side naming the other, in order."""
+    found = list(hyps[hid].get("rivals", []))
+    found += [g for g, other in hyps.items() if hid in other.get("rivals", [])]
+    return [r for n, r in enumerate(found) if r in hyps and r not in found[:n]]
+
+
+@hint("surprise")
+def hint_surprise(ctx: Ctx) -> list[Finding]:
+    """R6: an observed result outside the interval of the hypothesis and of
+    every rival, each rival read on the same count (same metric, a share
+    rule). No model on the board expects it: the hint proposes a dated
+    surprise, a `signal` (a `note` where the profile has no signal) with
+    `escaped` naming them. Only for a hypothesis in `testing`. Silent once an element's `escaped` names the
+    hypothesis."""
+    logged = {h for el in ctx.by_id.values() for h in el.get("escaped", [])}
+    kind = "signal" if ctx.profile.has_kind("signal") else "note"
+    out: list[Finding] = []
+    for hid, h in ctx.hyps.items():
+        obs, rule = h.get("observed"), h.get("rule")
+        # a hypothesis in testing, as for the hint verdict; a recorded
+        # result is not proposed again, an untested one is set testing first
+        if h["status"] != "testing" or not obs or not rule or hid in logged:
+            continue
+        if obs["k"] > obs["n"]:
+            continue
+        rivals = _rivals_of(hid, ctx.hyps)
+        v = of_hypothesis(h)
+        if not rivals or v is None or v.outcome != "refuted":
+            continue
+        if not all(_refutes(ctx.hyps[r], rule["metric"], obs) for r in rivals):
+            continue
+        out.append(
+            Finding(
+                "hint",
+                hid,
+                f"{verdict_line(v)} is outside the interval of {hid} and of its "
+                f"rivals {', '.join(rivals)}: no hypothesis on the board expects "
+                f"it. Record a surprise: a {kind} with date and escaped: "
+                f"[{', '.join([hid, *rivals])}]",
+            )
+        )
+    return out
+
+
+def _refutes(rival: dict[str, Any], metric: str, obs: dict[str, Any]) -> bool:
+    """Whether the rival's own share rule, on the same metric, is refuted by
+    this count."""
+    rule = rival.get("rule")
+    if not rule or rule["metric"] != metric:
+        return False
+    v = propose(rule, obs)
+    return v is not None and v.outcome == "refuted"

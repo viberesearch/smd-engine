@@ -177,6 +177,8 @@ hints:
   - rule-n-min
   - type-status
   - verdict
+  - domain-sample
+  - surprise
   - ai-drafts
   - ai-variants
   - no-new-scheme

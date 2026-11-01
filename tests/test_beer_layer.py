@@ -130,8 +130,8 @@ def test_algedonic_channel_takes_threshold_and_recovery_time(
     el(case, "ideal")["threshold"] = "5 утра"
     el(case, "post-owner")["recovery_time"] = 3
     assert found(case, "error") == [
-        "ideal: 'threshold' is only for algedonic channels",
-        "post-owner: 'recovery_time' is only for algedonic channels",
+        "ideal: 'threshold' is allowed on algedonic channels and on elements with `red_line: true`",
+        "post-owner: 'recovery_time' is allowed on algedonic channels and on elements with `red_line: true`",
     ]
     other = copy.deepcopy(
         load_record(ROOT / "cases" / "example_ru" / "pekarni-c1.board.yaml")
@@ -210,6 +210,44 @@ def test_line_without_recovery(case: dict[str, Any]) -> None:
     assert found(case, "hint", "ch-flour") == []
 
 
+def test_recovery_time_is_allowed_on_a_red_line_that_is_not_a_channel(
+    case: dict[str, Any],
+) -> None:
+    ideal = el(case, "ideal")
+    ideal["recovery_time"] = 3
+    assert found(case, "error") == [
+        "ideal: 'recovery_time' is allowed on algedonic channels and on elements with `red_line: true`"
+    ]
+    ideal["red_line"] = True
+    ideal["threshold"] = "5 утра"
+    assert found(case, "error") == []
+    # the hint reads it: a recovery time is named, the address is still missing
+    [msg] = found(case, "hint", "ideal")
+    assert "no recovery time" not in msg and "no escalation address" in msg
+
+
+def test_four_boards_counts_escalates_only_as_the_address(
+    case: dict[str, Any],
+) -> None:
+    ch = el(case, "ch-orders")
+    ch["recovery_time"] = 1
+    case["relations"].append(
+        {
+            "from": "ch-orders",
+            "to": "place-heir",
+            "kind": "flow",
+            "carries": "information",
+        }
+    )
+    # the profile has `escalates`, so a flow of information is not an address
+    assert found(case, "hint", "ch-orders")[0].startswith(
+        "ch-orders: a red line with a threshold and no escalation address"
+    )
+    case["relations"][-1].update(kind="escalates")
+    del case["relations"][-1]["carries"]
+    assert found(case, "hint", "ch-orders") == []
+
+
 @pytest.mark.parametrize(
     ("value", "recovery", "hinted"),
     [
@@ -281,19 +319,17 @@ def test_absorbed_into_system_1(case: dict[str, Any]) -> None:
 
 def test_profile_refuses_beer_hints_without_their_kinds_and_flags() -> None:
     data = classic()
-    data["hints"].append("line-without-recovery")
+    data["hints"].append("absorbed-into-system-1")
     with pytest.raises(ProfileError) as exc:
         profile_module._parse(copy.deepcopy(data), "classic-two-boards")
     assert str(exc.value) == (
-        "classic-two-boards: missing kinds the engine names: "
-        "['algedonic_channel', 'post']"
+        "classic-two-boards: missing kinds the engine names: ['post']"
     )
-    for kid in ("algedonic_channel", "post"):
-        data["kinds"].append(dict(data["kinds"][-1], id=kid, home="oo"))
+    data["kinds"].append(dict(data["kinds"][-1], id="post", home="oo"))
     with pytest.raises(ProfileError) as exc:
         profile_module._parse(copy.deepcopy(data), "classic-two-boards")
     assert str(exc.value) == (
-        "classic-two-boards: missing relation kinds the hints name: ['escalates']"
+        "classic-two-boards: missing relation kinds the hints name: ['captures']"
     )
     data = classic()
     data["kinds"][0]["vsm"] = "yes"

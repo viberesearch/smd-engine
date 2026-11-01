@@ -28,6 +28,8 @@ uv run smd index cases/example/bakeries-c2.board.yaml --sources cases/example/so
 uv run smd publish cases/example/bakeries-c2.board.yaml --sources cases/example/sources.yaml --out out/pub   # validate, then write <id>_frames, <id>_cycle_frames, <id>_index, <id>_graph and <id> as HTML; nothing is written if validation fails; takes --lang, --light, --zoom, --notes, --archive, --strict, --taxonomies
 uv run smd vault cases/example/bakeries-c2.board.yaml out/vault --sources cases/example/sources.yaml   # Obsidian vault: a note per element, thesis, hypothesis, K and source; links as typed properties; the screen as a canvas
 uv run smd pack solo-session cases/example/bakeries-c2.board.yaml --sources cases/example/sources.yaml -o out/pack.md   # attach to any model; --sources carries the manifest, --taxonomies the taxonomy file; with board sets, the skeleton of the latest cycle as "Cells to fill"; prints `pack sha256: <hex>` to stderr, the hash of what it wrote, for `run.pack_sha256`
+uv run smd story paths cases/spectra_coffee/spectra-coffee-c1.board.yaml --audience place-bank   # walks of 4-9 items over typed links from the protagonist through a conflict to a resolution, best first; --allow-refers, --limit, --yaml (story skeletons), --gaps (where no typed walk exists and the links that would make one); docs/stories.md
+uv run smd story check cases/spectra_coffee/bank.story.yaml --boards cases/spectra_coffee/spectra-coffee-c1.board.yaml   # a story file against rules G1-G7: ids, levels, numbers, allow-list, dropped oppositions, board stamp; exit 1 on an error; `smd story render story.yaml --md` prints a story as Markdown; paths, check and render take --sources and --taxonomies
 uv run smd sources cases/example/sources.yaml --clean-room --deny-lineage earlier-concept
 uv run smd sources path/to/sources.yaml --folder /local/folder
 uv run smd sources path/to/sources.yaml --folder /local/folder --refresh [ids]   # recompute sha256 of the named sources (default: every decision_log); a source that already carries `lines` gets its count rewritten, one that does not is not given one; edit only those lines of the manifest
@@ -35,7 +37,7 @@ uv run smd compare a.board.yaml b.board.yaml -o out/compare.md --merge out/merge
 uv run smd eval run.board.yaml cases/example/golden/bakeries-c2-expected.board.yaml --min-agreement 10 --max-only-expected 3   # did a procedure run get worse: the five compare counts, the `run` stamps of both records (procedure, version, model, date, `pack_sha256`, `inputs`, `temperature`, `sample` when present), theses matched by cites, K and H matched by wording; exit 1 on a missed threshold
 uv run smd agree out/run1.board.yaml out/run2.board.yaml out/run3.board.yaml [--fields belt,kind] [--json]   # how stable are the labels across N runs of one procedure on one input: Krippendorff's alpha per label field, and the share of cite addresses every run found; see below
 uv run smd revise cases/example/bakeries-c2.board.yaml --decisions decisions.yaml -o out/bakeries-c3.board.yaml   # next cycle with the human's sign-offs applied
-uv run smd apply cases/example/bakeries-c2.board.yaml cases/example/patches/bakeries-c2-1.patch.yaml -o out/bakeries-c2.board.yaml --sources cases/example/sources.yaml   # a decision on the current cycle as a patch (set and remove by id or by transition number n, board_notes): the next sub-version, validated (also --taxonomies); nothing is written on errors
+uv run smd apply cases/example/bakeries-c2.board.yaml cases/example/patches/bakeries-c2-1.patch.yaml -o out/bakeries-c2.board.yaml --sources cases/example/sources.yaml   # a decision on the current cycle as a patch (set and remove by id or by transition number n, set also by from + to + kind for a relation, board_notes): the next sub-version, validated (also --taxonomies); nothing is written on errors
 ```
 
 `validate` reports three levels:
@@ -64,7 +66,7 @@ uv run smd apply cases/example/bakeries-c2.board.yaml cases/example/patches/bake
 `status <record>` prints the core view, in this order and nothing else:
 - the state line (cycle, version, status, the cycle it revises, how many items are accepted and open) with `state.difficulty` and `state.next_move`;
 - the K not closed, open first and then partly answered;
-- the hypotheses in `testing`; then, for each `testing` hypothesis with `rule` and `observed`, the verdict the rule proposes by the Wilson interval (`docs/data-model.md`, Hypotheses; a proposal, the group signs `accept_result`); then the `untested` ones in leverage order, below;
+- the hypotheses in `testing`; then, for each `testing` hypothesis with `rule` and `observed`, the verdict the rule proposes by the Wilson interval (`docs/hypotheses.md`; a proposal, the group signs `accept_result`) with its fragility (`flips`, the recodings that change the outcome) and, when `observed.unknown` is set, the outcomes with none and all of the unknown cases counted; then the `untested` ones in leverage order, below;
 - the red lines their observations breach, each with the dates of its breaches (`docs/red-lines.md`);
 - AI-voiced items waiting for a human sign-off: thesis variants (`ai_variant`), candidate moves, K and H drafted by an AI that are not closed or resolved;
 - the transitions;
