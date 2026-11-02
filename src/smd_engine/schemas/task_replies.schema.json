@@ -9,6 +9,7 @@
     "record": {"const": "task_replies"},
     "schema_version": {"const": "0.1"},
     "diff": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "sha256 of diff.yaml the replies are for"},
+    "view": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "deal mode: sha256 of the per-position view (diff.<position>.yaml) the member replied on; `diff` stays the sha256 of the whole diff.yaml"},
     "member": {"$ref": "#/$defs/id"},
     "date": {"type": "string", "format": "date"},
     "replies": {

@@ -1,0 +1,186 @@
+# Invented example of a deal pack: the sale of a small bakery. The three members
+# and their answers are made up. Positions and `audience` make the shared core
+# and one annex per position; `pairs` name the member pairs compared on their
+# own. Answers carry the sha256 of the core and of the member's annex. After any
+# edit here, restamp the answers (tests/deal_helpers.py restamp, see
+# tests/test_deal_positions.py).
+record: task_pack
+schema_version: "0.1"
+id: bakery-sale
+title: Sale of the corner bakery - reading the business alike
+version: "1"
+date: "2026-11-02"
+due: "2026-11-05"
+lang: en
+positions:
+  - {id: seller, label: Seller, kind: seller}
+  - {id: buyer, label: Buyer, kind: buyer}
+  - {id: broker, label: Sell-side broker, kind: broker_sell}
+members:
+  - {id: vera, name: Vera, position: seller}
+  - {id: boris, name: Boris, position: buyer}
+  - {id: gleb, name: Gleb, position: broker, principal: vera}
+pairs:
+  - {id: seller-buyer, members: [vera, boris]}
+  - {id: broker-buyer, members: [gleb, boris]}
+facilitator: gleb
+holder: {kind: organisation, name: Neutral Escrow Office, program: smd-engine 0.7.0, method: local-v1}
+deal:
+  id: bakery-2026
+  stages: [nda, full-map]
+  model_consent: false
+  # The seller states the asking price; the pages open it at `stage` (default:
+  # the stage after nda). The buyer names no number in the pack. The sealed floor
+  # is off by default; it is on here so that the verdict tests have a floor and
+  # a ceiling to compare.
+  asking_price: {value: 95000, unit: EUR, stage: full-map}
+  sealed_floor: true
+task:
+  what: >-
+    Read the same description of the bakery, say what the main terms mean to
+    you, and say where you read the business differently.
+  why: >-
+    Seller and buyer should meet at the table holding one picture of the
+    business. The seller states the asking price; the buyer names no number here.
+  feeds:
+    text: the list of terms and facts to settle before the meeting
+    ids: [client-base, gap-successor]
+ontology:
+  terms:
+    - term: client base
+      definition: the customers who bought at least once in the last 90 days
+      source: s1
+    - term: key person
+      definition: a person whose leaving would stop a function for more than a month
+      source: s1
+    - term: family plan
+      definition: what the owner's family intends to do with the proceeds and the premises
+      source: s1
+      audience: [seller]
+  elements:
+    - {id: goal-sale, label: sale of the bakery, tier: 2, kind: goal}
+    - {id: p-owner, label: owner, tier: 3, kind: position}
+    - {id: fn-bread, label: bread production, tier: 4, kind: function}
+    - {id: fn-cafe, label: cafe counter, tier: 4, kind: function}
+    - {id: place-lease, label: premises lease, tier: 5, kind: place_for_others}
+    - {id: gap-successor, label: who runs the bakery after the owner, kind: gap}
+  relations:
+    - {from: goal-sale, to: p-owner, kind: intent of}
+    - {from: p-owner, to: fn-bread, kind: answers for}
+    - {from: p-owner, to: fn-cafe, kind: answers for}
+    - {from: place-lease, to: fn-bread, kind: premises}
+    - {from: gap-successor, to: goal-sale, kind: blocks}
+sources:
+  - {id: s1, address: "s1#t=00:04:00", note: the owner describes the bakery}
+  - {id: s2, address: s2, note: accounts of the last year, sha256: 4b1c9d6a0e7f2358a1d4c6e9b03f5a7218d9c0e4f6a3b5d7c91e2f40a8b6d3c5, date: "2026-10-20"}
+  - {id: s3, address: s3, note: the lease contract of the premises, sha256: 7e2a5c8f1b4d6093e8a7c5b2d1f40963a8e7c6b5d4f3a2910e8d7c6b5a4f3e21, date: "2026-09-02"}
+term_check:
+  - {id: tc-clients, term: client base, question: "What is the client base of this bakery, in your own words?"}
+  - {id: tc-key, term: key person, question: "Who is a key person here, and why?"}
+  - {id: tc-ready, term: ready to run, question: "When is the bakery ready to be run by someone else?"}
+items:
+  - id: read-clients
+    section: Reading
+    question: How should the client base be counted?
+    kind: choice
+    options:
+      - {id: contracts, label: Contract customers only, context: "Few customers, stable orders."}
+      - {id: regulars, label: Regulars of the last 90 days, context: "Cafe and shop together."}
+      - {id: ever, label: Everyone who ever bought, context: "The widest count."}
+    refs: [fn-cafe, fn-bread]
+    nature: term
+  - id: key-person
+    section: Reading
+    question: Who is the key person of the bakery?
+    kind: choice
+    options:
+      - {id: owner, label: The owner}
+      - {id: baker, label: The head baker}
+      - {id: nobody, label: Nobody}
+    refs: [p-owner, gap-successor]
+    nature: term
+  - id: margin
+    section: Reading
+    question: Do the accounts support the claim below?
+    kind: fact
+    claim:
+      text: The gross margin of the bakery in 2025 was above 40 percent.
+      asserted_by: seller
+      source: s2
+      level: stated
+    nature: fact
+  - id: lease-term
+    section: Reading
+    question: Do the lease contract and the claim below agree?
+    kind: fact
+    claim:
+      text: The lease of the premises runs until the end of 2028.
+      asserted_by: seller
+      source: s3
+      level: checked
+    nature: fact
+  - id: fit-clients
+    section: Reading
+    question: Does this client base fit what you want from the bakery?
+    kind: choice
+    options:
+      - {id: fits, label: It fits}
+      - {id: partly, label: It fits in part}
+      - {id: unfit, label: It does not fit}
+    nature: position
+    fit_of: read-clients
+  - id: rl-staff
+    section: Red lines
+    question: Will you keep the baking staff in the first year, as the line below says?
+    kind: line
+    line: {metric: share of the baking staff kept, unit: "%", min: 80, since: "2026-12-01", until: "2027-12-31", recovery_days: 30}
+  - id: sale-reason
+    section: Own position
+    question: Why does the owner sell now, and what must stay unsaid at the first meeting?
+    kind: text
+    audience: [seller]
+  - id: first-year
+    section: Own position
+    question: What would you change in the first year?
+    kind: text
+    audience: [buyer]
+  - id: broker-note
+    section: Own position
+    question: Which weak points of the file will you raise first with the buyer?
+    kind: text
+    audience: [broker]
+  - id: handover
+    section: Plan
+    question: For how many weeks is a hand-over of the baking work to the buyer realistic?
+    kind: range
+    unit: weeks
+    nature: value
+  - id: next-steps
+    section: Plan
+    question: What are the next steps before the meeting, in order?
+    kind: steps
+  - id: price-floor
+    section: Price
+    question: Seal the lowest price you would accept. The number stays with you.
+    kind: bound
+    bound: {topic: price, side: floor, unit: EUR}
+    audience: [seller]
+  - id: price-ceiling
+    section: Price
+    question: Optionally seal the highest price you would pay, once you have studied the business.
+    kind: bound
+    bound: {topic: price, side: ceiling, unit: EUR, stage: full-map}
+    audience: [buyer]
+  - id: price-talk
+    section: Price
+    question: Are you ready to discuss the price, at the level the seller asks or below it?
+    kind: choice
+    options:
+      - {id: at-asking, label: At the level asked}
+      - {id: below, label: Below the level asked}
+      - {id: not-yet, label: Not yet}
+    nature: position
+    required: false
+    stage: full-map
+diff:
+  procedure: task-diff 0.2.0

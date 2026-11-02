@@ -1,0 +1,25 @@
+record: task_answers
+schema_version: "0.1"
+pack:
+  id: bakery-sale
+  version: "1"
+  sha256: "2768f4c5b53308e79e31c669c5e84aa12eac1594245458798e056a1e8238e2a1"
+  annex: {position: buyer, sha256: "5064fce96360737fde4ab8317e08af78af5a770057d6ef94be5d394e8055496b"}
+member: boris
+date: "2026-11-03"
+drafted_by: self
+term_check:
+  tc-clients: Customers with a contract or a standing order, not walk-in people.
+  tc-key: The person without whom the first month fails.
+  tc-ready: When the suppliers and the lease are in writing and transferable.
+answers:
+  read-clients: {value: contracts, reason: "Walk-in sales are hard to check."}
+  key-person: {value: owner}
+  first-year: {value: "Keep the menu, change the supplier of flour."}
+  margin: {value: cannot_say, reason: "I have not seen the cost of flour.", source_ids: [s2]}
+  lease-term: {value: holds, source_ids: [s3]}
+  fit-clients: {value: partly, reason: "I want more contract customers."}
+  rl-staff: {value: reject, reason: "A line at 60 percent is enough for me."}
+  handover: {value: {min: 6, max: 12, unit: weeks, date: "2026-11-03"}}
+  next-steps: {value: ["visit the bakery"]}
+  price-talk: {value: below}

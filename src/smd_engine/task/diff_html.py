@@ -6,7 +6,17 @@ from __future__ import annotations
 from typing import Any
 
 from smd_engine.render.text import esc
-from smd_engine.task.diff import is_open
+from smd_engine.task.asking import diff_line
+from smd_engine.task.deal_render import (
+    alpha_note,
+    model_note,
+    pair_block,
+    point_meta,
+    point_open,
+    view_note,
+)
+from smd_engine.task.deal_labels import DEAL_LABELS
+from smd_engine.task.deal_web import deal_script
 from smd_engine.task.diff_md import (
     by_label,
     class_counts,
@@ -19,9 +29,12 @@ UI_KEYS = ("missing_member", "exported", "unreplied", "bad_accept")
 
 
 def _answers(lab: dict[str, Any], p: dict[str, Any], nm: Names) -> str:
+    if p["class"] == "sealed":  # no answers: the commitments stay in their files
+        return ""
     rows = []
     for m, a in p["answers"].items():
         extra = [a.get(k, "") for k in ("reason", "confidence", "source", "term_note")]
+        extra.append(nm.sources(a))
         rows.append(
             [esc(nm.member(m)), esc(nm.value(p, a["value"]))] + [esc(x) for x in extra]
         )
@@ -32,6 +45,7 @@ def _answers(lab: dict[str, Any], p: dict[str, Any], nm: Names) -> str:
         lab["confidence"],
         lab["src"],
         lab["term_note"],
+        DEAL_LABELS[nm.lang]["source_ids"],
     ]
     keep = [i for i in range(len(head)) if i < 2 or any(r[i] for r in rows)]
     return _table([head[i] for i in keep], [[r[i] for i in keep] for r in rows], "ans")
@@ -42,7 +56,11 @@ def _reply(lab: dict[str, Any], p: dict[str, Any], nm: Names) -> str:
     radios = "".join(
         f'<label class="opt" style="display:inline-block"><input type="radio" '
         f'name="rc:{pid}" data-s="rc:{pid}" value="{c}"> {esc(lab[c])}</label>'
-        for c in ("accept", "keep", "discuss")
+        for c in (
+            ("keep", "discuss")
+            if p["class"] == "sealed"
+            else ("accept", "keep", "discuss")
+        )
     )
     whose = "".join(
         f'<option value="{esc(m)}">{esc(nm.member(m))}</option>' for m in p["answers"]
@@ -50,26 +68,33 @@ def _reply(lab: dict[str, Any], p: dict[str, Any], nm: Names) -> str:
     return (
         f'<div class="bar">{radios}'
         f'<button type="button" class="link" data-clear="rc:{pid}">{esc(lab["clear"])}</button>'
-        f'<select data-s="ra:{pid}" aria-label="{esc(lab["accept_whose"])}">'
-        f'<option value="">{esc(lab["accept_whose"])}</option>{whose}</select></div>'
+        + (
+            ""
+            if p["class"] == "sealed"
+            else f'<select data-s="ra:{pid}" aria-label="{esc(lab["accept_whose"])}">'
+            f'<option value="">{esc(lab["accept_whose"])}</option>{whose}</select>'
+        )
+        + "</div>"
         f'<input type="text" data-s="rn:{pid}" placeholder="{esc(lab["note_field"])}">'
     )
 
 
 def _point(lang: str, p: dict[str, Any], nm: Names) -> str:
     lab = LABELS[lang]
-    opened = is_open(p["route"])
+    opened = point_open(p) or p.get("route") == "blocking"
     model = (
         f'<span class="tag model">{esc(lab["ai_draft"])}</span>'
-        if p["class_by"] == "model"
+        if p.get("class_by") == "model"
         else ""
     )
-    meta = [
-        f"{lab['class_by']}: {by_label(lang, p)}",
-        f"{lab['route']}: {route_word(lang, p['route'])}",
-    ]
+    meta = []
+    if "class_by" in p:
+        meta.append(f"{lab['class_by']}: {by_label(lang, p)}")
+    if "route" in p:
+        meta.append(f"{lab['route']}: {route_word(lang, p['route'])}")
     if p.get("silent"):
         meta.append(f"{lab['silent']}: {nm.members(p['silent'])}")
+    meta += point_meta(p, nm, lang)
     if p.get("refs"):
         meta.append(f"{lab['refs']}: {nm.refs(p)}")
     if p.get("sets"):
@@ -96,6 +121,7 @@ def render_diff_html(diff: dict[str, Any], diff_sha: str) -> str:
     lang = diff["lang"]
     lab = LABELS[lang]
     nm = Names(lang, diff.get("labels"))
+    view = diff.get("view")
     points = diff["points"]
     counts = class_counts(points)
     summary = (
@@ -111,6 +137,11 @@ def render_diff_html(diff: dict[str, Any], diff_sha: str) -> str:
             ],
         )
         + f"<p class=\"meta\">{esc(lab['diff_intro'])}</p>"
+        + (
+            f'<p class="meta"><b>{esc(view_note(diff, nm, lang))}</b></p>'
+            if view_note(diff, nm, lang)
+            else ""
+        )
         + f"<h2>{esc(lab['answers_files'])}</h2>"
         + _table(
             [lab["member"], lab["date"], lab["drafted"], "sha256"],
@@ -129,9 +160,17 @@ def render_diff_html(diff: dict[str, Any], diff_sha: str) -> str:
             [lab["class"], lab["count"]],
             [[esc(class_word(lang, {"class": c})), str(n)] for c, n in counts.items()],
         )
+        + _pairs(diff, nm, lang)
         + f"<h2>{esc(lab['alpha'])}</h2>"
         + _alpha(lab, diff["alpha"])
         + f"<p class=\"meta\">{esc(lab['few'])}</p>"
+        + (f'<p class="meta">{esc(alpha_note(diff))}</p>' if alpha_note(diff) else "")
+        + (f'<p class="meta">{esc(model_note(diff))}</p>' if model_note(diff) else "")
+        + (
+            f'<p class="meta"><b>{esc(diff_line(diff))}</b></p>'
+            if diff_line(diff)
+            else ""
+        )
     )
     if diff["transcripts"]:
         summary += f"<h2>{esc(lab['transcripts_diff'])}</h2>" + _table(
@@ -166,6 +205,7 @@ def render_diff_html(diff: dict[str, Any], diff_sha: str) -> str:
     members = f'<option value="">{esc(lab["choose"])}</option>' + "".join(
         f'<option value="{esc(m)}">{esc(nm.member(m))}</option>'
         for m in diff["members"]
+        if not view or diff["positions"].get(m) == view["position"]
     )
     reply = (
         f"<p>{esc(lab['reply_hint'])}</p>"
@@ -180,10 +220,11 @@ def render_diff_html(diff: dict[str, Any], diff_sha: str) -> str:
         "key": diff_sha,
         "diff": diff_sha,
         "points": [
-            {"id": p["id"], "name": nm.heading(p)[0], "open": is_open(p["route"])}
+            {"id": p["id"], "name": nm.heading(p)[0], "open": point_open(p)}
             for p in points
         ],
         "ui": {k: lab[k] for k in UI_KEYS},
+        **({"view": diff_sha, "diff": view["diff"]} if view else {}),
     }
     return page(
         f"{diff['title']}: {lab['diff']}",
@@ -195,6 +236,16 @@ def render_diff_html(diff: dict[str, Any], diff_sha: str) -> str:
             ("reply", lab["reply_title"], reply),
         ],
         cfg,
+        deal_script(view=True) if view else None,
+    )
+
+
+def _pairs(diff: dict[str, Any], nm: Names, lang: str) -> str:
+    block = pair_block(diff, nm, lang)
+    if not block:
+        return ""
+    return f"<h2>{esc(block[0])}</h2>" + _table(
+        block[1], [[esc(c) for c in row] for row in block[2]]
     )
 
 

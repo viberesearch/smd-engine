@@ -7,13 +7,23 @@ from __future__ import annotations
 
 from typing import Any
 
+from smd_engine.task.deal_items import DEAL_CHOICES
+from smd_engine.task.deal_labels import DEAL_LABELS
 from smd_engine.task.labels import LABELS
+from smd_engine.task.ranges import range_text
 
 
 def labels_block(pack: dict[str, Any]) -> dict[str, Any]:
     """The `labels` block of a diff: members by id, item numbers, the options of
     choice and multi items, the terms and the elements an answer may point at."""
     items = pack["items"]
+    deal: dict[str, Any] = {}
+    if pack.get("positions"):
+        deal["positions"] = {p["id"]: p["label"] for p in pack["positions"]}
+    if any(i["kind"] == "fact" for i in items):
+        deal["sources"] = {
+            s["id"]: s.get("note") or s["address"] for s in pack["sources"]
+        }
     return {
         "members": {m["id"]: m["name"] for m in pack["members"]},
         "numbers": {i["id"]: n for n, i in enumerate(items, 1)},
@@ -24,12 +34,14 @@ def labels_block(pack: dict[str, Any]) -> dict[str, Any]:
             if i.get("options")
         },
         "elements": {e["id"]: e["label"] for e in pack["ontology"]["elements"]},
+        **deal,
     }
 
 
 class Names:
     def __init__(self, lang: str, labels: dict[str, Any] | None) -> None:
         self.lab = LABELS[lang]
+        self.lang = lang
         self.labels = labels or {}
 
     def member(self, m: str) -> str:
@@ -50,6 +62,8 @@ class Names:
     def one(self, p: dict[str, Any], v: Any) -> str:
         """One answer value of a point: an option or an element by its label."""
         if p["kind"] == "item":
+            if p.get("item_kind") in DEAL_CHOICES:
+                return str(DEAL_LABELS[self.lang]["choices"].get(str(v), v))
             opts = self.labels.get("options", {}).get(p["id"], {})
             if str(v) in opts:
                 return str(opts[str(v)])
@@ -58,9 +72,16 @@ class Names:
         return str(v)
 
     def value(self, p: dict[str, Any], value: Any) -> str:
+        if isinstance(value, dict):  # a range
+            return range_text(value, self.lang)
         if isinstance(value, list):
             return "; ".join(self.one(p, v) for v in value)
         return self.one(p, value)
+
+    def sources(self, answer: dict[str, Any]) -> str:
+        """The sources an answer names (`source_ids`) by their notes."""
+        names = self.labels.get("sources", {})
+        return "; ".join(names.get(i, i) for i in answer.get("source_ids", []))
 
     def refs(self, p: dict[str, Any]) -> str:
         return "; ".join(self.element(r) for r in p.get("refs", []))

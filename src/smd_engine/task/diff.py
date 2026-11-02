@@ -17,13 +17,22 @@ from typing import Any
 from smd_engine.agree import FEW_UNITS, Alpha, alpha_nominal, reading
 from smd_engine.records import RecordError
 from smd_engine.task.check import check_answers, transcript_status
+from smd_engine.task.deal_items import (
+    alpha_items,
+    apply_after_reading,
+    classify_deal,
+    point_extra,
+)
+from smd_engine.task.bounds import bound_point, deal_fields
 from smd_engine.task.names import labels_block
+from smd_engine.task.pairs import build_by_pair
 from smd_engine.task.model import (
     Issue,
     load_task,
     member_ids,
     sha256_file,
 )
+from smd_engine.task.positions import audience_members, is_deal, member_positions
 
 # class -> the default route (procedures/task-diff.md, docs/task-packs.md)
 # A conflict takes its route from the subtype (CONFLICT_ROUTES).
@@ -32,8 +41,10 @@ ROUTES = {
     "refinement": "accept_unless_objected",
     "only_one": "mark_each",
     "compatible_steps": "accept",
+    "compatible": "accept_unless_objected",
     "to_read": "call",
     "unanswered": "call",
+    "line_rejected": "blocking",
 }
 CONFLICT_ROUTES = {
     "term": "call",
@@ -80,6 +91,9 @@ def classify_structured(
     kind: str, values: dict[str, Any]
 ) -> tuple[str, str | None, dict[str, Any] | None]:
     """(class, subtype, sets) of the values of two or more members."""
+    deal = classify_deal(kind, values)
+    if deal:
+        return deal
     if kind in ("choice", "number"):
         same = len({_scalar(v) for v in values.values()}) == 1
         return ("agreement" if same else "conflict"), None, None
@@ -123,9 +137,10 @@ def alphas(
     pack: dict[str, Any], given: dict[str, dict[str, dict[str, Any]]]
 ) -> dict[str, Any]:
     """Krippendorff's alpha over the choice items, and per section; the members
-    are the raters, and a member who gave no answer to an item is a gap."""
+    are the raters, and a member who gave no answer to an item is a gap. In a
+    deal pack only the shared core counts (deal_items.alpha_items)."""
     members = member_ids(pack)
-    choice = [i for i in pack["items"] if i["kind"] == "choice"]
+    choice, basis = alpha_items(pack)
 
     def rows(items: list[dict[str, Any]]) -> list[list[Any]]:
         return [
@@ -141,13 +156,14 @@ def alphas(
     return {
         "choice_items": _alpha_dict(alpha_nominal(rows(choice))),
         "sections": sections,
+        **({"basis": basis} if basis else {}),
     }
 
 
 def _answer(entry: dict[str, Any]) -> dict[str, Any]:
     return {
         k: entry[k]
-        for k in ("value", "reason", "source", "confidence", "term_note")
+        for k in ("value", "reason", "source", "source_ids", "confidence", "term_note")
         if k in entry
     }
 
@@ -167,6 +183,8 @@ def _point(
     sets = None
     if not answers:
         cls, by, subtype = "unanswered", "script", None
+    elif item_kind == "line" and "reject" in [a["value"] for a in answers.values()]:
+        cls, by, subtype = "line_rejected", "script", None
     elif len(answers) == 1:
         cls, by, subtype = "only_one", "script", None
         point["raised_by"] = next(iter(answers))
@@ -218,6 +236,7 @@ def build_diff(
     pack: dict[str, Any],
     pack_sha: str,
     loaded: list[tuple[Path, str, dict[str, Any]]],
+    ledger: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     members = member_ids(pack)
     by_member = {a["member"]: a for _, _, a in loaded}
@@ -238,16 +257,25 @@ def build_diff(
         extra = {"section": None, "term": t["term"], "question": t["question"]}
         points.append(_point(t["id"], "term_check", extra, answers, members, None))
     for item in pack["items"]:
+        if item["kind"] == "bound":  # sealed: who committed, never an answer
+            points.append(bound_point(pack, item, given, ledger))
+            continue
         extra = {
             "section": item["section"],
             "question": item["question"],
             "item_kind": item["kind"],
+            **point_extra(item),
         }
         if item.get("refs") and item["kind"] != "ids":
             extra["refs"] = item["refs"]
+        who = members
+        if "audience" in item:
+            extra["audience"] = item["audience"]
+            who = audience_members(pack, item)
         points.append(
-            _point(item["id"], "item", extra, given[item["id"]], members, item["kind"])
+            _point(item["id"], "item", extra, given[item["id"]], who, item["kind"])
         )
+    apply_after_reading(points)
     for m, a in by_member.items():
         for n, added in enumerate(a.get("added", []), start=1):
             point = _point(
@@ -291,6 +319,17 @@ def build_diff(
             }
             for _, sha, a in loaded
         ],
+        **({"positions": member_positions(pack)} if is_deal(pack) else {}),
+        **deal_fields(pack),
+        **(
+            {
+                "by_pair": build_by_pair(
+                    pack, points, _point, lambda e: is_open(e["route"])
+                )
+            }
+            if pack.get("pairs")
+            else {}
+        ),
         "transcripts": transcripts,
         "labels": labels_block(pack),
         "alpha": alphas(pack, given),

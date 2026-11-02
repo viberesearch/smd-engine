@@ -13,6 +13,7 @@ Start with `README.md` in the repository root. This folder holds the reference d
 | `hypotheses.md` | hypothesis fields: `type`, `rule`, `observed`, `rivals`, the verdict and its robustness fields |
 | `stories.md` | stories as a checked view over the boards: `smd story paths` and `smd story check`, the story file, rules G1-G7 and S1-S5 |
 | `task-packs.md` | task packs for a group that answers apart: the cycle, the files, `smd task check`, `render`, `diff` and `agenda`, the classes and routes of the diff |
+| `deal-mode.md` | deal mode for a sale or transfer: positions and views, item kinds, the sealed price flag with its holder, ledger and run cap, the trust step for pilots, the threat model and what leaks |
 | `red-lines.md` | red lines: `red_line`, the structured value `line`, `observed` values and the breach rule |
 | `profiles.md` | the profile format: boards and their regions, kinds, the screen layout, the ids every profile defines, the checks of a profile file |
 | `commands.md` | the commands of `smd` with examples, and the exit codes |

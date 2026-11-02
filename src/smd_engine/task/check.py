@@ -6,6 +6,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from smd_engine.task.bounds import commitment_problem, optional_bound
+from smd_engine.task.deal_items import DEAL_CHOICES, value_problem as deal_value_problem
+from smd_engine.task.deal_check import deal_answers_findings, deal_pack_findings
 from smd_engine.task.model import (
     TERM_CHECK_RANGE,
     Issue,
@@ -13,6 +16,8 @@ from smd_engine.task.model import (
     schema_issues,
     sha256_file,
 )
+from smd_engine.task.positions import in_audience, member_positions
+from smd_engine.task.ranges import range_problem
 
 
 def _dups(values: list[str]) -> list[str]:
@@ -89,6 +94,7 @@ def check_pack(pack: dict[str, Any], where: str) -> list[Issue]:
             if ref not in refs:
                 err(f"item {item['id']}: ref {ref} names nothing in the pack")
         out.extend(_recommendation(item, where))
+    out.extend(Issue(lv, where, msg) for lv, msg in deal_pack_findings(pack))
     low, high = TERM_CHECK_RANGE
     if not low <= len(pack["term_check"]) <= high:
         out.append(
@@ -122,6 +128,12 @@ def _number(v: Any) -> bool:
 def value_problem(item: dict[str, Any], value: Any) -> str:
     """Why an answer value does not fit the item's kind, or an empty string."""
     kind = item["kind"]
+    if kind in DEAL_CHOICES:
+        return deal_value_problem(kind, value)
+    if kind == "range":
+        return range_problem(item, value)
+    if kind == "bound":
+        return commitment_problem(value)
     options = {o["id"] for o in item.get("options", [])}
     if kind == "choice":
         if not isinstance(value, str):
@@ -179,8 +191,15 @@ def check_answers(
     for tid in ans["term_check"]:
         if tid not in terms:
             add("error", f"term_check: {tid} is not a term check item")
+    out.extend(Issue(lv, where, msg) for lv, msg in deal_answers_findings(pack, ans))
+    position = member_positions(pack).get(ans["member"])
     for item in pack["items"]:
-        if item.get("required", True) and item["id"] not in ans["answers"]:
+        if (
+            item.get("required", True)
+            and not optional_bound(item)
+            and in_audience(item, position)
+            and item["id"] not in ans["answers"]
+        ):
             add("warning", f"required item {item['id']} has no answer")
     for tid in sorted(terms - set(ans["term_check"])):
         add("warning", f"term check {tid} has no answer")
@@ -209,7 +228,11 @@ def check_replies(
     where: str,
     diff: dict[str, Any] | None = None,
     diff_sha: str | None = None,
+    view_sha: str | None = None,
 ) -> list[Issue]:
+    """`diff_sha` is the sha256 of the whole diff.yaml. When `diff` is a
+    per-position view, `view_sha` is that of the view file and a reply that names
+    another view is an error."""
     issues = schema_issues(rep, "task_replies", where)
     if issues:
         return issues
@@ -226,9 +249,21 @@ def check_replies(
             "error",
             "diff sha256 differs from the diff file: the replies are for another diff",
         )
+    if view_sha is not None and rep.get("view", view_sha) != view_sha:
+        add(
+            "error",
+            "view sha256 differs from the view file: the replies are for another view",
+        )
     for pid, reply in rep["replies"].items():
         if diff and pid not in points:
             add("error", f"replies: {pid} is not a point of the diff")
+        point = points.get(pid, {})
+        if reply["choice"] == "accept" and point.get("route") == "blocking":
+            add("error", f"replies.{pid}: a rejected red line cannot be accepted")
+            continue
+        if reply["choice"] == "accept" and point.get("class") == "sealed":
+            add("error", f"replies.{pid}: a sealed point takes keep or discuss only")
+            continue
         other = reply.get("accept_member")
         if other is None:
             continue

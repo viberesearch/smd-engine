@@ -4,10 +4,14 @@ by `add_task_parser` (see `smd_engine.cli`)."""
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 from typing import Any
 
+from smd_engine.deal.ledger import load_ledger
+from smd_engine.deal.sealed import stray_sealed_issues
 from smd_engine.records import RecordError, dump_record
+from smd_engine.task.acceptance import check_files as check_acceptances
 from smd_engine.task.agenda import build_agenda
 from smd_engine.task.check import check_answers, check_pack, check_replies
 from smd_engine.task.diff import build_diff, load_answers
@@ -20,8 +24,14 @@ from smd_engine.task.model import (
     read_bytes,
     sha256_bytes,
 )
+from smd_engine.task.overwrite import replaceable
 from smd_engine.task.pack_html import render_pack_html
 from smd_engine.task.pack_md import render_pack_md
+from smd_engine.task.positions import is_deal, pack_view, stamp_sha, stamps_text
+
+ANNEX_WARNING = (
+    "warning: full diff: holder only; send parties their views from smd deal views"
+)
 
 
 def _write(path: Path, text: str) -> None:
@@ -39,37 +49,52 @@ def _report(where: str, issues: list[Issue]) -> int:
     return errors
 
 
-def _valid_pack(path: Path) -> tuple[dict[str, Any], str]:
-    """The pack and the sha256 of its file; refused when it has an error."""
+def valid_pack(path: Path) -> tuple[dict[str, Any], str]:
+    """The pack and the sha256 it is stamped with (that of its file, or of its
+    shared core in a deal pack); refused when it has an error."""
     pack = load_task(path, "task_pack")
     errors = [i for i in check_pack(pack, str(path)) if i.level == "error"]
     if errors:
         raise RecordError(f"{path}: {errors[0].message}")
-    return pack, sha256_bytes(read_bytes(path))
+    return pack, stamp_sha(pack, sha256_bytes(read_bytes(path)))
 
 
 def cmd_check(args: argparse.Namespace) -> int:
     path = Path(args.pack)
     pack = load_task(path, "task_pack")
-    pack_sha = sha256_bytes(read_bytes(path))
     errors = _report(str(path), check_pack(pack, str(path)))
     if errors:
         return 1
+    pack_sha = stamp_sha(pack, sha256_bytes(read_bytes(path)))
+    for line in stamps_text(pack):
+        print(line)
     diff = None
     diff_sha = None
+    view_sha = None
     if args.diff:
         diff = load_task(Path(args.diff), "task_diff")
         diff_sha = sha256_bytes(read_bytes(Path(args.diff)))
+        if diff.get("view"):  # a per-position view: replies name the whole diff
+            view_sha, diff_sha = diff_sha, diff["view"]["diff"]
     for name in args.answers:
         ans = load_task(Path(name), "task_answers")
         errors += _report(
             name, check_answers(pack, pack_sha, ans, name, Path(name).parent)
         )
+    if stray := stray_sealed_issues([Path(n).parent for n in args.answers]):
+        errors += _report("sealed files", stray)
     for name in args.replies:
         rep = load_task(Path(name), "task_replies")
         errors += _report(
-            name, check_replies(member_ids(pack), rep, name, diff, diff_sha)
+            name,
+            check_replies(member_ids(pack), rep, name, diff, diff_sha, view_sha),
         )
+    for name, issues, line in check_acceptances(
+        pack, args.acceptance, args.board, args.prior
+    ):
+        if line:
+            print(line)
+        errors += _report(name, issues)
     return 1 if errors else 0
 
 
@@ -79,9 +104,18 @@ def cmd_render(args: argparse.Namespace) -> int:
     out = Path(args.output)
     sha = sha256_bytes(read_bytes(path))
     if data.get("record") == "task_pack":
-        pack, sha = _valid_pack(path)
-        _write(out / "pack.md", render_pack_md(pack))
-        _write(out / "pack.html", render_pack_html(pack, sha))
+        pack, sha = valid_pack(path)
+        view, suffix, annex = pack_view(pack, args.position)
+        if args.stage and not (pack.get("deal") or {}).get("stages"):
+            raise RecordError(f"{path}: --stage needs deal.stages")
+        if args.stage and args.stage not in pack["deal"]["stages"]:
+            raise RecordError(f"{path}: stage {args.stage} is not in deal.stages")
+        _write(out / f"pack{suffix}.md", render_pack_md(view, args.stage))
+        _write(
+            out / f"pack{suffix}.html", render_pack_html(view, sha, annex, args.stage)
+        )
+    elif args.position or args.stage:
+        raise RecordError(f"{path}: --position and --stage are for a deal pack")
     elif data.get("record") == "task_diff":
         _write(out / "diff.md", render_diff_md(data))
         _write(out / "diff.html", render_diff_html(data, sha))
@@ -91,9 +125,10 @@ def cmd_render(args: argparse.Namespace) -> int:
 
 
 def cmd_diff(args: argparse.Namespace) -> int:
-    pack, pack_sha = _valid_pack(Path(args.pack))
+    pack, pack_sha = valid_pack(Path(args.pack))
     loaded = load_answers(pack, pack_sha, [Path(p) for p in args.answers])
-    diff = build_diff(pack, pack_sha, loaded)
+    ledger = load_ledger(Path(args.ledger), pack) if args.ledger else None
+    diff = build_diff(pack, pack_sha, loaded, ledger)
     out = Path(args.output)
     text = dump_record(diff)
     target = out / "diff.yaml"
@@ -101,16 +136,20 @@ def cmd_diff(args: argparse.Namespace) -> int:
         target.exists()
         and target.read_text(encoding="utf-8") != text
         and not args.force
+        and not replaceable(target.read_text(encoding="utf-8"), diff, ledger)
     ):
         raise RecordError(
-            f"{target} exists and differs (a model may have written into it, or "
-            "the answers changed); move it or pass --force"
+            f"{target} exists and differs (a model may have written into it, the "
+            "answers changed, or the ledger is not the one it was made from); "
+            "move it or pass --force"
         )
     _write(target, text)
     _write(out / "diff.md", render_diff_md(diff))
     _write(
         out / "diff.html", render_diff_html(diff, sha256_bytes(text.encode("utf-8")))
     )
+    if is_deal(pack) and any("audience" in p for p in diff["points"]):
+        print(ANNEX_WARNING, file=sys.stderr)
     s = diff["summary"]
     print(
         f"{s['points']} points, {s['open']} open: "
@@ -153,6 +192,9 @@ def add_task_parser(sub: Any) -> None:
     c.add_argument("answers", nargs="*", help="answers files")
     c.add_argument("--replies", nargs="+", default=[], help="replies files")
     c.add_argument("--diff", help="diff.yaml the replies are checked against")
+    c.add_argument("--acceptance", nargs="+", default=[], help="task_acceptance files")
+    c.add_argument("--board", help="board set file the pack's map names")
+    c.add_argument("--prior", help="board set file an acceptance was given on")
     c.set_defaults(func=cmd_check)
     r = tsub.add_parser(
         "render",
@@ -160,6 +202,15 @@ def add_task_parser(sub: Any) -> None:
     )
     r.add_argument("file", help="pack.yaml or diff.yaml")
     r.add_argument("-o", "--output", required=True, help="folder to write into")
+    r.add_argument(
+        "--position",
+        help="deal pack: pack.<position>.md and .html, the core and that position's annex",
+    )
+    r.add_argument(
+        "--stage",
+        help="deal pack: the stage the page is for; it shows the asking price "
+        "from the stage that opens it on (otherwise only when it opens)",
+    )
     r.set_defaults(func=cmd_render)
     d = tsub.add_parser(
         "diff", help="answers side by side: diff.yaml, diff.md, diff.html"
@@ -169,6 +220,10 @@ def add_task_parser(sub: Any) -> None:
     d.add_argument("-o", "--output", required=True, help="folder to write into")
     d.add_argument(
         "--force", action="store_true", help="overwrite a diff.yaml that differs"
+    )
+    d.add_argument(
+        "--ledger",
+        help="deal: verdicts.yaml; the verdicts and its head go into the diff",
     )
     d.set_defaults(func=cmd_diff)
     a = tsub.add_parser(

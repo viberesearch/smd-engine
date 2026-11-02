@@ -21,6 +21,9 @@ SCHEMAS = {
     "task_pack": "task_pack.schema.json",
     "task_answers": "task_answers.schema.json",
     "task_replies": "task_replies.schema.json",
+    "task_acceptance": "task_acceptance.schema.json",
+    "task_sealed": "task_sealed.schema.json",
+    "task_verdicts": "task_verdicts.schema.json",
 }
 ITEM_KINDS = ("choice", "multi", "text", "number", "ids", "steps")
 TERM_CHECK_RANGE = (3, 7)  # items a term check should have (procedures/task-pack.md)
@@ -66,6 +69,9 @@ def load_task(path: Path, record: str | None = None) -> dict[str, Any]:
         raise RecordError(f"{path}: not valid YAML ({exc})") from exc
     if not isinstance(data, dict):
         raise RecordError(f"{path}: top level must be a mapping")
+    if data.get("record") == "task_sealed" and record != "task_sealed":
+        # a sealed number goes to the holder's verdict and nowhere else
+        raise RecordError(f"{path}: a sealed file is not an input here")
     if record is not None and data.get("record") != record:
         raise RecordError(
             f"{path}: expected record {record}, found {data.get('record')!r}"

@@ -46,9 +46,11 @@ def page(
     subtitle: str,
     tabs: list[tuple[str, str, str]],
     cfg: dict[str, Any],
+    script: str | None = None,
 ) -> str:
     """tabs: (name, label, inner HTML). The first tab shows first. The form `f`
-    wraps every tab so that the script finds all fields."""
+    wraps every tab so that the script finds all fields. `script` replaces the
+    page script (the deal pages patch it, see deal_web)."""
     nav = "".join(
         f'<button type="button" data-tab="{esc(n)}">{esc(label)}</button>'
         for n, label, _ in tabs
@@ -64,5 +66,5 @@ def page(
         f"<header><h1>{esc(title)}</h1><p>{esc(subtitle)}</p></header><main>"
         f'<nav class="tabs">{nav}</nav><form id="f" onsubmit="return false">{sections}</form></main>'
         f'<script type="application/json" id="cfg">{cfg_json(cfg)}</script>'
-        f"<script>{asset_text('task.js')}</script></body></html>\n"
+        f"<script>{asset_text('task.js') if script is None else script}</script></body></html>\n"
     )

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/viberesearch/smd-engine/schemas/task_verdicts.schema.json",
+  "title": "Task verdicts: the holder's append-only, hash-chained ledger of sealed comparisons; it holds no sealed value",
+  "type": "object",
+  "required": ["record", "schema_version", "deal", "pack", "entries"],
+  "additionalProperties": false,
+  "properties": {
+    "record": {"const": "task_verdicts"},
+    "schema_version": {"const": "0.1"},
+    "deal": {"$ref": "#/$defs/id"},
+    "pack": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": false,
+      "properties": {"id": {"$ref": "#/$defs/id"}}
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["seq", "type", "date", "topic", "prev_sha256", "sha256"],
+        "additionalProperties": false,
+        "properties": {
+          "seq": {"type": "integer", "minimum": 1},
+          "type": {"enum": ["verdict", "consent"]},
+          "date": {"type": "string", "format": "date"},
+          "topic": {"$ref": "#/$defs/id"},
+          "floor_member": {"$ref": "#/$defs/id"},
+          "ceiling_member": {"$ref": "#/$defs/id"},
+          "run": {"type": "integer", "minimum": 1, "description": "verdict: the number of the run when the comparison was made; consent: the run the parties consent to"},
+          "verdict": {"enum": ["met", "not_met", "not_tested"]},
+          "reason": {"enum": ["no_floor", "no_ceiling", "bad_commitment", "unit_mismatch", "consent_missing", "commitment_changed", "cap_reached"], "description": "why a verdict is not_tested"},
+          "method": {"type": "string", "minLength": 1},
+          "commitments": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {"floor": {"$ref": "#/$defs/sha"}, "ceiling": {"$ref": "#/$defs/sha"}},
+            "description": "verdict: the two commitments the run compared; consent: the two the member agreed to have compared (both required)"
+          },
+          "by": {"$ref": "#/$defs/id", "description": "consent: the member who consents"},
+          "buyer": {"$ref": "#/$defs/id", "description": "consent: the buyer the seller's floor is run against (the member who commits the ceiling)"},
+          "evidence": {"$ref": "#/$defs/sha", "description": "consent: sha256 of the task_consent file in which the member consented"},
+          "prev_sha256": {"$ref": "#/$defs/sha", "description": "sha256 of the entry before; 64 zeros for the first"},
+          "sha256": {"$ref": "#/$defs/sha", "description": "sha256 of this entry without this field"}
+        },
+        "allOf": [
+          {"if": {"properties": {"type": {"const": "verdict"}}}, "then": {"required": ["floor_member", "ceiling_member", "verdict", "method"], "not": {"anyOf": [{"required": ["by"]}, {"required": ["evidence"]}]}}},
+          {"if": {"properties": {"type": {"const": "consent"}}}, "then": {"required": ["run", "by", "buyer", "evidence", "commitments"], "properties": {"commitments": {"required": ["floor", "ceiling"]}}, "not": {"anyOf": [{"required": ["verdict"]}, {"required": ["reason"]}, {"required": ["method"]}, {"required": ["floor_member"]}, {"required": ["ceiling_member"]}]}}},
+          {"if": {"properties": {"verdict": {"const": "not_tested"}}, "required": ["verdict"]}, "then": {"required": ["reason"], "not": {"required": ["run"]}}, "else": {"not": {"required": ["reason"]}}},
+          {"if": {"properties": {"verdict": {"enum": ["met", "not_met"]}}, "required": ["verdict"]}, "then": {"required": ["run"]}}
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

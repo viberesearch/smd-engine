@@ -1,7 +1,7 @@
 """Command line: smd new | validate | migrate | render | frames | graph | index | publish
 | vault | sources | compare | eval | agree | pack | revise | apply | status | next
 | story paths | story check | story render | task check | task render | task diff
-| task agenda."""
+| task agenda | deal views."""
 
 from __future__ import annotations
 
@@ -71,6 +71,7 @@ from smd_engine.story.gaps import gap_report, report_dict
 from smd_engine.story.model import Boards, load_boards
 from smd_engine.story.paths import enumerate_candidates, skeleton, walk_text
 from smd_engine.story.render import render_story_md
+from smd_engine.deal.cli import add_deal_parser
 from smd_engine.task.cli import add_task_parser
 from smd_engine.validate import Finding, taxonomy_values, validate_record
 
@@ -1149,6 +1150,7 @@ def build_parser() -> argparse.ArgumentParser:
     sr.add_argument("-o", "--output")
     sr.set_defaults(func=cmd_story_render)
     add_task_parser(sub)
+    add_deal_parser(sub)
     return parser
 
 

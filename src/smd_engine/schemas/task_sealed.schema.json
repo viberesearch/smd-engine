@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/viberesearch/smd-engine/schemas/task_sealed.schema.json",
+  "title": "Task sealed: one party's sealed number for a bound item, kept by the party and opened only by the holder",
+  "type": "object",
+  "required": ["record", "schema_version", "pack", "deal", "member", "item", "side", "unit", "value", "salt", "date"],
+  "additionalProperties": false,
+  "properties": {
+    "record": {"const": "task_sealed"},
+    "schema_version": {"const": "0.1"},
+    "pack": {
+      "type": "object",
+      "required": ["id", "version", "sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "version": {"type": "string"},
+        "sha256": {"$ref": "#/$defs/sha", "description": "the sha256 of the pack's shared core, as the answers carry it"}
+      }
+    },
+    "deal": {"$ref": "#/$defs/id", "description": "deal.id of the pack"},
+    "member": {"$ref": "#/$defs/id"},
+    "item": {"$ref": "#/$defs/id", "description": "id of the bound item"},
+    "side": {"enum": ["floor", "ceiling"]},
+    "unit": {"type": "string", "minLength": 1},
+    "value": {"type": "number", "description": "the sealed number; this file is never put in a repo, a diff or a message"},
+    "salt": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "random, so that a round number cannot be guessed from its commitment"},
+    "date": {"type": "string", "format": "date"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

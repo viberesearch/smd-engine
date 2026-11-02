@@ -1,0 +1,24 @@
+record: task_answers
+schema_version: "0.1"
+pack:
+  id: bakery-sale
+  version: "1"
+  sha256: "2768f4c5b53308e79e31c669c5e84aa12eac1594245458798e056a1e8238e2a1"
+  annex: {position: seller, sha256: "ac3efdecb997477a7ef779ded108781d2b7b3221a581de97d2295f359de79577"}
+member: vera
+date: "2026-11-03"
+drafted_by: self
+term_check:
+  tc-clients: People who come back at least once a month, shop and cafe together.
+  tc-key: I am; the bakers can be replaced within weeks.
+  tc-ready: When the oven and the recipes work without me for a month.
+answers:
+  read-clients: {value: regulars, reason: "The cafe regulars are most of the revenue."}
+  key-person: {value: owner, reason: "I know the suppliers and the lease holder."}
+  sale-reason: {value: "Health. The family does not want to continue."}
+  margin: {value: holds, reason: "The accounts show 43 percent.", source_ids: [s2]}
+  lease-term: {value: holds, source_ids: [s3]}
+  fit-clients: {value: fits}
+  rl-staff: {value: accept}
+  handover: {value: {min: 4, max: 8, unit: weeks}, reason: "The head baker needs a month to teach the recipes."}
+  next-steps: {value: ["share the accounts", "visit the bakery"]}

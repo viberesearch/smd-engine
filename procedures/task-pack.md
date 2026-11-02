@@ -2,7 +2,7 @@
 id: task-pack
 title: Build a task pack for a group that answers apart
 step: 3
-version: 0.1.0
+version: 0.2.1
 role: игротехник
 profile: any
 inputs:
@@ -50,12 +50,24 @@ Three to seven items (`term_check`), each a term and the question "what does it 
 ## 4. Items
 
 Each item has `id`, `section`, `question`, `kind` and `required`.
-- `kind`: `choice` (one option), `multi` (several options), `text`, `number`, `ids` (a list of ids), `steps` (an ordered list of next steps). Use a structured kind wherever the answer can be structured: the diff compares those by script, and reads text by model.
+- `kind`: `choice` (one option), `multi` (several options), `text`, `number`, `ids` (a list of ids), `steps` (an ordered list of next steps), `range` (a span `{min, max, unit}`; the item names the `unit`). Use a structured kind wherever the answer can be structured: the diff compares those by script, and reads text by model.
 - `options` (for `choice` and `multi`): each with `id`, `label` and a `context` line that says what choosing it means. Write the options so that each is a position a member could hold. Do not order them to favour one.
 - `recommendation`: only where the item is a gate, that is, the group must decide it before the work can go on. State the recommended option and the reason. For every other item leave it out: a recommendation anchors the blind answers.
 - `refs`: ids of the ontology elements, sources or other items the question relies on.
 - `required: false` for an item that only some members can answer.
 - Two to four sections; one question per item; no question that contains its own answer.
+
+## 4a. Deal packs
+
+A pack for a sale, a transfer or any task whose members are counterparties adds fields; leave them out for a group.
+- `positions` (seller, buyer, broker_sell, broker_buy, successor, family, adviser, verifier, stakeholder, other) and, on each member, `position` (and `principal` for a broker: the member he acts for). A broker is never the one who runs the diff.
+- `audience` (position ids) on an item or an ontology term puts it in the annex of those positions; without it the entry is in the shared core. Put in the annex only what one position needs to answer alone. The core carries the terms, facts and red lines everyone reads alike.
+- Split reading from fit. A reading item (`nature: term` or `fact`) asks what the business is; a fit item (`nature: value` or `position`, `fit_of: <reading item>`) asks whether it suits the member. Alpha leaves out value and position items.
+- `kind: fact` takes a `claim` (`text`, `asserted_by` a position, `source` an id from `sources`, `level` stated or checked). Give the source its `sha256` and `date`. Mark a claim `checked` only when a source or the verifier has confirmed it. Members answer holds, does_not_hold or cannot_say and may name `source_ids`.
+- `kind: line` takes a `line` as `docs/red-lines.md` gives it. Members answer accept or reject; the wanted change goes in the reason. A walk-away price is not a red line.
+- A deal pack with a seller states `deal.asking_price: {value, unit, stage?}`, the seller's asking price, shared; the seller chooses the stage at which the pages open it (default: the stage after `nda`), and `smd task check` refuses a deal pack without it. The buyer gives no number: an optional shared choice item at the last stage may ask whether he is ready to discuss the price (at the level asked, below, not yet).
+- Never ask a reservation price, or any figure a member would not want the other side to read, in an item. The one exception is the seller's sealed floor, off unless `deal.sealed_floor: true`, as a `bound` item the party commits with `smd deal seal`.
+- A deal pack is stamped with the sha256 of its shared core and each annex has its own: `smd task check` prints them. `smd task render --position <id>` writes the pages for one position, and only that position's file is sent to it.
 
 ## 5. Procedure version and check
 
@@ -73,6 +85,6 @@ The check must show 0 errors and, ideally, 0 warnings. Read `pack.md` once, as a
 Reply with the pack file and:
 - the choices you made that the facilitator should confirm: terms with no source address, options you wrote yourself, every item you marked as a gate and its recommendation;
 - the places where the board has no element or relation the task needs, as questions for the group;
-- the sha256 of `pack.yaml` (`shasum -a 256 pack.yaml`): every answers file carries it, so a change to the pack after sending means every member answers again.
+- the sha256 of `pack.yaml` (`shasum -a 256 pack.yaml`; for a deal pack the core sha256 and the annex sha256 of each position, as `smd task check` prints them): every answers file carries it, so a change to the pack after sending means every member answers again.
 
 Never write a sign-off for a pack. Procedures end with `smd validate` of the boards; the pack's own end is `smd task check`.

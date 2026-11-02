@@ -15,9 +15,16 @@
       "properties": {
         "id": {"$ref": "#/$defs/id"},
         "version": {"type": "string"},
-        "sha256": {"$ref": "#/$defs/sha"}
+        "sha256": {"$ref": "#/$defs/sha"},
+        "annex": {
+          "type": "object",
+          "required": ["position", "sha256"],
+          "additionalProperties": false,
+          "properties": {"position": {"$ref": "#/$defs/id"}, "sha256": {"$ref": "#/$defs/sha"}},
+          "description": "deal mode: the member's position and the sha256 of its annex"
+        }
       },
-      "description": "the pack the answers are for; sha256 is that of the pack file"
+      "description": "the pack the answers are for; sha256 is that of the pack file, or in a deal pack (one with positions) that of the shared core"
     },
     "member": {"$ref": "#/$defs/id"},
     "date": {"type": "string", "format": "date"},
@@ -48,9 +55,22 @@
         "required": ["value"],
         "additionalProperties": false,
         "properties": {
-          "value": {"type": ["string", "number", "array"], "items": {"type": ["string", "number"]}},
+          "value": {
+            "type": ["string", "number", "array", "object"],
+            "items": {"type": ["string", "number"]},
+            "required": ["min", "max", "unit"],
+            "additionalProperties": false,
+            "properties": {
+              "min": {"type": "number"},
+              "max": {"type": "number"},
+              "unit": {"type": "string", "minLength": 1},
+              "date": {"type": "string", "format": "date"}
+            },
+            "description": "an object only for a range item: {min, max, unit, date?}"
+          },
           "reason": {"type": "string"},
           "source": {"type": "string"},
+          "source_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}, "description": "ids of the pack's sources the answer rests on (a fact item)"},
           "confidence": {"enum": ["low", "medium", "high"]},
           "term_note": {"type": "string", "description": "I read a term differently: which term and how"}
         }

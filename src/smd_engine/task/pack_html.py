@@ -7,9 +7,20 @@ from __future__ import annotations
 from typing import Any
 
 from smd_engine.render.text import esc
+from smd_engine.task.asking import page_line
+from smd_engine.task.deal_render import (
+    item_facts,
+    member_line,
+    positions_block,
+    has_fact,
+    sources_table,
+    with_options,
+)
 from smd_engine.task.labels import LABELS
 from smd_engine.task.refs import ref_groups
 from smd_engine.task.svg import ontology_figure
+from smd_engine.task.deal_web import deal_script, range_input
+from smd_engine.task.ranges import has_range
 from smd_engine.task.web import page, table as _table
 
 UI_KEYS = (
@@ -63,8 +74,8 @@ def _checklist(
 def _input(item: dict[str, Any], lab: dict[str, Any], onto: dict[str, Any]) -> str:
     key = f"v:{item['id']}"
     kind = item["kind"]
-    if kind in ("choice", "multi"):
-        box = "radio" if kind == "choice" else "checkbox"
+    if kind in ("choice", "multi", "fact", "line"):
+        box = "checkbox" if kind == "multi" else "radio"
         opts = "".join(
             f'<label class="opt"><input type="{box}" name="{esc(key)}" '
             f'data-s="{esc(key)}" value="{esc(o["id"])}"> <b>{esc(o["label"])}</b>'
@@ -80,9 +91,13 @@ def _input(item: dict[str, Any], lab: dict[str, Any], onto: dict[str, Any]) -> s
             f'<button type="button" class="link" data-clear="{esc(key)}">'
             f'{esc(lab["clear"])}</button>'
         )
-        return opts + (clear if kind == "choice" else "")
+        return opts + (clear if kind != "multi" else "")
     if kind == "number":
         return f'<input type="number" step="any" data-s="{esc(key)}">'
+    if kind == "range":
+        return range_input(item, lab)
+    if kind == "bound":  # no box: the number goes through `smd deal seal`
+        return ""
     if kind == "ids":
         return _checklist(item, lab, onto, key)
     rows = 5 if kind == "steps" else 3
@@ -94,6 +109,7 @@ def _item(
     lab: dict[str, Any],
     no: int,
     onto: dict[str, Any],
+    pack: dict[str, Any] | None = None,
 ) -> str:
     """One item of the form. People see its number, the labels of the elements
     it refers to and the labels of the recommended options; ids stay in the
@@ -116,31 +132,65 @@ def _item(
         shown = ", ".join(opts.get(str(v), str(v)) for v in values)
         reason = f" ({rec['reason']})" if rec.get("reason") else ""
         rec_html = f'<div class="rec">{esc(lab["recommendation"])}: {esc(shown + reason)}</div>'
+    facts = (
+        "".join(
+            f'<p class="meta"><b>{esc(name)}:</b> {esc(text)}</p>'
+            for name, text in item_facts(pack, item)
+        )
+        if pack is not None
+        else ""
+    )
     conf = "".join(
         f'<option value="{c}">{esc(lab[c])}</option>' for c in ("low", "medium", "high")
     )
+    pick = (
+        "".join(
+            f'<label class="opt"><input type="checkbox" data-s="si:{esc(iid)}" '
+            f'value="{esc(s["id"])}"> <span>{esc(s.get("note") or s["address"])}</span></label>'
+            for s in pack["sources"]
+        )
+        if pack is not None and item["kind"] == "fact"
+        else ""
+    )
     more = (
-        f'<details><summary>{esc(lab["reason"])}, {esc(lab["src"])}, '
-        f'{esc(lab["confidence"])}</summary>'
-        f'<label class="f">{esc(lab["reason"])}<textarea rows="2" data-s="r:{esc(iid)}"></textarea></label>'
-        f'<label class="f">{esc(lab["src"])}<input type="text" data-s="s:{esc(iid)}"></label>'
-        f'<label class="f">{esc(lab["confidence"])}<select data-s="c:{esc(iid)}">'
-        f'<option value="">-</option>{conf}</select></label>'
-        f'<label class="f">{esc(lab["term_note"])}<input type="text" data-s="t:{esc(iid)}"></label>'
-        "</details>"
+        ""
+        if item["kind"] == "bound"
+        else (
+            f'<details><summary>{esc(lab["reason"])}, {esc(lab["src"])}, '
+            f'{esc(lab["confidence"])}</summary>'
+            f'<label class="f">{esc(lab["reason"])}<textarea rows="2" data-s="r:{esc(iid)}"></textarea></label>'
+            f'<label class="f">{esc(lab["src"])}<input type="text" data-s="s:{esc(iid)}"></label>'
+            f'<label class="f">{esc(lab["confidence"])}<select data-s="c:{esc(iid)}">'
+            f'<option value="">-</option>{conf}</select></label>'
+            f'<label class="f">{esc(lab["term_note"])}<input type="text" data-s="t:{esc(iid)}"></label>'
+            f"{pick}</details>"
+        )
     )
     return (
         f'<div class="item" id="item-{esc(iid)}"><h4>{no}</h4>'
         f'<p class="q">{esc(item["question"])}</p>'
-        f'<p class="meta">{esc("; ".join(meta))}</p>{rec_html}{_input(item, lab, onto)}{more}</div>'
+        f'<p class="meta">{esc("; ".join(meta))}</p>{facts}{rec_html}{_input(item, lab, onto)}{more}</div>'
     )
 
 
-def render_pack_html(pack: dict[str, Any], pack_sha: str) -> str:
+def render_pack_html(
+    pack: dict[str, Any],
+    pack_sha: str,
+    annex: dict[str, str] | None = None,
+    stage: str | None = None,
+) -> str:
     lang = pack["lang"]
     lab = LABELS[lang]
     task, onto = pack["task"], pack["ontology"]
-    members = ", ".join(m["name"] for m in pack["members"])
+    members = member_line(pack)
+    price = page_line(pack, stage)
+    block = positions_block(pack)
+    positions = (
+        f"<h2>{esc(block[0])}</h2>"
+        + _table(block[1], [[esc(c) for c in row] for row in block[2]])
+        if block
+        else ""
+    )
     feeds = task["feeds"]
     names = {e["id"]: e["label"] for e in onto["elements"]}
     feed_list = (
@@ -170,13 +220,15 @@ def render_pack_html(pack: dict[str, Any], pack_sha: str) -> str:
             ],
         )
         + f"<p>{esc(lab['members'])}: {esc(members)}</p>"
+        + (f'<p class="meta"><b>{esc(price)}</b></p>' if price else "")
+        + positions
         + f"<h2>{esc(lab['task'])}</h2><p><b>{esc(lab['what'])}.</b> {esc(task['what'])}</p>"
         + f"<p><b>{esc(lab['why'])}.</b> {esc(task['why'])}</p>"
         + f"<p><b>{esc(lab['feeds'])}.</b> {esc(feeds['text'])}</p>{feed_list}"
         + f"<h2>{esc(lab['sources'])}</h2>"
         + _table(
-            [lab["address"], lab["note"]],
-            [[esc(s["address"]), esc(s.get("note", ""))] for s in pack["sources"]],
+            sources_table(pack)[0][1:],
+            [[esc(c) for c in row[1:]] for row in sources_table(pack)[1]],
         )
         + f"<h2>{esc(lab['cycle'])}</h2><ol>{steps}</ol>"
         + f"<h2>{esc(lab['how'])}</h2><p>{esc(lab['how_text'].replace('`', ''))}</p>"
@@ -216,7 +268,7 @@ def render_pack_html(pack: dict[str, Any], pack_sha: str) -> str:
     for section in dict.fromkeys(i["section"] for i in pack["items"]):
         t_items += f"<h3>{esc(section)}</h3>"
         t_items += "".join(
-            _item(i, lab, numbers[i["id"]], onto)
+            _item(with_options(i, lang), lab, numbers[i["id"]], onto, pack)
             for i in pack["items"]
             if i["section"] == section
         )
@@ -243,14 +295,24 @@ def render_pack_html(pack: dict[str, Any], pack_sha: str) -> str:
     cfg = {
         "mode": "pack",
         "key": f"{pack['id']}:{pack['version']}",
-        "pack": {"id": pack["id"], "version": pack["version"], "sha256": pack_sha},
+        "pack": {
+            "id": pack["id"],
+            "version": pack["version"],
+            "sha256": pack_sha,
+            **({"annex": annex} if annex else {}),
+        },
         "term": [t["id"] for t in pack["term_check"]],
         "items": [
             {
                 "id": i["id"],
                 "no": n,
-                "kind": i["kind"],
-                "required": i.get("required", True),
+                "kind": (
+                    "choice"
+                    if i["kind"] in ("fact", "line")
+                    else "text" if i["kind"] == "bound" else i["kind"]
+                ),
+                "required": i.get("required", True) and i["kind"] != "bound",
+                **({"unit": i["unit"]} if i["kind"] == "range" else {}),
             }
             for n, i in enumerate(pack["items"], 1)
         ],
@@ -269,4 +331,9 @@ def render_pack_html(pack: dict[str, Any], pack_sha: str) -> str:
         f"{pack['id']} {pack['version']}, {lab['due']} {pack['due']}",
         tabs,
         cfg,
+        (
+            deal_script(has_range(pack))
+            if annex or has_fact(pack) or has_range(pack)
+            else None
+        ),
     )

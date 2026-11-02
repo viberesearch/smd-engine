@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/viberesearch/smd-engine/schemas/task_acceptance.schema.json",
+  "title": "Task acceptance: one member's act of accepting a map (a board set), in three layers, pinned to the board's version and sha256",
+  "type": "object",
+  "required": ["record", "schema_version", "board", "member", "date", "vocabulary", "elements", "check"],
+  "additionalProperties": false,
+  "properties": {
+    "record": {"const": "task_acceptance"},
+    "schema_version": {"const": "0.1"},
+    "board": {
+      "type": "object",
+      "required": ["id", "version", "sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"$ref": "#/$defs/id", "description": "id of the board set"},
+        "version": {"type": "string", "minLength": 1, "description": "state.version of the board set (its cycle when it has none)"},
+        "sha256": {"$ref": "#/$defs/sha", "description": "sha256 of the board file: any edit, a comment too, voids the acceptance"}
+      },
+      "description": "the map the member read"
+    },
+    "member": {"$ref": "#/$defs/id"},
+    "date": {"type": "string", "format": "date"},
+    "vocabulary": {"enum": ["accept", "reject", "not_read"], "description": "layer 1: the terms the map uses, read as the pack's ontology gives them"},
+    "elements": {
+      "type": "object",
+      "additionalProperties": {"enum": ["accept", "reject", "not_read"]},
+      "description": "layer 2: element id of the board set to the member's act; an element not listed counts as not_read"
+    },
+    "check": {"enum": ["done", "not_done", "unknown"], "description": "layer 3: whether someone outside the group checked the map against its sources"},
+    "checked_by": {"type": "string", "minLength": 1, "description": "who checked it; only when check is done"}
+  },
+  "allOf": [
+    {"if": {"properties": {"check": {"const": "done"}}}, "then": {"required": ["checked_by"]}, "else": {"not": {"required": ["checked_by"]}}}
+  ],
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

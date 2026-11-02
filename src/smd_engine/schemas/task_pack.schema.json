@@ -21,10 +21,92 @@
         "type": "object",
         "required": ["id", "name"],
         "additionalProperties": false,
-        "properties": {"id": {"$ref": "#/$defs/id"}, "name": {"type": "string", "minLength": 1}}
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "name": {"type": "string", "minLength": 1},
+          "position": {"$ref": "#/$defs/id", "description": "deal mode: id of the position the member holds (see positions)"},
+          "principal": {"$ref": "#/$defs/id", "description": "deal mode, brokers: member id of the party the broker acts for"}
+        }
       }
     },
-    "facilitator": {"$ref": "#/$defs/id", "description": "member id of the person who sends the pack and decides who runs the diff"},
+    "positions": {
+      "type": "array",
+      "minItems": 2,
+      "description": "deal mode: the positions the members hold. Items and terms with an `audience` are seen and answered only by those positions; the rest is the shared core",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "kind"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "label": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["seller", "buyer", "broker_sell", "broker_buy", "successor", "family", "adviser", "verifier", "stakeholder", "other"]}
+        }
+      }
+    },
+    "pairs": {
+      "type": "array",
+      "minItems": 1,
+      "description": "deal mode: the pairs of members whose answers are compared on their own (a seller and a buyer). The diff then has `by_pair` and the agenda `call_by_pair`",
+      "items": {
+        "type": "object",
+        "required": ["id", "members"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "label": {"type": "string", "minLength": 1},
+          "members": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/id"}}
+        }
+      }
+    },
+    "map": {
+      "type": "object",
+      "required": ["id", "version", "sha256"],
+      "additionalProperties": false,
+      "description": "map acceptance: the board set the members are asked to accept, pinned by id, version and the sha256 of its file (see task_acceptance)",
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "version": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "facilitator": {"$ref": "#/$defs/id", "description": "member id of the person who sends the pack"},
+    "holder": {
+      "type": "object",
+      "required": ["kind", "name", "program", "method"],
+      "additionalProperties": false,
+      "description": "deal mode: who holds the sealed values and runs the comparison. The holder is a program; in pilots an organisation runs it. Needed by `bound` items. A broker is never the operator",
+      "properties": {
+        "kind": {"enum": ["program", "organisation", "person"]},
+        "name": {"type": "string", "minLength": 1},
+        "operator": {"$ref": "#/$defs/id", "description": "member id of the person who runs the program"},
+        "program": {"type": "string", "minLength": 1, "description": "the program and its version, e.g. smd-engine 0.7.0"},
+        "method": {"enum": ["local-v1"], "description": "the comparison: local-v1 reads both sealed files on the holder's machine"}
+      }
+    },
+    "deal": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": false,
+      "description": "deal mode: the deal this pack belongs to",
+      "properties": {
+        "id": {"$ref": "#/$defs/id", "description": "named in every commitment and in the verdict ledger"},
+        "stages": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}, "description": "the stages of the deal in order; a buyer's ceiling is committed at the last one"},
+        "model_consent": {"type": "boolean", "description": "whether the parties consent to a model reading their answers (default false); the diff says so and the model pass stops when it is false"},
+        "asking_price": {
+          "type": "object",
+          "required": ["value", "unit"],
+          "additionalProperties": false,
+          "description": "the seller's asking price, shared in the pack; required in a deal pack with a seller. The seller chooses the stage at which the pages open it",
+          "properties": {
+            "value": {"type": "number", "exclusiveMinimum": 0},
+            "unit": {"type": "string", "minLength": 1, "description": "e.g. EUR"},
+            "stage": {"$ref": "#/$defs/id", "description": "a stage of deal.stages; default: the stage after nda, else the second, else the only one"}
+          }
+        },
+        "sealed_floor": {"type": "boolean", "description": "whether the seller's sealed floor (and the buyer's sealed ceiling) is used; default false. When true, every verdict run needs the seller's consent in the ledger, naming the buyer. Bound items need it"}
+      }
+    },
     "task": {
       "type": "object",
       "required": ["what", "why", "feeds"],
@@ -59,7 +141,8 @@
             "properties": {
               "term": {"type": "string", "minLength": 1},
               "definition": {"type": "string", "minLength": 1},
-              "source": {"type": "string", "minLength": 1, "description": "source address of the definition"}
+              "source": {"type": "string", "minLength": 1, "description": "source address of the definition"},
+              "audience": {"$ref": "#/$defs/audience"}
             }
           }
         },
@@ -94,7 +177,13 @@
         "type": "object",
         "required": ["id", "address"],
         "additionalProperties": false,
-        "properties": {"id": {"$ref": "#/$defs/id"}, "address": {"type": "string", "minLength": 1}, "note": {"type": "string"}}
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "address": {"type": "string", "minLength": 1},
+          "note": {"type": "string"},
+          "sha256": {"$ref": "#/$defs/sha", "description": "deal mode: sha256 of the source document, so a fact can be checked against it"},
+          "date": {"type": "string", "format": "date", "description": "deal mode: the date of the source document"}
+        }
       }
     },
     "term_check": {
@@ -119,7 +208,8 @@
           "id": {"$ref": "#/$defs/id"},
           "section": {"type": "string", "minLength": 1},
           "question": {"type": "string", "minLength": 1},
-          "kind": {"enum": ["choice", "multi", "text", "number", "ids", "steps"]},
+          "kind": {"enum": ["choice", "multi", "text", "number", "ids", "steps", "fact", "line", "range", "bound"]},
+          "unit": {"type": "string", "minLength": 1, "description": "kind range only: the unit every answer states, e.g. weeks or EUR"},
           "options": {
             "type": "array",
             "minItems": 2,
@@ -138,11 +228,59 @@
             "properties": {"value": {}, "reason": {"type": "string"}}
           },
           "refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "description": "ids of ontology elements, sources or other items the question relies on"},
-          "required": {"type": "boolean", "description": "default true"}
+          "required": {"type": "boolean", "description": "default true"},
+          "audience": {"$ref": "#/$defs/audience"},
+          "stage": {"$ref": "#/$defs/id", "description": "deal mode: the stage of deal.stages at which the item is asked; the pages say so"},
+          "bound": {
+            "type": "object",
+            "required": ["topic", "side", "unit"],
+            "additionalProperties": false,
+            "description": "kind bound only: a sealed one-sided limit. The party commits to a number with `smd deal seal`; the answers hold the commitment only. The seller's floor and the buyer's ceiling of one topic are compared by the holder",
+            "properties": {
+              "topic": {"$ref": "#/$defs/id", "description": "what is bounded, e.g. price; a floor and a ceiling of one topic are compared"},
+              "side": {"enum": ["floor", "ceiling"], "description": "floor: the seller's lowest acceptable value, committed at day 0; ceiling: the buyer's highest, optional, committed at the last stage"},
+              "unit": {"type": "string", "minLength": 1},
+              "stage": {"$ref": "#/$defs/id", "description": "a ceiling names its stage, which has to be the last of deal.stages; a floor names none"}
+            }
+          },
+          "nature": {"enum": ["term", "fact", "value", "position"], "description": "deal mode: what the item asks about. Alpha leaves out value and position items (they are expected to differ between positions)"},
+          "fit_of": {"$ref": "#/$defs/id", "description": "deal mode: id of the reading item this fit item depends on; while the reading conflicts, the fit point waits for the call (after_reading)"},
+          "claim": {
+            "type": "object",
+            "required": ["text", "asserted_by", "source", "level"],
+            "additionalProperties": false,
+            "description": "kind fact only: the statement the members say holds, does not hold or cannot say",
+            "properties": {
+              "text": {"type": "string", "minLength": 1},
+              "asserted_by": {"$ref": "#/$defs/id", "description": "position id (member id when the pack has no positions) that makes the claim"},
+              "source": {"$ref": "#/$defs/id", "description": "id of the source (sources) that can settle it"},
+              "level": {"enum": ["stated", "checked"], "description": "stated: said by the asserting side; checked: a source or the verifier confirmed it"}
+            }
+          },
+          "line": {
+            "type": "object", "additionalProperties": false, "required": ["until"],
+            "dependentRequired": {"expect": ["metric"]},
+            "description": "kind line only: the red line as docs/red-lines.md gives it (a corridor min and/or max, or a yes/no expect, in force until a date)",
+            "properties": {
+              "metric": {"type": "string", "minLength": 1},
+              "unit": {"type": "string", "minLength": 1},
+              "min": {"type": "number"},
+              "max": {"type": "number"},
+              "expect": {"type": "boolean"},
+              "since": {"type": "string", "format": "date"},
+              "until": {"type": "string", "format": "date"},
+              "recovery_days": {"type": "number", "exclusiveMinimum": 0}
+            }
+          }
         },
         "allOf": [
           {"if": {"properties": {"kind": {"enum": ["choice", "multi"]}}}, "then": {"required": ["options"]}},
-          {"if": {"properties": {"kind": {"enum": ["text", "number", "ids", "steps"]}}}, "then": {"not": {"required": ["options"]}}}
+          {"if": {"properties": {"kind": {"enum": ["text", "number", "ids", "steps", "fact", "line", "range", "bound"]}}}, "then": {"not": {"required": ["options"]}}},
+          {"if": {"properties": {"kind": {"const": "bound"}}}, "then": {"required": ["bound"], "not": {"anyOf": [{"required": ["claim"]}, {"required": ["line"]}, {"required": ["recommendation"]}, {"required": ["unit"]}, {"required": ["nature"]}, {"required": ["fit_of"]}]}}, "else": {"not": {"required": ["bound"]}}},
+          {"if": {"properties": {"kind": {"const": "range"}}}, "then": {"required": ["unit"], "not": {"anyOf": [{"required": ["claim"]}, {"required": ["line"]}]}}, "else": {"not": {"required": ["unit"]}}},
+          {"if": {"properties": {"kind": {"const": "fact"}}}, "then": {"required": ["claim"], "not": {"required": ["line"]}}},
+          {"if": {"properties": {"kind": {"const": "line"}}}, "then": {"required": ["line"], "not": {"required": ["claim"]}}},
+          {"if": {"properties": {"kind": {"enum": ["choice", "multi", "text", "number", "ids", "steps"]}}}, "then": {"not": {"anyOf": [{"required": ["claim"]}, {"required": ["line"]}]}}}
         ]
       }
     },
@@ -154,6 +292,14 @@
     }
   },
   "$defs": {
-    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "audience": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"},
+      "description": "deal mode: position ids that see and answer this entry; absent = the shared core"
+    }
   }
 }

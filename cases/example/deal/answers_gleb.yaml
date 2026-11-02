@@ -1,0 +1,24 @@
+record: task_answers
+schema_version: "0.1"
+pack:
+  id: bakery-sale
+  version: "1"
+  sha256: "2768f4c5b53308e79e31c669c5e84aa12eac1594245458798e056a1e8238e2a1"
+  annex: {position: broker, sha256: "e26fb77cd1ee2af7bd9b8c0d23b964c8326bd6086e71a2881430d12ecd01f0e6"}
+member: gleb
+date: "2026-11-03"
+drafted_by: self
+term_check:
+  tc-clients: Regulars, the way the accounts count them.
+  tc-key: The head baker, if he has no contract.
+  tc-ready: When a buyer can see the numbers.
+answers:
+  read-clients: {value: regulars}
+  key-person: {value: baker, reason: "The owner is replaceable, the baker is not."}
+  broker-note: {value: "The lease ends in two years."}
+  margin: {value: holds, source_ids: [s2]}
+  lease-term: {value: holds}
+  fit-clients: {value: fits}
+  rl-staff: {value: accept}
+  handover: {value: {min: 4, max: 8, unit: weeks}}
+  next-steps: {value: ["share the accounts", "visit the bakery"]}

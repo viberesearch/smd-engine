@@ -5,6 +5,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from smd_engine.task.deal_labels import DEAL_LABELS
+
 LABELS: dict[str, dict[str, Any]] = {
     "en": {
         "cycle": "The cycle",
@@ -49,6 +51,9 @@ LABELS: dict[str, dict[str, Any]] = {
         "recommendation": "Recommendation",
         "refs": "Refers to",
         "required": "Required",
+        "range_from": "From",
+        "range_to": "To",
+        "range_date": "As of (optional)",
         "yes": "yes",
         "no": "no",
         "kinds": {
@@ -58,6 +63,10 @@ LABELS: dict[str, dict[str, Any]] = {
             "number": "a number",
             "ids": "tick the elements in the list",
             "steps": "steps, one per line",
+            "fact": "does the claim hold, does it not, or can you not say",
+            "line": "accept or reject the red line",
+            "range": "a range: from, to, in the unit shown",
+            "bound": "a sealed limit: no number is entered here",
         },
         "how": "How to answer",
         "how_text": (
@@ -182,6 +191,11 @@ LABELS: dict[str, dict[str, Any]] = {
             "compatible_steps": "compatible steps",
             "to_read": "to read",
             "unanswered": "no answer",
+            "line_rejected": "red line rejected",
+            "compatible": "compatible",
+            "sealed": "price: sealed limits",
+            "open": "open",
+            "settled": "settled",
         },
         "subtypes": {
             "term": "term",
@@ -197,6 +211,8 @@ LABELS: dict[str, dict[str, Any]] = {
             "call": "call",
             "record_positions": "positions recorded",
             "check": "check assigned",
+            "blocking": "blocking: always to the call",
+            "price_meeting": "bargain at the in-person meeting",
         },
     },
     "ru": {
@@ -242,6 +258,9 @@ LABELS: dict[str, dict[str, Any]] = {
         "recommendation": "Рекомендация",
         "refs": "Относится к",
         "required": "Обязательный",
+        "range_from": "От",
+        "range_to": "До",
+        "range_date": "На дату (необязательно)",
         "yes": "да",
         "no": "нет",
         "kinds": {
@@ -251,6 +270,10 @@ LABELS: dict[str, dict[str, Any]] = {
             "number": "число",
             "ids": "отметьте нужные элементы в списке",
             "steps": "шаги, по одному в строке",
+            "fact": "верно ли утверждение, неверно, или вы не можете сказать",
+            "line": "принять красную линию или не принять",
+            "range": "диапазон: от, до, в указанной единице",
+            "bound": "закрытая граница: число здесь не вводится",
         },
         "how": "Как отвечать",
         "how_text": (
@@ -375,6 +398,11 @@ LABELS: dict[str, dict[str, Any]] = {
             "compatible_steps": "совместимые шаги",
             "to_read": "прочитать",
             "unanswered": "нет ответов",
+            "line_rejected": "красная линия не принята",
+            "compatible": "совместимо",
+            "sealed": "цена: закрытые границы",
+            "open": "открыто",
+            "settled": "решено",
         },
         "subtypes": {
             "term": "термин",
@@ -390,6 +418,8 @@ LABELS: dict[str, dict[str, Any]] = {
             "call": "созвон",
             "record_positions": "позиции записываются",
             "check": "назначается проверка",
+            "blocking": "блокирует: всегда на созвон",
+            "price_meeting": "торг на личной встрече",
         },
     },
 }
@@ -399,6 +429,8 @@ def class_word(lang: str, point: dict[str, Any]) -> str:
     """The class of a point in words, with the subtype of a conflict. A word the
     tables lack (a model wrote it) is shown as written."""
     lab = LABELS[lang]
+    if point["class"] == "sealed" and point.get("verdict"):
+        return str(DEAL_LABELS[lang]["price_verdicts"][point["verdict"]])
     word: str = lab["classes"].get(point["class"], point["class"])
     if point.get("subtype"):
         word += f": {lab['subtypes'].get(point['subtype'], point['subtype'])}"

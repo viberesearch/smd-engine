@@ -5,6 +5,14 @@ from __future__ import annotations
 
 from typing import Any
 
+from smd_engine.task.asking import page_line
+from smd_engine.task.deal_render import (
+    item_facts,
+    member_line,
+    positions_block,
+    sources_table,
+    with_options,
+)
 from smd_engine.task.labels import LABELS
 from smd_engine.task.refs import ref_groups
 
@@ -60,7 +68,11 @@ def relations_block(ontology: dict[str, Any], lang: str) -> list[str]:
 
 
 def _item(
-    item: dict[str, Any], lab: dict[str, Any], no: int, onto: dict[str, Any]
+    item: dict[str, Any],
+    lab: dict[str, Any],
+    no: int,
+    onto: dict[str, Any],
+    pack: dict[str, Any] | None = None,
 ) -> list[str]:
     """One item: its number as the heading, element labels for the refs and
     option labels for the recommendation; the id stays in a comment. The refs
@@ -89,6 +101,8 @@ def _item(
         shown = ", ".join(opts.get(str(v), str(v)) for v in values)
         reason = f" ({rec['reason']})" if rec.get("reason") else ""
         out.append(f"- {lab['recommendation']}: {shown}{reason}")
+    if pack is not None:
+        out += [f"- {name}: {text}" for name, text in item_facts(pack, item)]
     out.append("")
     if item["kind"] == "ids":
         groups = ref_groups(onto, item.get("refs"))
@@ -104,9 +118,9 @@ def _item(
     return out
 
 
-def render_pack_md(pack: dict[str, Any]) -> str:
+def render_pack_md(pack: dict[str, Any], stage: str | None = None) -> str:
     lab = LABELS[pack["lang"]]
-    members = ", ".join(m["name"] for m in pack["members"])
+    members = member_line(pack)
     names = {m["id"]: m["name"] for m in pack["members"]}
     facilitator = names.get(pack["facilitator"], pack["facilitator"])
     task = pack["task"]
@@ -116,7 +130,13 @@ def render_pack_md(pack: dict[str, Any]) -> str:
         [lab["id"], lab["version"], lab["date"], lab["due"], lab["facilitator"]],
         [[pack["id"], pack["version"], pack["date"], pack["due"], facilitator]],
     )
-    out += [f"{lab['members']}: {members}", "", f"## {lab['cycle']}", ""]
+    out += [f"{lab['members']}: {members}", ""]
+    if price := page_line(pack, stage):
+        out += [price, ""]
+    block = positions_block(pack)
+    if block:
+        out += [f"## {block[0]}", ""] + table(block[1], block[2])
+    out += [f"## {lab['cycle']}", ""]
     out += cycle_block(pack["lang"])
     feeds = task["feeds"]
     labels = {e["id"]: e["label"] for e in onto["elements"]}
@@ -165,16 +185,14 @@ def render_pack_md(pack: dict[str, Any]) -> str:
     out += [f"### {lab['relations']}", ""]
     out += relations_block(onto, pack["lang"])
     out += [f"## {lab['sources']}", ""]
-    out += table(
-        [lab["id"], lab["address"], lab["note"]],
-        [[s["id"], s["address"], s.get("note", "")] for s in pack["sources"]],
-    )
+    out += table(*sources_table(pack))
     out += [f"## {lab['items']}", ""]
     numbers = {i["id"]: n for n, i in enumerate(pack["items"], 1)}
     for section in dict.fromkeys(i["section"] for i in pack["items"]):
         out += [f"### {section}", ""]
         for item in pack["items"]:
             if item["section"] == section:
-                out += _item(item, lab, numbers[item["id"]], onto)
+                shown = with_options(item, pack["lang"])
+                out += _item(shown, lab, numbers[item["id"]], onto, pack)
     out += [f"## {lab['how']}", "", lab["how_text"], ""]
     return "\n".join(out).rstrip() + "\n"
