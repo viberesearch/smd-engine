@@ -2,7 +2,7 @@
 id: visionary-tract
 title: Visionary tract with structural-move candidates
 step: 3
-version: 0.2.3
+version: 0.2.4
 role: визионер
 profile: program-three-boards
 inputs:
@@ -62,7 +62,8 @@ Steps 1-4 are the program's "four procedures"; steps 5 and 6 are its continuatio
 - `board`, `half` (for `s`) and `kind` as in the table above;
 - `label` in one sentence, in plain words, in the language of the human's materials;
 - `cites` the source address of every fact you take from a source; an element with no source states that it is your wording;
-- from step 3 on, `move: {op, from, via, status: candidate}` (docs/data-model.md, "Moves"). `from` lists the earlier accepted elements the move was applied to. In proposal mode it may also cite candidates, each named as the working assumption of its step. `via` is required in this procedure for every op and names the shared substructure, the changed links, the scale or the added axis, as each step says; the hint `move-via` names a candidate move of the tract's steps without one.
+- from step 3 on, `move: {op, from, via, status: candidate}` (docs/data-model.md, "Moves"). `from` lists the earlier accepted elements the move was applied to. In proposal mode it may also cite candidates, each named as the working assumption of its step. `via` is required in this procedure for every op and names the shared substructure, the changed links, the scale or the added axis, as each step says; the hint `move-via` names a candidate move of the tract's steps without one;
+- an `adjoin` also takes `return`, its way back: what the move changes in the terms it started from (a decision, a prediction, a test) and what is lost on the way back (step 6, dz02#l=11). The hint `move-return` names an adjoin without one.
 
 Use only the fields of `docs/data-model.md`. Elements have no status field of their own: the move status and `voice: ai` are the marks that the wording is yours and awaits the human.
 
@@ -174,6 +175,8 @@ These are Khaprov's. They are not the program's seven levels of management compl
 **Element:** `kind: goal`, `board: od`, `label` in the form of a goal with its position.
 **Move:** adjoin makes a latent degree of freedom an explicit, independent axis. `{op: adjoin, from: [<view of oneself>, <position>], via: "axis: <the added axis>", status: candidate}`. If the goal answers an open `gap` (with `of` set), add `{from: <goal>, to: <gap>, kind: refers}`: a gap is a problem, and goals are what problematization produces from it (GP-PP). A goal for which a method is already known is a task, and you say so.
 
+**Way back.** Each adjoin candidate states `return`: what the added axis changes in the old terms, as a decision, a prediction or a test the group could not make before, and what is lost on the way back. Example: a time axis on a sale is worth proposing if it changes a decision about the sale itself. An axis that changes nothing in the old terms is not a candidate; say so and drop it. Mathematics adjoins dimensions only where a map leads back with a known loss (semidefinite relaxation then rounding; Koopman embeddings; `docs/method/structural-moves.md`, "Way back").
+
 **Transition.** `{n: <next>, from: <view>, to: <goal>}` when accepted.
 
 **Earlier moves made impossible.** List in the reply the goals and moves already on the boards that the accepted picture rules out, each with the reason. The human decides what to drop. You do not delete anything. The data model has no field for this (see the hand-over).
@@ -191,7 +194,7 @@ These are taken from the paper and apply to every candidate in this procedure (d
 
 ## 9. Self-check before handing over
 
-- Every candidate has voice ai, a position in `seen_from`, and (steps 3-6) a move with `status: candidate` and a `via`.
+- Every candidate has voice ai, a position in `seen_from`, and (steps 3-6) a move with `status: candidate` and a `via`; every adjoin also has a `return`.
 - No candidate came from an invented fact.
 - No sign-off, accepted move or raised status was written by you (in proposal mode this includes `reject_move`).
 - In proposal mode: every step has one named working assumption, and every AI item is labelled AI.
@@ -241,6 +244,7 @@ elements:
      label: "organiser: sign the first five shops before the plant is leased",
      seen_from: p-organiser,
      move: {op: adjoin, from: [vs-eco, p-organiser], via: "axis: order of commitments (shops before the lease)",
+            return: "a different decision in the old terms: sign shops before leasing; lost: the saving of a bulk lease price",
             status: candidate}}
 relations:
   - {from: vs-eco, to: s-small, kind: refers}

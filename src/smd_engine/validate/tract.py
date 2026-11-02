@@ -1,6 +1,7 @@
 """The visionary tract's checks on its candidates (visionary-tract.md §1, §3,
 §5), moved from the procedure into the validator (method review 31.10.2026,
-gate У В): the garland, the bridge's sources and `via` on the tract's moves."""
+gate У В): the garland, the bridge's sources and `via` on the tract's moves;
+the `return` of an adjoin (dz02#l=11)."""
 
 from __future__ import annotations
 
@@ -80,7 +81,8 @@ def hint_bridge_from(ctx: Ctx) -> list[Finding]:
 @hint("move-via", kinds=("model", "situation", "goal"))
 def hint_move_via(ctx: Ctx) -> list[Finding]:
     """`via` names what each candidate move of the tract goes through; a move
-    the group made in its talk (ingest-transcript.md §4) needs none."""
+    the group made in its talk (ingest-transcript.md §4) needs none. A move
+    with no `status` is read as a candidate, as `signoffs` reads it."""
     return [
         Finding(
             "hint",
@@ -90,7 +92,27 @@ def hint_move_via(ctx: Ctx) -> list[Finding]:
         )
         for e in ctx.by_id.values()
         if "move" in e
-        and e["move"]["status"] == "candidate"
+        and e["move"].get("status", "candidate") == "candidate"
         and (e["kind"], e["move"]["op"]) in TRACT_MOVES
         and not str(e["move"].get("via", "")).strip()
+    ]
+
+
+@hint("move-return")
+def hint_move_return(ctx: Ctx) -> list[Finding]:
+    """An `adjoin` helps only if it changes a decision, a prediction or a test
+    in the terms it started from, so it names that change and its loss in
+    `return` (dz02#l=11). A rejected adjoin needs none."""
+    return [
+        Finding(
+            "hint",
+            e["id"],
+            "adjoin with no `return`: name what the move changes in the old "
+            "terms (a decision, a prediction, a test) and what is lost on the "
+            "way back",
+        )
+        for e in ctx.by_id.values()
+        if e.get("move", {}).get("op") == "adjoin"
+        and e["move"].get("status", "candidate") in ("candidate", "accepted")
+        and not str(e["move"].get("return", "")).strip()
     ]

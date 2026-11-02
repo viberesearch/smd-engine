@@ -127,6 +127,23 @@ def test_render_writes_a_story_as_readable_markdown(
     assert "## Situation" in en and "- For:" in en
 
 
+def test_render_shows_the_context_ids_apart_from_the_sentences() -> None:
+    story = case_story("buyer")
+    assert story["context"]
+    text = render_story_md(story, case_boards())
+    head, _, tail = text.partition("## Контекст (вне пути)")
+    assert tail and "## Открытые вопросы" in tail
+    for item in story["context"]:
+        assert f"- [{item}] " in tail.split("## Открытые вопросы")[0]
+        assert f"- [{item}]" not in head
+    assert "## Context (off the path)" in render_story_md(story, case_boards(), "en")
+    # without the boards a context entry is its id
+    assert "- [sig-august]\n" in render_story_md(story)
+    # a story with no context shows no section
+    del story["context"]
+    assert "Контекст" not in render_story_md(story, case_boards())
+
+
 def test_every_title_and_source_says_the_business_is_invented() -> None:
     assert "Вымышленный пример" in board()["title"]
     assert "ВЫМЫШЛЕННЫЙ ПРИМЕР" in board()["notes"]

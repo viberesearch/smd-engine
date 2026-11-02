@@ -2,7 +2,7 @@
 id: qualification-pass
 title: Qualification pass over a board set
 step: 3
-version: 0.4.1
+version: 0.4.2
 role: методолог
 profile: program-three-boards
 inputs:
@@ -135,6 +135,7 @@ Each row states the rule in one line, so that this file can be used without read
 | Representation fits the place | the object representation must fit the place the position has taken: a начальник in a ready place who keeps the org structure as his object has a representation "не соответствующее его позиции" (GP-Guide11 ¶33-34; GP-Guide10 ¶7, ¶19; politics as a fourth level, GP-T5 pp. 242-243) | ask: does this representation fit the place the position has taken (организатор, руководитель, управляющий, политик, функционер)? Read `acts_as` and the position's `represents` targets; the hint `position-without-object` lists the positions with `acts_as` and no representation | К as a question to the group; the fit is asked, not graded true or false |
 | Role, not actor | the boards hold roles; a positioner is the carrier who occupies a place (GP-OP, GP1981; `docs/method/roles-and-actors.md`) | a `position`, `place_for_others` or `performed_by` that names an organisation or person type instead of what is done; an actor that sits beside the role it fills | label fix by whoever wrote the record (actor to `fillers`); К if the role itself is not named |
 | Board separation | subject-object talk is allowed on the org-activity board, not on the ontology board (GP-SMD) | subject-object talk ("we must", "our task") sits on `od`, not on `oo` | К for each such label still on `oo` after validation |
+| Computability | a position, explanation or plan that requires an actor to solve a problem the actor cannot compute with the information and time it has is a weak explanation or an unworkable plan: "if my laptop can't find it, then neither can the market" (A. Moitra quoting K. Jain; dz02#l=11; not a classic-method rule). Example: assuming that participants reach a Nash equilibrium | for each position, explanation or plan on the boards, ask what the actor must work out (a best response to all others, an optimum over a large space) and whether the actor has the information and time for it. Read `label`, `action` and the theses' `grounds` | К as a question to the group: what does the actor really compute, and with what; a simpler rule the actor can follow is offered as an alternative. Not a verdict on the position |
 | Realizability | a methodological product is checked for realizability in activity, not for truth (GP1981) | an `ontology` entry has a `test` that is a hypothesis; a multi-position object has a `cooperation` | К asking for the test or the cooperation |
 
 Degeneration (GP1987), counted over the record's theses:

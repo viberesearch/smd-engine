@@ -145,6 +145,7 @@ LABELS: dict[str, dict[str, Any]] = {
             "move": "ход",
             "from": "из",
             "via": "через",
+            "return": "путь назад",
         },
         # other words of the Markdown digest; record fields (`action`,
         # `cooperation`, `test`, ...) take their labels from "fields"
@@ -387,6 +388,7 @@ LABELS: dict[str, dict[str, Any]] = {
             "move": "move",
             "from": "from",
             "via": "via",
+            "return": "way back",
         },
         # the English digest names `action` and `test` by the field names, as
         # it always has; the page labels them "test" and "tested by hypothesis"

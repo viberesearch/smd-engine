@@ -1,5 +1,6 @@
 # ВЫМЫШЛЕННЫЙ ПРИМЕР, черновик ИИ. История для основателя; не подписывается.
 # Исправления вносятся в карту (spectra-coffee-c1.board.yaml), потом текст пишется заново.
+# Правлено вручную 2026-11-01 после смены процедуры story на 0.2.0 (список context, правило S5); штамп run ниже относится к прогону процедуры, а не к этим правкам.
 record: story
 schema_version: "0.1"
 id: spectra-owner-scqa
@@ -15,6 +16,7 @@ path: [p-founder, fn-dialin, rl-dialin, fn-journal, coop-transfer]
 conflict: [rl-dialin]
 resolution: [coop-transfer]
 open: [H1, H2, H5]
+context: [goal-handover, s-small, fact-staff, fact-spec, fact-dialin-share, nb-qual, sig-august, H1]
 sentences:
   - part: situation
     level: stated
@@ -53,4 +55,4 @@ sentences:
     ids: [fn-journal, coop-transfer, goal-handover]
     text: "Предлагается связать журнал с передачей: он виден управляющему и покупателю, а кооперация передачи ведёт к вашей цели."
 voice: ai
-run: {procedure: story, version: "0.1.0", model: claude-sonnet-5-5, date: "2026-11-01"}
+run: {procedure: story, version: "0.2.0", model: claude-sonnet-5-5, date: "2026-11-01"}

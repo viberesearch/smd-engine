@@ -1,7 +1,8 @@
 """A story as readable Markdown (`smd story render`): the title, the audience
 and form, the sentences by part with the board ids each rests on in brackets,
-the open questions and the stamp. A view of a view: nothing here checks the
-story (`smd story check`) or writes a board."""
+the context ids (off the path, listed apart), the open questions and the stamp.
+A view of a view: nothing here checks the story (`smd story check`) or writes a
+board."""
 
 from __future__ import annotations
 
@@ -14,6 +15,7 @@ LABELS: dict[str, dict[str, Any]] = {
         "audience": "Для",
         "protagonist": "О ком",
         "form": "Форма",
+        "context": "Контекст (вне пути)",
         "open": "Открытые вопросы",
         "stamp": "Штамп",
         "boards": "доски",
@@ -34,6 +36,7 @@ LABELS: dict[str, dict[str, Any]] = {
         "audience": "For",
         "protagonist": "About",
         "form": "Form",
+        "context": "Context (off the path)",
         "open": "Open questions",
         "stamp": "Stamp",
         "boards": "boards",
@@ -78,6 +81,11 @@ def render_story_md(
         out += [f"## {t['parts'].get(part, part or t['other'])}", ""]
         for s in sentences:
             out += [f"{s['text']} [{', '.join(s['ids'])}]", ""]
+    if story.get("context"):
+        out += [f"## {t['context']}", ""]
+        for item in story["context"]:
+            out.append(f"- {_context_line(boards, item)}")
+        out.append("")
     if story["open"]:
         out += [f"## {t['open']}", ""]
         for item in story["open"]:
@@ -99,3 +107,10 @@ def _open_text(boards: Boards | None, item: str) -> str:
     if boards is None or item not in boards.items:
         return ""
     return str(boards.items[item][1].get("assumes") or boards.label(item))
+
+
+def _context_line(boards: Boards | None, item: str) -> str:
+    """A context id with its label when the boards are at hand."""
+    if boards is None or item not in boards.items:
+        return f"[{item}]"
+    return f"[{item}] {boards.label(item)}"

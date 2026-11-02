@@ -1,5 +1,6 @@
 # ВЫМЫШЛЕННЫЙ ПРИМЕР, черновик ИИ. Премортем для преемника: от провала назад к причинам.
 # Форма premortem: число 3 (годы взгляда назад) входит в саму форму.
+# Правлено вручную 2026-11-01 после смены процедуры story на 0.2.0 (список context, правило S5); штамп run ниже относится к прогону процедуры, а не к этим правкам.
 record: story
 schema_version: "0.1"
 id: spectra-successor-premortem
@@ -14,6 +15,7 @@ path: [place-successor, fn-journal, fn-train, ev-trial, gl-handover, coop-transf
 conflict: [ev-trial, gl-handover]
 resolution: [coop-transfer]
 open: [H1, H5]
+context: [goal-handover, sig-august, rl-dialin, K1, H1, H5]
 sentences:
   - part: failure
     level: hypothesis
@@ -44,4 +46,4 @@ sentences:
     ids: [H1, fn-journal, coop-transfer]
     text: "Чтобы проверить это первым, надо смотреть журнал настройки, который виден всем участникам передачи."
 voice: ai
-run: {procedure: story, version: "0.1.0", model: claude-sonnet-5-5, date: "2026-11-01"}
+run: {procedure: story, version: "0.2.0", model: claude-sonnet-5-5, date: "2026-11-01"}

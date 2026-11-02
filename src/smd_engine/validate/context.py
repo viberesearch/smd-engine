@@ -116,6 +116,7 @@ HINT_PROCEDURES = {
     "garland": "procedures/visionary-tract.md §3",
     "bridge-from": "procedures/visionary-tract.md §5",
     "move-via": "procedures/visionary-tract.md §1",
+    "move-return": "procedures/visionary-tract.md §7",
     # G.P.'s management scheme and the Beer layer (management.py): no
     # procedure builds that scheme, so the classic checks read it
     "lead-vs-manage": "procedures/qualification-pass.md §3.3",

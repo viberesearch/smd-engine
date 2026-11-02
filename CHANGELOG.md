@@ -4,6 +4,26 @@ Dates are those of the tag. All tags v0.2.1 to v0.3.5 were made on 2026-10-29. T
 
 ## Unreleased
 
+## 0.6.4 - 2026-11-02
+
+Two method changes asked for by the case owner on 2 November 2026 (dz02#l=11) and one fix (dz02#l=15). Schema 0.3 stays; the new field is optional and old records stay valid. The MIPT case's five boards validate as before (0 errors, 150 warnings); hints go from 143 to 156, the 13 new ones being `move-return` on adjoin elements.
+
+- Move field `return` (board-set schema, `$defs.move`): the way back, what the move changes in the terms it started from (a decision, a prediction, a test) and what is lost on the way back. New hint `move-return` (→ visionary-tract.md §7, `program-three-boards` only, like `move-via`): an element whose `move` is an `adjoin`, with status `candidate` or `accepted` or none, and no `return`. A `rejected` adjoin, other ops and the moves on theses are not read. The Markdown digest shows `return` after `via` ("way back" / "путь назад"). The board patch schema does not restate move fields and is unchanged.
+- Docs: `docs/data-model.md` (Moves), `docs/method/structural-moves.md` (new subsection "Way back": the requirement, three examples, pending in the paper's `PENDING_UPDATES.md` as an owner decision), `docs/stages.md`, `docs/checks.md`. `visionary-tract` 0.2.4: each adjoin candidate states its way back; the example carries one.
+- `qualification-pass` 0.4.2: new classic-checks row "Computability" (A. Moitra quoting K. Jain: "If my laptop can't find it, then neither can the market"): a position, explanation or plan that needs an actor to solve what the actor cannot compute with the information and time it has is weak or unworkable, e.g. assuming a Nash equilibrium. A line in `roles/methodologist.md`. No code.
+- Test: `test_move_return_asked_of_an_adjoin` in `tests/test_procedure_checks.py`.
+- Fix (dz02#l=15): the hint `move-via` read a move's `status` directly, so a move without `status` (the schema does not require it) crashed `smd validate --hints` with a KeyError. A move with no status is now read as a candidate, as `signoffs` reads it; the `move-via` test covers it.
+
+Gate ИСТ1 (the case owner, 1 November 2026, dz01#l=31): the story view is strict. Schema 0.1 stays; the new field is optional.
+
+- `smd story check` rule S5: every id a sentence cites lies on the story's walk (the `path`, and the ids of `conflict` and `resolution` that lie on it) or is listed in the new optional story field `context`. A cited id that is neither is an error. An id in `context` is still held to the allow-list (G4) and to G1-G3; `context` ids must exist (S1). A story file written before this change can now fail S5: list the off-path ids it cites in `context`.
+- S5 counts no `open` hypothesis as on the walk: a sentence that cites one lists it in `context` (dz01#l=35). The four Spectra Coffee stories list the hypotheses they cite.
+- `story.schema.json`: optional `context`, unique ids. Schema version 0.1 is unchanged, as old files stay valid.
+- `smd story render --md` lists the context ids apart, under a heading of their own (with `--boards`, each with its label).
+- `docs/stories.md` and `procedures/story.md` (0.2.0) describe the rule and the field. The four Spectra Coffee stories list their off-path ids in `context`; the buyer story has the August gap again (`sig-august`, `nb-qual`).
+- Review fixes to S5 (same gate, dz01#l=31: strict, with an explicit `context` list for anything off the path). A `context` id must be in `allow` (G4, an error): `smd story render` prints context ids with their labels, so `context` must not reach a fact the audience may not see. A `context` id that no sentence cites is a warning (S5). Narrower walk: a sentence cites without a `context` entry only ids on the path, the `conflict` and `resolution` ids that are on the path, and the `open` hypotheses; a `conflict` or `resolution` id off the path now needs a `context` entry. The docstring of `story/check.py`, `docs/stories.md` and `procedures/story.md` say the same.
+- The four Spectra Coffee stories needed no change to their ids under the narrower walk. They were edited by hand on 2026-11-01 after the procedure run (version 0.2.0 adds `context`); the story schema has no field for that, so each file carries a comment saying so, and its `run` stamp still names the procedure run.
+
 ## 0.6.3 - 2026-11-01
 
 Gates Ж1 Б and Ж2 Б (the case owner, 1 November 2026): the engine's formal stance and its six robustness rules. Schema 0.3 stays; every new field is optional and old records stay valid. The MIPT case's five boards validate as before (0 errors, 150 warnings, 143 hints) and so do the eight example records.

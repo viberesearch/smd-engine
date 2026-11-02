@@ -2,7 +2,7 @@
 id: story
 title: A checked story over a business map, for one audience
 step: 3
-version: 0.1.0
+version: 0.2.0
 role: игротехник
 profile: any
 inputs:
@@ -11,7 +11,7 @@ inputs:
   - the shareable part of the protagonist's ontology, a cited file, when the protagonist has one
   - the audience's language (Russian for a Russian group or broker)
 outputs:
-  - a story file (`*.story.yaml`, `record: story`) with sentences {text, ids, level, part}, voice ai, the run stamp
+  - a story file (`*.story.yaml`, `record: story`) with sentences {text, ids, level, part}, a `context` list for the ids off the path, voice ai, the run stamp
   - the result of `smd story check` on it, 0 errors
   - a list of the places where the board has no typed link, for the group
 next: qualification-pass
@@ -49,8 +49,10 @@ The engine lists; a person picks. Take the walk that tells the audience's own si
 
 ## 3. Write the sentences
 
+**Stay on the walk (S5).** A sentence cites ids on the path, or ids of `conflict` and `resolution` that are on the path. Any other id it needs (a fact about the place, a signal beside the path, a conflict or resolution id off the path, an `open` hypothesis it cites) goes into the story's `context` list, by decision: add only what a sentence uses and the audience may see, and keep each in `allow` too (a context id not in `allow` is an error, and one no sentence cites is a warning). `context` never widens the allow-list. Do not move an id into `context` to silence the check when the sentence is about something the walk does not reach; if the story needs it, the walk may be the wrong one (section 1).
+
 Each sentence is `{text, ids, level, part}`.
-- `ids`: the board ids the sentence rests on, at least one, all in `allow`. Elements, hypotheses, theses, K and ontology records may be cited.
+- `ids`: the board ids the sentence rests on, at least one, all in `allow` and each on the walk or in `context`. Elements, hypotheses, theses, K and ontology records may be cited.
 - `level`: the strength the sentence claims, `hypothesis`, `unverified`, `stated` or `checked`. It is never above the weakest of its ids: an untested or testing hypothesis, a thesis below `voiced` or `refined`, and an open K count as `hypothesis`. Word the sentence to match: a `hypothesis` sentence says "возможно", "предлагается", "проверим"; a `checked` sentence does not.
 - Numbers: every number in a sentence, digits or words («три», «вдвое», «половина»), is in the text of one of its ids. Copy the number as the board writes it. Do not round, add or compute. The premortem form has its own constant 3 (years back), scenarios 2.
 - No comparative or superlative without a number («лучше», «самый», «more»). Say what is compared, with the figure.
@@ -75,6 +77,7 @@ The result must have 0 errors. Read the hints by eye: G2 lists modal words and s
 ## 5. Hand over
 
 Reply with the story, the check result, and:
+- the ids in `context`, with the sentence that needs each, so the group sees what the story leans on beside the walk;
 - the places where the walk used a weak link (`~refers~`) or where no walk existed, as questions for the group (they are claims the group has to make, not typing of existing links);
 - the hypotheses the story ends on, as the questions for the audience;
 - the sentence "черновик ИИ: поправки вносятся в карту, текст пишется заново".

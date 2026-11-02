@@ -50,6 +50,7 @@ def _line(el: dict[str, Any], lang: str, profile: Profile) -> str:
             f"{w['move']}: {MOVE_NAMES[lang][m['op']]} {w['from']} "
             f"{', '.join(m['from'])}"
             + (f" {w['via']} {m['via']}" if m.get("via") else "")
+            + (f"; {w['return']}: {m['return']}" if m.get("return") else "")
             + (
                 f" ({value_word('move_status', m['status'], lang)})"
                 if m.get("status")

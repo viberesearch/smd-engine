@@ -1,4 +1,5 @@
 # ВЫМЫШЛЕННЫЙ ПРИМЕР, черновик ИИ. История для банка; не подписывается.
+# Правлено вручную 2026-11-01 после смены процедуры story на 0.2.0 (список context, правило S5); штамп run ниже относится к прогону процедуры, а не к этим правкам.
 record: story
 schema_version: "0.1"
 id: spectra-bank-scqa
@@ -13,6 +14,7 @@ path: [place-bank, fn-books, rl-cover, fn-tranche, place-buyer, coop-transfer]
 conflict: [rl-cover]
 resolution: [coop-transfer]
 open: [H3]
+context: [s-small, fact-revenue, fact-price, H3]
 sentences:
   - part: situation
     level: hypothesis
@@ -47,4 +49,4 @@ sentences:
     ids: [fn-tranche, fn-books, rl-cover]
     text: "Предлагается поэтапное финансирование: транши открываются под линию покрытия, а отчётность кафе идёт банку каждый квартал."
 voice: ai
-run: {procedure: story, version: "0.1.0", model: claude-sonnet-5-5, date: "2026-11-01"}
+run: {procedure: story, version: "0.2.0", model: claude-sonnet-5-5, date: "2026-11-01"}

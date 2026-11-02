@@ -74,3 +74,12 @@ The compatibility predicate is a finite check: unique ownership, no dangling imp
 - The validator gates the form of a candidate before the group sees it; deciding which candidate is meaningful stays with the participants.
 - Any ranking by S is shown as a hint, with its weights logged.
 - The paper is about representations in science and ontology, not group talk in the Shchedrovitsky tradition. Reading a position as a representation is the engine's interpretation, to be checked with methodologists.
+
+### Way back
+
+Owner's request, 2 November 2026 (dz02#l=11). Adjoining dimensions makes a hard problem easy only when a map leads back to the original terms with a known loss. Three cases in mathematics and physics:
+- semidefinite relaxation: solve the lifted problem, then round the solution back to the original one, with a known bound on the loss;
+- Koopman embeddings: a nonlinear system is lifted to a linear one in more dimensions, and the result is read back on the original state;
+- the paper's own Newtonian-limit case: a candidate structure is kept only if it recovers the Newtonian limit, which is the map back to the old terms.
+
+On a board the requirement is: an `adjoin` helps only if it yields a different decision, prediction or test in the old terms. Example: adding a time axis to a sale (a sale seen as an event in the life of a business) is worth keeping if it changes what the group would do or measure about the sale itself. The move field `return` states that change and what is lost on the way back; the hint `move-return` asks for it on every `adjoin` that is a candidate, accepted, or has no status. The paper does not state this requirement. It is pending in the paper's `PENDING_UPDATES.md` as an owner decision, so it is the engine's rule until the owner decides.

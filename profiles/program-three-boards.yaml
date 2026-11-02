@@ -107,6 +107,7 @@ hints:
   - garland
   - bridge-from
   - move-via
+  - move-return
   - ai-cooperation
   - cooperation-flows
   - translation-loss

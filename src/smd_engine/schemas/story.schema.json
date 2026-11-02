@@ -38,6 +38,12 @@
     "conflict": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/id"}, "description": "the conflict objects: opposes pairs, normality boundaries, a series of linked events, red lines in breach"},
     "resolution": {"type": "array", "items": {"$ref": "#/$defs/id"}, "description": "the cooperation, function chain or goal the path reaches; empty when the board has none, and the story says so"},
     "open": {"type": "array", "items": {"$ref": "#/$defs/id"}, "description": "hypotheses the story ends on, as questions"},
+    "context": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"},
+      "description": "ids a sentence may cite that lie off the path (S5); each is still subject to the allow-list (G4) and to G1-G3; optional, empty when absent"
+    },
     "sentences": {
       "type": "array",
       "minItems": 1,

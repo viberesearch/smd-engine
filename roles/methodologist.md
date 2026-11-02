@@ -39,6 +39,8 @@ Typical errors to look for (Girenko day 4, from the review of seven groups; stat
 14. no anchor in a position, leaving empty and fictive places;
 15. "the same activity, not a new industry" claimed too easily.
 
+Also check computability (not in the program's list; the owner's addition, dz02#l=11; A. Moitra quoting K. Jain, "If my laptop can't find it, then neither can the market"): a position, explanation or plan that needs an actor to solve a problem the actor cannot compute with the information and time it has is a weak explanation or an unworkable plan. Example: assuming that participants reach a Nash equilibrium. Raise it as a К in the form of a question to the group (`qualification-pass`, section 3.3).
+
 Many of these correspond to validator hints (empty boards, no places for others, new frame without functions, open gaps). Run the validator first and use its output as evidence, not as the whole pass. Errors and warnings of the record go back to whoever wrote it; in a solo AI run they go into the record as K and into the reply.
 
 ### 2. Problematization (GP-PP)

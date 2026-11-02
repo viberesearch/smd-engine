@@ -308,6 +308,34 @@ def test_bridge_from_and_move_via(board: dict[str, Any]) -> None:
     ]
     el(board, "m-coop")["move"]["status"] = "accepted"
     assert found(board, "hint", "m-coop") == []
+    del el(board, "m-coop")["move"]["status"]  # no status: read as a candidate
+    assert found(board, "hint", "m-coop") == [
+        "glue with no `via`: name the shared substructure, the changed links, the "
+        "scale or the added axis"
+    ]
+
+
+def test_move_return_asked_of_an_adjoin(board: dict[str, Any]) -> None:
+    move = {"op": "adjoin", "from": ["m-coop"], "via": "time", "status": "candidate"}
+    el(board, "f-new")["move"] = move
+    asked = [
+        "adjoin with no `return`: name what the move changes in the old terms "
+        "(a decision, a prediction, a test) and what is lost on the way back"
+    ]
+
+    def found_return() -> list[str]:
+        return [m for m in found(board, "hint", "f-new") if "`return`" in m]
+
+    assert found_return() == asked
+    move["status"] = "accepted"
+    assert found_return() == asked
+    move["return"] = "a different price rule in old terms; loses the day-to-day detail"
+    assert found_return() == []
+    del move["return"]
+    move["status"] = "rejected"
+    assert found_return() == []
+    move.update(op="rescale", status="candidate")
+    assert found_return() == []
 
 
 def test_valid_for_position_without_subject(board2: dict[str, Any]) -> None:

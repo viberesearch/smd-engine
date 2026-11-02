@@ -1,5 +1,6 @@
 # ВЫМЫШЛЕННЫЙ ПРИМЕР, черновик ИИ. История для покупателя; не подписывается.
 # Список allow короче, чем у основателя: частные оценки основателя в него не входят.
+# Правлено вручную 2026-11-01 после смены процедуры story на 0.2.0 (список context, правило S5); штамп run ниже относится к прогону процедуры, а не к этим правкам.
 record: story
 schema_version: "0.1"
 id: spectra-buyer-scqa
@@ -10,11 +11,12 @@ audience: place-buyer
 protagonist: place-buyer
 form: scqa
 allow: [place-buyer, s-small, fact-spec, H4, fact-revenue, fact-trademark, fact-lease,
-        H1, H2, fn-train, fn-journal, coop-transfer, ev-trial, gl-handover]
+        H1, H2, fn-train, fn-journal, coop-transfer, ev-trial, gl-handover, nb-qual, sig-august]
 path: [place-buyer, fn-journal, fn-train, ev-trial, gl-handover, coop-transfer]
 conflict: [ev-trial, gl-handover]
 resolution: [coop-transfer]
 open: [H1, H2]
+context: [s-small, fact-spec, H4, fact-revenue, fact-trademark, fact-lease, nb-qual, sig-august, H1, H2]
 sentences:
   - part: situation
     level: hypothesis
@@ -34,6 +36,10 @@ sentences:
     text: "Товарный знак записан на основателя лично, а аренда флагманского кафе требует согласия арендодателя при смене владельца."
   - part: complication
     level: hypothesis
+    ids: [nb-qual, sig-august]
+    text: "Возможно, норма «смена работает без основателя» не выполняется: в августе 2026 запись настройки помола отсутствовала 14 дней подряд, пока основатель был в отъезде."
+  - part: complication
+    level: hypothesis
     ids: [gl-handover, ev-trial]
     text: "Передача идёт серией связанных событий: представление, пробный месяц, подписание; в пробный месяц старший бариста ведёт оба кафе 28 дней без основателя, и до него неизвестно, будет ли напиток выходить по спецификации без основателя."
   - part: question
@@ -45,4 +51,4 @@ sentences:
     ids: [fn-train, ev-trial, fn-journal, coop-transfer]
     text: "Предлагается пробный месяц на 28 дней: основатель обучает управляющего, а журнал настройки виден вам до сделки и входит в кооперацию передачи."
 voice: ai
-run: {procedure: story, version: "0.1.0", model: claude-sonnet-5-5, date: "2026-11-01"}
+run: {procedure: story, version: "0.2.0", model: claude-sonnet-5-5, date: "2026-11-01"}

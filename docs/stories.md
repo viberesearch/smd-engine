@@ -10,7 +10,7 @@ Next to a broker's work a story is an attachment, not a rival to the information
 
 ## The story file
 
-`*.story.yaml`, `record: story`, schema 0.1 (`src/smd_engine/schemas/story.schema.json`). `smd validate` reads it by the schema; `smd story check` tests it against the rules below.
+`*.story.yaml`, `record: story`, schema 0.1 (`src/smd_engine/schemas/story.schema.json`; the optional field `context` was added without a new schema version, as old files stay valid). `smd validate` reads it by the schema; `smd story check` tests it against the rules below.
 
 | Field | Meaning |
 |---|---|
@@ -23,6 +23,7 @@ Next to a broker's work a story is an attachment, not a rival to the information
 | `conflict` | the conflict objects: ends of an `opposes`, normality boundaries, a series of linked events with its events, red lines in breach |
 | `resolution` | the cooperation, goal or function chain the walk reaches; empty when the board has none, and a sentence says so |
 | `open` | hypotheses the story ends on |
+| `context` | optional: ids a sentence may cite that lie off the path (rule S5); each must be in `allow` (G4, an error otherwise), is held to G1-G3, and should be cited by a sentence (a warning if not) |
 | `sentences` | `{text, ids, level, part}`: `level` is `hypothesis`, `unverified`, `stated` or `checked`; `part` is free (situation, complication, question, answer) |
 | `voice`, `run` | `ai`; `{procedure, version, model, date}` as on a board set |
 
@@ -65,8 +66,12 @@ Exit 0 without errors, 1 with errors, 2 when a file cannot be read.
 | G5 | no `opposes` that touches the path is left out of `conflict` | error |
 | G6 | a comparative or superlative in a sentence with no number («уже» only before «чем», with or without a comma) | hint |
 | G7 | `voice` is ai; the version and sha256 of each board match the stamp | error: regenerate |
+| S5 | each id a sentence cites is on the path, is a `conflict` or `resolution` id that is on the path, or is in `context` | error |
+| G4 | (context) each id of `context` is in `allow`; an id of `context` that no sentence cites is a warning | error / warning |
 
-Structure: `S1` ids exist (and `open` lists hypotheses), `S2` neighbours on the path are joined by a link (an error when none, a warning when only a `refers`), `S3` the conflict lies on the path or is opposed to it and the resolution lies on it (an empty resolution is a warning), `S4` the path has 4 to 9 items, a conflict object lies on it, and no resolution object comes before the first one.
+Structure: `S1` ids exist (`context` too; `open` lists hypotheses), `S2` neighbours on the path are joined by a link (an error when none, a warning when only a `refers`), `S3` the conflict lies on the path or is opposed to it and the resolution lies on it (an empty resolution is a warning), `S4` the path has 4 to 9 items, a conflict object lies on it, and no resolution object comes before the first one, `S5` a sentence stays on the walk (a `context` id that no sentence cites is a warning).
+
+**S5, the strict rule (dz01#l=31).** A sentence may cite without a `context` entry only: the ids on the `path`, and the ids of `conflict` and `resolution` that are on the path. Anything else is listed in `context`: a fact about the place, a signal beside the path, the audience when it is off the path, a `conflict` or `resolution` id that is off the path, and an `open` hypothesis a sentence cites (a hypothesis never lies on a path; dz01#l=35). Listing is a decision by a person: an id in `context` must also be in `allow` (G4 is an error otherwise, because `smd story render` prints context ids with their labels) and its figures and dates are held to G1-G3, so `context` widens the walk and never the allow-list. A context id that no sentence cites is a warning. A cited id that is neither on the walk nor in `context` is an error. The rule makes a reader of the story see at once which sentences rest on the walk and which on its surroundings; `smd story render` lists the context ids apart.
 
 **G2, the levels.** The level of an id: an element has its `epistemic`, `stated` when it has none; a hypothesis is `checked` when `confirmed` or `refuted` and `hypothesis` when `untested` or `testing`; a thesis is `stated` when `voiced` or `refined` and `hypothesis` otherwise; a K is `stated` when closed, else `hypothesis`; an ontology record has the level of its `test`. The code compares levels only. Whether the wording matches the level is for a person: the hint lists the modal words (если, возможно, предлагается, проверим, if, may) and the weak sentences that have none.
 
@@ -80,7 +85,7 @@ Structure: `S1` ids exist (and `open` lists hypotheses), `S2` neighbours on the 
 uv run smd story render owner.story.yaml --md [--boards a.board.yaml] [--lang ru|en] [-o owner.md]
 ```
 
-A story as readable Markdown: the title, the audience and form, the sentences by part with the board ids each rests on in brackets, the open questions (with `--boards`, each shows what its hypothesis assumes) and the stamp (boards, versions, sha256, voice, run). It checks nothing; run `smd story check` first. An invented story keeps its marking in the title, so the first line of the page says so.
+A story as readable Markdown: the title, the audience and form, the sentences by part with the board ids each rests on in brackets, the context ids apart under their own heading (with `--boards`, each with its label), the open questions (with `--boards`, each shows what its hypothesis assumes) and the stamp (boards, versions, sha256, voice, run). It checks nothing; run `smd story check` first. An invented story keeps its marking in the title, so the first line of the page says so.
 
 ## Reading a result
 

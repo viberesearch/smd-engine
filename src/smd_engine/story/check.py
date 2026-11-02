@@ -12,7 +12,11 @@
 
 S1-S4 check the structure the rules lean on: ids exist, neighbours on the path
 are joined by a link, conflict and resolution lie on the path, the path has 4 to 9
-items and meets a conflict object before a resolution object."""
+items and meets a conflict object before a resolution object. S5 keeps a sentence
+on the walk: each id it cites is on the path, is a conflict or resolution id that
+is on the path, is an `open` hypothesis, or is listed in the story's `context`.
+A conflict or resolution id off the path needs a `context` entry. A `context` id
+is held to `allow` (G4) and should be cited by a sentence (warning)."""
 
 from __future__ import annotations
 
@@ -128,13 +132,16 @@ def _structure(story: dict[str, Any], boards: Boards) -> list[Finding]:
     for field in ("audience", "protagonist"):
         if story[field] not in elements:
             out.append(_err("S1", field, f"unknown element '{story[field]}'"))
-    for field in ("path", "conflict", "resolution", "allow", "open"):
-        for item in story[field]:
+    for field in ("path", "conflict", "resolution", "allow", "open", "context"):
+        for item in story.get(field, []):
             known = (
-                item in boards.items if field in ("allow", "open") else item in elements
+                item in boards.items
+                if field in ("allow", "open", "context")
+                else item in elements
             )
             if not known:
                 out.append(_err("S1", field, f"unknown id '{item}'"))
+    out += _context(story, boards)
     for item in story["open"]:
         family = boards.items.get(item, ("", {}))[0]
         if family and family != "hypothesis":
@@ -184,6 +191,21 @@ def _structure(story: dict[str, Any], boards: Boards) -> list[Finding]:
             )
         )
     return out + _s4(story)
+
+
+def _context(story: dict[str, Any], boards: Boards) -> list[Finding]:
+    """A context id is held to `allow` (render prints it with its label, so it
+    must not widen what the audience may see); one no sentence cites is noise."""
+    cited = {i for s in story["sentences"] for i in s["ids"]}
+    out: list[Finding] = []
+    for item in story.get("context", []):
+        if item in boards.items and item not in story["allow"]:
+            out.append(_err("G4", "context", f"'{item}' is not in allow"))
+        if item not in cited:
+            out.append(
+                Finding("warning", "S5 context", f"'{item}' is cited by no sentence")
+            )
+    return out
 
 
 def _s4(story: dict[str, Any]) -> list[Finding]:
@@ -247,11 +269,35 @@ def _sentence(
         for i in known
         if i not in story["allow"]
     ]
+    on_walk = _on_walk(story)
+    out += [
+        _err(
+            "S5",
+            where,
+            f"'{i}' is neither on the walk nor in context: put it on the path "
+            f"or list it in context",
+        )
+        for i in known
+        if i not in on_walk
+    ]
     if known:
         out += _g2(boards, where, sentence, known)
         out += _g3(boards, story["form"], where, text, known)
     out += _hints(where, sentence)
     return out
+
+
+def _on_walk(story: dict[str, Any]) -> set[str]:
+    """S5: the ids a sentence may cite: the ids on the path, the ids of
+    `conflict` and `resolution` that are on the path, and the `context` list.
+    Anything else, including an `open` hypothesis (a hypothesis never lies on
+    a path) and a conflict or resolution id off the path, needs a `context`
+    entry (dz01#l=31, #l=35)."""
+    path = set(story["path"])
+    out = set(path)
+    for field in ("conflict", "resolution"):
+        out |= set(story.get(field, [])) & path
+    return out | set(story.get("context", []))
 
 
 def _g2(

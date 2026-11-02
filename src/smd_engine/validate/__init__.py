@@ -127,7 +127,12 @@ from smd_engine.validate.structure import (
 )
 from smd_engine.validate.taxonomies import check_tags, taxonomy_values
 from smd_engine.validate.theses import STATUS_VOICES, check_theses, check_thesis_raises
-from smd_engine.validate.tract import hint_bridge_from, hint_garland, hint_move_via
+from smd_engine.validate.tract import (
+    hint_bridge_from,
+    hint_garland,
+    hint_move_return,
+    hint_move_via,
+)
 
 __all__ = [
     "AI_VOICES",
@@ -182,6 +187,7 @@ REGISTRY: list[Check] = [
     hint_garland,
     hint_bridge_from,
     hint_move_via,
+    hint_move_return,
     hint_gaps,
     hint_open_qualifications,
     hint_candidate_moves,

@@ -109,7 +109,7 @@ A thesis can carry a move too; there `from` may name theses as well as elements.
 | `respecify` | re-topologize or re-specify (τ) | переопределить связи (τ) | change admissible links, or identify two elements kept apart |
 | `glue` | glue across domains (γ) | склеить с другой областью (γ) | build on a shared substructure with another domain |
 
-`status` is `candidate`, `accepted` or `rejected`. Candidates are listed as hints until the group decides.
+`via` says what the move works through (the added axis, the new grain, the changed link, the shared substructure). `return` is the way back: what the move changes in the terms it started from (a decision, a prediction, a test) and what is lost on the way back. An `adjoin` is asked for one (hint `move-return`, dz02#l=11; `docs/method/structural-moves.md`, "Way back"). `status` is `candidate`, `accepted` or `rejected`. Candidates are listed as hints until the group decides.
 
 ### Relations, transitions, qualifications, state
 

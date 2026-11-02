@@ -52,6 +52,7 @@ Plan approved 2026-10-25 (`docs/plan.md`). Each step is a branch and a PR. The s
 | Ж1, Ж2 | Formal stance and robustness rules R1-R6 (`docs/method/robustness-rules.md`) | done in v0.6.3 |
 | ИСТ1 | Story view: `smd story paths`, `check`, `render`; record `story`; the invented case `cases/spectra_coffee/` | done in v0.6.3 |
 | Патчи | `set` on a relation by `from`, `to`, `kind`; `carries` shown in the renders | done in v0.6.3 |
+| Путь назад | Way back on adjoin moves: `move.return`, hint `move-return`; computability check in the qualification pass (dz02#l=11) | done in v0.6.4 |
 
 ## Structural moves (Invention as a Structural Operation)
 
@@ -68,7 +69,7 @@ In the engine the moves generate and classify. They do not replace the SMD proce
 | 3 | Visionary tract, step "model from another reality": gamma. Choose a domain whose structure shares a substructure with the garland, and glue. Examples: medicine and healthy longevity; double entry, then national accounting standards, then professions | the AI visionary proposes 2-4 candidates per move; the validator rejects malformed ones before the group sees them |
 | 3 | Bridge into the big situation: re-specify. Change which links are admissible, e.g. a sale as an operation inside the life of a business instead of its end | same |
 | 3 | View of oneself: rescale. Object, ecosystem and market scales (Khaprov): one deal, a flow of deals, rules of the field | same |
-| 3 | Goals and positional construction: adjoin. Add the axis the current picture holds fixed, such as time, the observer or the scale | same |
+| 3 | Goals and positional construction: adjoin. Add the axis the current picture holds fixed, such as time, the observer or the scale. Each adjoin names its way back (`return`): what it changes in the old terms and what is lost (dz02#l=11; `docs/method/structural-moves.md`, "Way back") | same, plus the hint `move-return` |
 | 5 | Comparing the clean-room version with the earlier concept as two authors' module sets. Each shared element is classified as agreement, conflict, cross-refinement or cross-import (the negotiator in the paper's demo). Merge options are lock, fork, rebase, merge | `compare.py`: agreement, refinement, conflict, only in one set. Cross-import is not detected from wording alone; a qualification pass marks it |
 
 Limits taken from the paper:

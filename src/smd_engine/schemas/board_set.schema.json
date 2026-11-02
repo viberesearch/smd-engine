@@ -202,6 +202,7 @@
           "description": "elements (or, for a thesis, theses) the move was applied to"
         },
         "via": {"type": "string", "description": "what the move works through: the added axis, the new grain, the changed link, or for glue the shared substructure or other domain"},
+        "return": {"type": "string", "description": "the way back: what the move changes in the terms it started from (a decision, a prediction, a test) and what is lost on the way back; the hint move-return asks for it on an adjoin (dz02#l=11)"},
         "status": {"enum": ["candidate", "accepted", "rejected"]},
         "note": {"type": "string"}
       }

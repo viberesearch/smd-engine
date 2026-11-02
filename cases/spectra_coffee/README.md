@@ -11,7 +11,7 @@ The case is a sample of what a map of one business needs before a story can be t
 | `spectra-coffee-c1.board.yaml` | the board set (default profile, Russian labels): 39 elements, 52 relations, 5 hypotheses, 2 K, 1 ontology record |
 | `sources.yaml`, `taxonomies.yaml` | the invented sources; the six values of the `tier` tag |
 | `owner.story.yaml` | SCQA for the founder: red line broken in August 2026 while the founder was away |
-| `buyer.story.yaml` | SCQA for the buyer, a regional roaster chain: the trial month without the founder inside the series of handover events; the walk goes from the buyer through the journal and the training to the trial month and the cooperation of the transfer |
+| `buyer.story.yaml` | SCQA for the buyer, a regional roaster chain: the trial month without the founder inside the series of handover events, and the August gap (`sig-august`, `nb-qual`, listed in `context`); the walk goes from the buyer through the journal and the training to the trial month and the cooperation of the transfer |
 | `bank.story.yaml` | SCQA for the buyer's bank: the coverage red line (not below 1.3) and the 92 days between two measurements |
 | `successor-premortem.story.yaml` | premortem for the future manager: a series of linked events that stops, with the causes and an early sign for each |
 
@@ -49,6 +49,6 @@ Tiers 1 and 3 are where the specification is silent. A real business map has the
 ## How the stories were made, and how they stay checked
 
 1. `smd story paths` listed the walks from each protagonist (`procedures/story.md`, section 1). The four walks used are among its default top five (`tests/test_story_paths.py` keeps it so), and each story's `conflict` and `resolution` come from the walk.
-2. The sentences were written for each audience, each on board ids; the allow-lists were cut by hand (the buyer and the bank do not see the founder's private estimate of his own share of mornings).
+2. The sentences were written for each audience, each on board ids; the allow-lists were cut by hand (the buyer and the bank do not see the founder's private estimate of his own share of mornings). Ids that a sentence uses but the path does not reach (a fact about the place, the August signal) are listed in each story's `context` (rule S5).
 3. Each story is stamped with the board version and the sha256 of the board file. `tests/test_story_case.py` runs `smd story check` on all four in CI. If the board changes in any way, the stories fail rule G7 until they are written again: that is the rule, not a defect.
 4. The stories are a view. They are not signed, and a correction goes to the board.

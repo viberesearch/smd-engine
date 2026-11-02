@@ -25,6 +25,16 @@ def rules(found: list[Finding], level: str = "error") -> list[str]:
     return [f.ref.split()[0] for f in found if f.level == level]
 
 
+def cited(story: dict[str, Any]) -> dict[str, Any]:
+    """The story with every id its sentences cite listed as context, so a test
+    that moves the path is not about S5."""
+    known = case_boards().items
+    story["context"] = sorted(
+        {i for s in story["sentences"] for i in s["ids"] if i in known}
+    )
+    return story
+
+
 def only(
     text: str, ids: list[str] | None = None, level: str = "stated", **extra: Any
 ) -> dict[str, Any]:
@@ -39,7 +49,7 @@ def only(
         }
     ]
     story.update(extra)
-    return story
+    return story if "context" in extra else cited(story)
 
 
 def test_the_sample_stories_pass_without_findings() -> None:
@@ -194,9 +204,87 @@ def test_g3_a_date_in_a_sentence_matches_a_whole_date_of_an_id() -> None:
 def test_g4_ids_must_be_in_the_allow_list() -> None:
     story = only("Вам 61 год.", ["p-founder", "fact-revenue"], "unverified")
     found = run(story)
-    assert rules(found) == ["G4"] and "'fact-revenue'" in found[0].message
+    # once for the sentence, once for the context entry the helper adds
+    assert rules(found) == ["G4", "G4"] and "'fact-revenue'" in found[0].message
     story["allow"].append("fact-revenue")
     assert rules(run(story)) == []
+
+
+def test_s5_a_cited_id_off_the_path_needs_a_context_entry() -> None:
+    story = only(
+        "Предположим, вам 61 год.", ["p-founder", "fact-revenue"], "unverified"
+    )
+    story["allow"].append("fact-revenue")
+    story["context"] = []
+    found = run(story)
+    assert rules(found) == ["S5"] and "'fact-revenue'" in found[0].message
+    # no context field at all is the same as an empty list
+    del story["context"]
+    assert rules(run(story)) == ["S5"]
+    story["context"] = ["fact-revenue"]
+    assert run(story) == []
+    # the path and the conflict and resolution on it need no entry
+    on_walk = only(
+        "Вам 61 год.", ["p-founder", "rl-dialin", "coop-transfer"], "hypothesis"
+    )
+    on_walk["context"] = []
+    assert "S5" not in rules(run(on_walk))
+
+
+def test_s5_an_open_hypothesis_a_sentence_cites_needs_a_context_entry() -> None:
+    # dz01#l=35: open hypotheses are listed in context like any other id
+    story = only("Вам 61 год.", ["p-founder", "H1"], "hypothesis")
+    story["context"] = []
+    found = [f for f in run(story) if f.ref.startswith("S5")]
+    assert len(found) == 1 and "'H1'" in found[0].message
+    story["context"] = ["H1"]
+    assert not [f for f in run(story) if f.ref.startswith("S5")]
+
+
+def test_s5_a_conflict_or_resolution_id_off_the_path_needs_a_context_entry() -> None:
+    for field in ("conflict", "resolution"):
+        story = only("Вам 61 год.", ["p-founder", "fn-train"], "hypothesis")
+        story[field] = story[field] + ["fn-train"]
+        story["context"] = []
+        found = [f for f in run(story) if f.ref.startswith("S5")]
+        assert len(found) == 1 and "'fn-train'" in found[0].message
+        story["context"] = ["fn-train"]
+        assert not [f for f in run(story) if f.ref.startswith("S5")]
+
+
+def test_g4_a_context_id_must_be_in_allow_and_should_be_cited() -> None:
+    # a private fact in the context of the bank story
+    story = copy.deepcopy(case_story("bank"))
+    story["context"].append("fact-dialin-share")
+    story["sentences"][0]["ids"].append("fact-dialin-share")
+    found = run(story)
+    context = [f for f in found if f.level == "error" and "context" in f.ref]
+    assert [f.ref for f in context] == ["G4 context"]
+    assert "'fact-dialin-share'" in context[0].message
+    # an id in context that no sentence cites is a warning
+    story = copy.deepcopy(case_story("bank"))
+    story["allow"].append("fn-train")
+    story["context"].append("fn-train")
+    found = run(story)
+    assert rules(found) == [] and rules(found, "warning") == ["S5"]
+    assert "'fn-train'" in found[0].message
+
+
+def test_s5_a_context_id_is_still_held_to_the_allow_list_and_g1_to_g3() -> None:
+    story = only(
+        "Предположим, вам 61 год.", ["p-founder", "fact-revenue"], "unverified"
+    )
+    story["context"] = ["fact-revenue"]
+    found = run(story)
+    assert rules(found) == ["G4", "G4"] and "'fact-revenue'" in found[0].message
+    story["allow"].append("fact-revenue")
+    assert run(story) == []
+    story["sentences"][0]["text"] = "Предположим, вам 62 года."
+    assert rules(run(story)) == ["G3"]
+    story["sentences"][0]["text"] = "Предположим, вам 61 год."
+    story["sentences"][0]["ids"] = ["p-founder", "no-such-id"]
+    story["context"] = ["no-such-id"]
+    assert set(rules(run(story))) == {"S1", "G1"}
 
 
 def test_g5_an_opposition_touching_the_path_stays_in_the_conflict() -> None:
@@ -211,10 +299,10 @@ def test_g5_an_opposition_touching_the_path_stays_in_the_conflict() -> None:
         "coop-transfer",
     ]
     story["conflict"] = ["nb-qual"]
-    found = run(story)
+    found = run(cited(story))
     assert rules(found) == ["G5"] and "sig-august" in found[0].message
     story["conflict"] = ["sig-august", "nb-qual"]
-    assert rules(run(story)) == []
+    assert rules(run(cited(story))) == []
 
 
 def _founder_label(label: str) -> Boards:
@@ -278,27 +366,27 @@ def test_g7_a_changed_board_file_fails_the_stamp(tmp_path: Path) -> None:
 def test_structure_path_links_conflict_and_resolution() -> None:
     story = copy.deepcopy(case_story("bank"))
     story["path"][1] = "fn-shot"  # place-bank - fn-shot: no link
-    found = run(story)
+    found = run(cited(story))
     assert "S2" in rules(found) and "place-bank - fn-shot" in found[0].ref
     story = copy.deepcopy(case_story("bank"))
     story["conflict"] = ["sig-august"]  # not on the path, not opposed to it
-    assert rules(run(story)) == ["S3", "S4"]
+    assert rules(run(cited(story))) == ["S3", "S4"]
     story = copy.deepcopy(case_story("bank"))
     story["resolution"] = []
-    assert rules(run(story), "warning") == ["S3"]
+    assert rules(run(cited(story)), "warning") == ["S3"]
     story = copy.deepcopy(case_story("bank"))
     story["open"] = ["fn-books"]
-    assert rules(run(story)) == ["S1"]
+    assert rules(run(cited(story))) == ["S1"]
     story = copy.deepcopy(case_story("bank"))
     story["path"][0] = "no-such-element"
-    assert "S1" in rules(run(story))
+    assert "S1" in rules(run(cited(story)))
 
 
 def test_s4_the_path_is_4_to_9_items_with_a_conflict_before_the_resolution() -> None:
     story = copy.deepcopy(case_story("bank"))
     story["path"] = ["place-bank", "fn-books"]
     story["conflict"], story["resolution"] = ["place-bank"], ["fn-books"]
-    found = run(story)
+    found = run(cited(story))
     assert rules(found) == ["S4"] and "2 items" in found[0].message
     story = copy.deepcopy(case_story("bank"))
     story["path"] = [
@@ -308,16 +396,16 @@ def test_s4_the_path_is_4_to_9_items_with_a_conflict_before_the_resolution() -> 
         "fn-tranche",
         "rl-cover",
     ]
-    found = run(story)  # the resolution is before the conflict
+    found = run(cited(story))  # the resolution is before the conflict
     assert rules(found) == ["S4"] and "comes before" in found[0].message
     story = copy.deepcopy(case_story("bank"))
-    assert rules(run(story)) == []
+    assert rules(run(cited(story))) == []
 
 
 def test_a_weak_link_on_the_path_is_a_warning() -> None:
     story = copy.deepcopy(case_story("owner"))
     story["path"] = ["fact-staff", "s-small"]  # joined by a refers
-    assert rules(run(story), "warning") == ["S2"]
+    assert rules(run(cited(story)), "warning") == ["S2"]
 
 
 # --- the schema ---
@@ -338,6 +426,18 @@ def test_schema_accepts_the_samples_and_refuses_a_broken_story() -> None:
     assert [f.level for f in check_story(story, case_boards())] == ["error"] * len(
         validate_record(story)
     )
+
+
+def test_schema_context_is_optional_and_a_list_of_unique_ids() -> None:
+    story = only("Предположим, вам 61 год.", ["p-founder"], "hypothesis")
+    story["context"] = ["sig-august", "sig-august"]
+    assert rules(run(story)) == ["context"]
+    story["context"] = "sig-august"
+    assert rules(run(story)) == ["context"]
+    story["context"] = []
+    assert rules(run(story)) == []
+    del story["context"]
+    assert rules(run(story)) == []
 
 
 def test_schema_version_and_empty_story_are_refused() -> None:
