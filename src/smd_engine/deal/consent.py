@@ -5,7 +5,8 @@ run the buyer consents too.
 
     record: task_consent
     deal: <deal id>
-    pack: {id: <pack id>}
+    pack: {id: <pack id>, sha256: <core sha256 of the pack>}   # sha256: sealed floor
+    keys: <sha256 of the pack's key list>                        # sealed floor
     topic: <topic>
     run: 1
     member: <the party>
@@ -26,7 +27,15 @@ the file (`signed`, whose sha256 is `evidence`) and the armored signature
 party's file, and `smd deal verdict` does so before it counts one. The holder's
 operator cannot write a consent for a party: he has no key. In a pack without a
 sealed floor nothing is signed; the entry keeps only the sha256, which the party
-checks against his own copy."""
+checks against his own copy.
+
+Binding (0.7.2, sealed floor only): the signed file also names `pack.sha256`, the
+core sha256 of the pack the party was sent, and `keys`, the sha256 of that pack's
+key list (`signing.key_list_sha`). `smd deal consent` and `smd deal verdict` refuse a
+consent whose two values differ from the pack they hold, so a consent cannot be
+carried over to a fork of the pack with other text or other keys. A 0.7.1 consent,
+which names neither, is refused as a new consent and by a verdict; it stays in an
+old ledger, readable, and the party writes it again with both values."""
 
 from __future__ import annotations
 
@@ -35,10 +44,11 @@ from typing import Any
 
 import yaml
 
-from smd_engine.deal.signing import verify_signature
+from smd_engine.deal.signing import key_list_sha, signatures_on, verify_signature
 from smd_engine.records import RecordError, parse_text
 from smd_engine.task.bounds import SHA
 from smd_engine.task.model import load_task, sha256_bytes
+from smd_engine.task.positions import core_sha
 
 
 def parse_consent(text: str, where: str) -> dict[str, Any]:
@@ -59,6 +69,51 @@ def read_consent(
     file is for this deal, topic, run, member and buyer."""
     data = load_task(path, "task_consent")
     return consent_commitments(data, str(path), pack, topic, run, member, buyer)
+
+
+def binding_code(data: dict[str, Any], pack: dict[str, Any]) -> str:
+    """How a consent file is bound to this pack text and key list: `""` when it is,
+    `missing` when it names `pack.sha256` or `keys` no (a 0.7.1 consent), `pack` or
+    `keys` when that value differs from the pack's. Only a pack with a sealed floor
+    binds; others are not asked."""
+    if not signatures_on(pack):
+        return ""
+    ref = data.get("pack")
+    sha = ref.get("sha256") if isinstance(ref, dict) else None
+    keys = data.get("keys")
+    if sha is None or keys is None:
+        return "missing"
+    if sha != core_sha(pack):
+        return "pack"
+    return "keys" if keys != key_list_sha(pack) else ""
+
+
+BINDING_MESSAGES = {
+    "missing": (
+        "does not name pack.sha256 and keys (a consent from before 0.7.2); "
+        "the party writes it again with both and signs it again"
+    ),
+    "pack": (
+        "pack.sha256 is not the core sha256 of this pack (a consent for "
+        "another text of the pack)"
+    ),
+    "keys": "keys is not the sha256 of this pack's key list (another set of keys)",
+}
+
+
+def binding_problem(data: dict[str, Any], pack: dict[str, Any]) -> str:
+    """Why a consent file is not bound to this pack text and key list, or an empty
+    string."""
+    return BINDING_MESSAGES.get(binding_code(data, pack), "")
+
+
+def is_bound(pack: dict[str, Any], entry: dict[str, Any]) -> bool:
+    """Whether a consent entry keeps a signed text bound to this pack."""
+    try:
+        data = parse_consent(str(entry.get("signed", "")), "entry")
+    except RecordError:
+        return False
+    return not binding_problem(data, pack)
 
 
 def consent_commitments(
@@ -94,6 +149,8 @@ def consent_commitments(
             f"{path}: not a consent of {member} to run {run} of topic {topic} "
             f"against buyer {buyer} in this deal ({', '.join(wrong)})"
         )
+    if problem := binding_problem(data, pack):
+        raise RecordError(f"{path}: {problem}")
     return {side: str(commits[side]) for side in ("floor", "ceiling")}
 
 

@@ -25,6 +25,26 @@ PATCHES = [
     ),
 ]
 
+# applied only to a deal pack: an added point is for the author's position unless
+# he ticks "share" (a group pack, which has no positions, has no such box)
+SHARE_PATCHES = [
+    (
+        "o[e.getAttribute('data-r')] = e.value;",
+        "o[e.getAttribute('data-r')] = e.type === 'checkbox' ? e.checked : e.value;",
+    ),
+    (
+        "      row.appendChild(text);\n      row.appendChild(refs);\n",
+        "      var share = el('input', { type: 'checkbox', 'data-r': 'share' });\n"
+        "      share.checked = !!vals.share;\n"
+        "      row.appendChild(text);\n"
+        "      row.appendChild(el('div', {}, [refs, el('label', { 'class': 'opt' }, [share, ' ' + ui.share_all])]));\n",
+    ),
+    (
+        "(refs.length ? ', refs: ' + flow(refs) : '') + '}');",
+        "(refs.length ? ', refs: ' + flow(refs) : '') + (r.share ? ', share: true' : '') + '}');",
+    ),
+]
+
 # applied only to a pack with a range item: the answer of a range is an object
 RANGE_PATCHES = [
     (
@@ -75,9 +95,15 @@ VIEW_PATCHES = [
 ]
 
 
-def deal_script(ranges: bool = False, view: bool = False) -> str:
+def deal_script(ranges: bool = False, view: bool = False, share: bool = False) -> str:
     text = asset_text("task.js")
-    patches = VIEW_PATCHES if view else PATCHES + (RANGE_PATCHES if ranges else [])
+    patches = (
+        VIEW_PATCHES
+        if view
+        else PATCHES
+        + (SHARE_PATCHES if share else [])
+        + (RANGE_PATCHES if ranges else [])
+    )
     for old, new in patches:
         if text.count(old) != 1:
             raise RuntimeError(

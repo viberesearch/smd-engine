@@ -192,4 +192,4 @@ items:
     required: false
     stage: full-map
 diff:
-  procedure: task-diff 0.2.0
+  procedure: task-diff 0.2.1

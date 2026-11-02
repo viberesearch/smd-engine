@@ -11,6 +11,7 @@ from typing import Any
 from smd_engine.deal.agenda_views import common_agenda
 from smd_engine.deal.ledger import load_ledger
 from smd_engine.deal.sealed import stray_sealed_issues
+from smd_engine.deal.signing import signatures_on, unsigned_answers
 from smd_engine.records import RecordError, dump_record
 from smd_engine.task.acceptance import check_files as check_acceptances
 from smd_engine.task.agenda import build_agenda
@@ -151,6 +152,9 @@ def cmd_diff(args: argparse.Namespace) -> int:
     )
     if is_deal(pack) and any("audience" in p for p in diff["points"]):
         print(ANNEX_WARNING, file=sys.stderr)
+    if signatures_on(pack):  # the group may diff before it signs: a warning only
+        for message in unsigned_answers(pack, loaded):
+            print(f"warning: {message}", file=sys.stderr)
     s = diff["summary"]
     print(
         f"{s['points']} points, {s['open']} open: "

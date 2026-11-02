@@ -17,12 +17,14 @@ from deal_helpers import (
     MEMBERS,
     by_id,
     add_keys,
+    consent_binding,
     copy_deal,
     edit_pack,
     key_of,
     needs_ssh,
     seal,
     set_answer,
+    sign_answers,
     sign_file,
 )
 from smd_engine.cli import main
@@ -63,7 +65,9 @@ def verdict(
 ) -> int:
     """Run `smd deal verdict`. While no run has been made, the seller consents to
     run 1 first (naming the buyer and the commitments now in the answers) unless
-    `first` is false: every run against the sealed floor needs his consent."""
+    `first` is false: every run against the sealed floor needs his consent. The
+    parties sign their answers files as they are (`sign_answers`)."""
+    sign_answers(work)
     if first and not [
         e for e in raw_entries(ledger) if e.get("run") and e["type"] == "verdict"
     ]:
@@ -146,7 +150,7 @@ def consent_file(work: Path, tmp_path: Path, member: str, **change: Any) -> Path
     data: dict[str, Any] = {
         "record": "task_consent",
         "deal": "bakery-2026",
-        "pack": {"id": "bakery-sale"},
+        **consent_binding(work),
         "topic": "price",
         "run": 2,
         "member": member,

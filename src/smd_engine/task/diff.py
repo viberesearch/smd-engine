@@ -11,6 +11,7 @@ conflict (different values). Text, term-check items and the subtype of a conflic
 
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 from typing import Any
 
@@ -63,6 +64,33 @@ SUBTYPES = ("term", "position", "fact", "value", "step")
 # Routes that wait for a reply from the members (step 4): the others are
 # settled by the class unless a member marks the point "discuss".
 OPEN_ROUTES = ("call", "mark_each")
+
+
+def added_id(
+    pack: dict[str, Any],
+    member: str,
+    n: int,
+    text: str,
+    taken: set[str],
+    private: bool = False,
+) -> str:
+    """The id of an added point. A group pack counts: add-<member>-<n>. In a deal
+    pack the id of a shared point must not tell how many others the member kept
+    to himself, so it comes from the text: add-<member>-<8 hex of its sha256>,
+    with -2, -3 ... on a repeat. A private point hashes its text with a prefix,
+    so the repeats of a shared text and of a private one are counted apart and
+    the suffix of a shared id never counts a private point. The same answers
+    file gives the same ids."""
+    if not is_deal(pack):
+        return f"add-{member}-{n}"
+    raw = ("private\n" if private else "") + text
+    base = f"add-{member}-{hashlib.sha256(raw.encode('utf-8')).hexdigest()[:8]}"
+    found, k = base, 1
+    while found in taken:
+        k += 1
+        found = f"{base}-{k}"
+    taken.add(found)
+    return found
 
 
 def route_for(cls: str, subtype: str | None = None) -> str:
@@ -286,13 +314,14 @@ def build_diff(
     apply_after_reading(points)
     where = member_positions(pack)
     for m, a in by_member.items():
+        taken: set[str] = set()
         for n, added in enumerate(a.get("added", []), start=1):
             # in a deal pack an added point is for its author's position only,
             # unless the author marked it `share: true`
             private = is_deal(pack) and m in where and not added.get("share")
             own = {"audience": [where[m]]} if private else {}
             point = _point(
-                f"add-{m}-{n}",
+                added_id(pack, m, n, added["text"], taken, private),
                 "added",
                 {
                     "section": None,

@@ -3,7 +3,7 @@ schema_version: "0.1"
 pack:
   id: bakery-sale
   version: "1"
-  sha256: "1a649e4ed499620f8eebc97f73bdb74b0b1c01b47bcc954e689ef87c850e5a4d"
+  sha256: "ff3f0133dbf3596c26d05a9410a0d5febfcddcedec79af7fbf48bbadc5598f5f"
   annex: {position: buyer, sha256: "35b25dc48f138d648d4c999e154411c02aae7c7a20d84cb7078d9d9f60e89375"}
 member: boris
 date: "2026-11-03"

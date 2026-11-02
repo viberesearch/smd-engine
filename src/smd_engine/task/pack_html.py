@@ -17,6 +17,7 @@ from smd_engine.task.deal_render import (
     with_options,
 )
 from smd_engine.task.labels import LABELS
+from smd_engine.task.positions import is_deal
 from smd_engine.task.refs import ref_groups
 from smd_engine.task.svg import ontology_figure
 from smd_engine.task.deal_web import deal_script, range_input
@@ -276,6 +277,7 @@ def render_pack_html(
         f'<option value="{esc(m["id"])}">{esc(m["name"])}</option>'
         for m in pack["members"]
     )
+    hint = "added_hint_deal" if is_deal(pack) else "added_hint"
     t_export = (
         f'<label class="f">{esc(lab["member"])}<select data-s="member">{member_opts}</select></label>'
         f'<label class="f">{esc(lab["date"])}<input type="date" data-s="date"></label>'
@@ -285,7 +287,7 @@ def render_pack_html(
         f"<h3>{esc(lab['transcripts'])}</h3><p class=\"meta\">{esc(lab['transcripts_hint'])}</p>"
         '<div data-rows="transcripts"></div>'
         f'<button type="button" data-add="transcripts">{esc(lab["add_transcript"])}</button>'
-        f"<h3>{esc(lab['added'])}</h3><p class=\"meta\">{esc(lab['added_hint'])}</p>"
+        f"<h3>{esc(lab['added'])}</h3><p class=\"meta\">{esc(lab[hint])}</p>"
         '<div data-rows="added"></div>'
         f'<button type="button" data-add="added">{esc(lab["add_point"])}</button>'
         f'<p class="meta">{esc(lab["saved"])}</p>'
@@ -316,7 +318,7 @@ def render_pack_html(
             }
             for n, i in enumerate(pack["items"], 1)
         ],
-        "ui": {k: lab[k] for k in UI_KEYS},
+        "ui": {k: lab[k] for k in UI_KEYS + (("share_all",) if is_deal(pack) else ())},
     }
     tabs = [
         ("task", lab["tab_task"], t_task),
@@ -332,8 +334,8 @@ def render_pack_html(
         tabs,
         cfg,
         (
-            deal_script(has_range(pack))
-            if annex or has_fact(pack) or has_range(pack)
+            deal_script(has_range(pack), share=is_deal(pack))
+            if is_deal(pack) or annex or has_fact(pack) or has_range(pack)
             else None
         ),
     )

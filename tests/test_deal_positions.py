@@ -370,21 +370,22 @@ def test_an_added_point_is_for_the_authors_position_unless_shared(
     add_points(work, "boris", {"text": "Private."}, {"text": "Open.", "share": True})
     out = tmp_path / "out"
     diff = run_diff(work, out)
-    added = {p["id"]: p for p in diff["points"] if p["kind"] == "added"}
-    assert added["add-boris-1"]["audience"] == ["buyer"]
-    assert "audience" not in added["add-boris-2"]
-    assert "silent" not in added["add-boris-1"]  # nobody else is in its audience
+    added = {p["text"]: p for p in diff["points"] if p["kind"] == "added"}
+    private, shared = added["Private."], added["Open."]
+    assert private["audience"] == ["buyer"]
+    assert "audience" not in shared
+    assert "silent" not in private  # nobody else is in its audience
     assert (
         main(["deal", "views", str(PACK), str(out / "diff.yaml"), "-o", str(out)]) == 0
     )
-    for position, private in (("seller", False), ("buyer", True), ("broker", False)):
+    for position, hidden in (("seller", False), ("buyer", True), ("broker", False)):
         ids = {p["id"] for p in load_task(out / f"diff.{position}.yaml")["points"]}
-        assert ("add-boris-1" in ids) is private and "add-boris-2" in ids
+        assert (private["id"] in ids) is hidden and shared["id"] in ids
     # only the author is in the audience, so nobody else owes a reply to it
     where = diff["positions"]
     members = diff["members"]
-    assert expected_repliers(added["add-boris-1"], members, where) == []
-    assert expected_repliers(added["add-boris-2"], members, where) == ["vera", "gleb"]
+    assert expected_repliers(private, members, where) == []
+    assert expected_repliers(shared, members, where) == ["vera", "gleb"]
 
 
 def test_share_on_an_added_point_is_ignored_and_warned_in_a_group_pack(

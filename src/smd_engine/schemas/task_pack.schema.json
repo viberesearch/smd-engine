@@ -26,7 +26,7 @@
           "name": {"type": "string", "minLength": 1},
           "position": {"$ref": "#/$defs/id", "description": "deal mode: id of the position the member holds (see positions)"},
           "principal": {"$ref": "#/$defs/id", "description": "deal mode, brokers: member id of the party the broker acts for"},
-          "ssh_key": {"type": "string", "minLength": 1, "description": "deal mode: the member's OpenSSH public key, one line ('ssh-ed25519 AAAA... name'). With deal.sealed_floor every seller and buyer needs one: consents and sealed files are signed with its private half (namespace smd-deal)"}
+          "ssh_key": {"type": "string", "minLength": 1, "description": "deal mode: the member's OpenSSH public key, one line ('ssh-ed25519 AAAA... name'). With deal.sealed_floor every seller and buyer needs one: consents, answers files and sealed files are signed with its private half (namespace smd-deal)"}
         }
       }
     },

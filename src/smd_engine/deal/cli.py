@@ -10,6 +10,7 @@ from typing import Any
 from smd_engine.deal.agenda_views import position_agenda
 from smd_engine.deal.seal_cmd import cmd_seal
 from smd_engine.deal.verdict_cmd import cmd_consent, cmd_verdict
+from smd_engine.deal.verify_cmd import cmd_verify
 from smd_engine.deal.views import view_of
 from smd_engine.records import RecordError, dump_record
 from smd_engine.task.agenda import build_agenda
@@ -161,3 +162,33 @@ def add_deal_parser(sub: Any) -> None:
     )
     co.add_argument("--date", help="date of the entry (today by default)")
     co.set_defaults(func=cmd_consent)
+    vf = dsub.add_parser(
+        "verify",
+        help="audit a verdict ledger: chain, signed consents, run cap, answers, "
+        "and with the sealed files the outcomes",
+    )
+    vf.add_argument("pack", help="the deal pack")
+    vf.add_argument("--ledger", required=True, help="verdicts.yaml")
+    vf.add_argument(
+        "--answers",
+        nargs="+",
+        default=[],
+        help="answers files (with <file>.sig): the shas the verdicts recorded are "
+        "matched to them",
+    )
+    vf.add_argument(
+        "--sealed",
+        help="folder with the holder's sealed files and their .sig: the outcome of "
+        "each verdict is recomputed (the holder's check; no number is printed)",
+    )
+    vf.add_argument(
+        "--diff", help="diff.yaml: its ledger head and verdicts are checked"
+    )
+    vf.add_argument("--json", action="store_true", help="a machine-readable report")
+    vf.add_argument(
+        "--allow-unbound",
+        action="store_true",
+        help="exit 0 although entries are `unbound` (from before 0.7.2: not "
+        "checked in full); by default they make the exit 1",
+    )
+    vf.set_defaults(func=cmd_verify)

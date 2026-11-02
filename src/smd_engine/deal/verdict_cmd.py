@@ -18,7 +18,7 @@ from smd_engine.deal.ledger import (
     tested_runs,
 )
 from smd_engine.deal.sealed import read_sealed
-from smd_engine.deal.signing import signatures_on, verify_file
+from smd_engine.deal.signing import signatures_on, verify_answers, verify_file
 from smd_engine.deal.verdict import (
     SIDES,
     Opener,
@@ -53,15 +53,18 @@ def _verify_signed(
     ledger: dict[str, Any],
     files: dict[str, str | None],
     sigs: dict[str, str | None],
+    loaded: list[tuple[Path, str, dict[str, Any]]],
 ) -> None:
-    """With a sealed floor, refuse the run unless the consents it counts and the
-    sealed files given are signed by their parties. Nothing is logged. Past the
-    run cap nothing is counted or opened, so nothing is checked."""
+    """With a sealed floor, refuse the run unless the consents it counts (bound to
+    this pack text and key list), the answers files given and the sealed files given
+    are signed by their parties. Nothing is logged. Past the run cap nothing is
+    counted or opened, so nothing is checked."""
     run = tested_runs(ledger, topic) + 1
     if not signatures_on(pack) or run > RUN_MAX:
         return
     items = topic_items(pack, topic)
     verify_consents(pack, ledger, topic, run)
+    verify_answers(pack, loaded)
     for side in SIDES:
         path = files[side]
         if path:
@@ -82,13 +85,16 @@ def cmd_verdict(args: argparse.Namespace) -> int:
     ledger_path = Path(args.ledger)
     ledger = _ledger(ledger_path, pack, args.new)
     sigs = {"floor": args.floor_sig, "ceiling": args.ceiling_sig}
-    _verify_signed(pack, args.topic, ledger, files, sigs)
+    _verify_signed(pack, args.topic, ledger, files, sigs, loaded)
     # the sealed files are read here, after the pack and the ledger are accepted
     openers: dict[str, Opener] = {
         s: partial(read_sealed, Path(files[s])) for s in SIDES if files[s]
     }
     date = args.date or dt.date.today().isoformat()
-    entry = run_verdict(pack, pack_sha, args.topic, answers, openers, ledger, date)
+    used = {a["member"]: sha for _, sha, a in loaded}
+    entry = run_verdict(
+        pack, pack_sha, args.topic, answers, openers, ledger, date, answers_sha=used
+    )
     save_ledger(ledger_path, ledger)
     print(DEAL_LABELS[pack["lang"]]["price_verdicts"][entry["verdict"]])
     if entry.get("reason"):

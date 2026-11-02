@@ -16,6 +16,7 @@ from typing import Any, Callable, Mapping
 
 from smd_engine.deal.consent import (
     consent_commitments,
+    is_bound,
     consented_commitments,
     latest_consents,
     parse_consent,
@@ -139,12 +140,16 @@ def run_verdict(
     ledger: dict[str, Any],
     date: str,
     comparator: Comparator | None = None,
+    answers_sha: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Run the comparison of a topic and append its entry to the ledger.
     `answers` are the answers records by member; `openers` read the sealed file
     of a side ("floor", "ceiling") when called, and only after the cap and the
     consents are checked. A side with no opener was not given; one whose opener
-    returns None is not a valid sealed file."""
+    returns None is not a valid sealed file. In a pack with a sealed floor
+    `answers_sha` (member -> sha256 of the answers file read, already verified)
+    is kept in the entry, and so are the hashes of the consent entries a counted
+    run used, so a later audit can tie the verdict to its signed inputs."""
     items = topic_items(pack, topic)
     members = {s: committer(pack, items[s]) for s in SIDES}
     comparator = comparator or comparator_for(pack["holder"]["method"])
@@ -169,6 +174,8 @@ def run_verdict(
         ):  # a missing number is `no_floor` or `no_ceiling`
             reason = _consent_problem(ledger, topic, run, members, commits)
         reason = reason or _first_problem(pack, pack_sha, items, members, commits, read)
+    if answers_sha is not None and signatures_on(pack) and reason != "cap_reached":
+        entry["answers"] = dict(answers_sha)
     if reason is not None:
         entry.update({"verdict": "not_tested", "reason": reason})
     else:
@@ -182,6 +189,11 @@ def run_verdict(
                 "commitments": {s: commits[s] for s in SIDES},
             }
         )
+        if signatures_on(pack):
+            counted = latest_consents(ledger, topic, run).values()
+            entry["consents"] = [
+                e["sha256"] for e in sorted(counted, key=lambda e: e["seq"])
+            ]
     return append_entry(ledger, entry)
 
 
@@ -232,10 +244,14 @@ def add_consent(
         raw = read_bytes(evidence)
         commitments = read_consent(evidence, pack, topic, run, member, str(buyer))
     # a new consent, naming other commitments, replaces the earlier one; so does a
-    # signed one that names the same, when the earlier is a consent of a ledger
-    # from before signatures (0.7.0), which a sealed-floor verdict refuses
+    # signed, bound one that names the same, when the earlier is unsigned (0.7.0) or
+    # not bound to the pack text and keys (0.7.1), which a sealed-floor verdict refuses
     last = latest_consents(ledger, topic, run).get(member)
-    if last and last["commitments"] == commitments and (not signed or "signed" in last):
+    if (
+        last
+        and last["commitments"] == commitments
+        and (not signed or is_bound(pack, last))
+    ):
         raise RecordError(f"{member} has consented to run {run} already")
     entry = {
         "type": "consent",

@@ -13,6 +13,7 @@ import yaml
 
 from smd_engine.cli import main
 from smd_engine.deal.sealed import commitment_of
+from smd_engine.deal.signing import key_list_sha
 from smd_engine.task.model import load_task
 from smd_engine.task.positions import annex_sha, core_sha, has_annex
 
@@ -157,3 +158,20 @@ def seal(work: Path, tmp_path: Path, item: str, value: str) -> tuple[Path, str]:
     assert code == 0
     path = next(safe.glob(f"sealed_*_{item}.yaml"))
     return path, commitment_of(load_task(path, "task_sealed"))
+
+
+def sign_answers(work: Path) -> None:
+    """The parties with a key sign their answers files as they now are."""
+    for member in ("vera", "boris"):
+        if key_of(work, member).exists():
+            sign_file(key_of(work, member), work / f"answers_{member}.yaml")
+
+
+def consent_binding(work: Path) -> dict[str, Any]:
+    """The `pack` block (id and core sha256) and `keys` that a consent file of the
+    pack in `work` names."""
+    pack = load_task(work / "pack.yaml")
+    return {
+        "pack": {"id": pack["id"], "sha256": core_sha(pack)},
+        "keys": key_list_sha(pack),
+    }

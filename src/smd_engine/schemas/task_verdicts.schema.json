@@ -43,12 +43,14 @@
           "evidence": {"$ref": "#/$defs/sha", "description": "consent: sha256 of the task_consent file in which the member consented"},
           "signed": {"type": "string", "minLength": 1, "description": "consent, packs with a sealed floor: the exact text of the task_consent file, whose sha256 is `evidence`"},
           "signature": {"type": "string", "minLength": 1, "description": "consent, packs with a sealed floor: the armored OpenSSH signature (namespace smd-deal) of the member over `signed`"},
+          "answers": {"type": "object", "minProperties": 1, "propertyNames": {"$ref": "#/$defs/id"}, "additionalProperties": {"$ref": "#/$defs/sha"}, "description": "verdict, packs with a sealed floor: member -> sha256 of the answers file the run read (each of a member with an ssh_key was signed by him)"},
+          "consents": {"type": "array", "items": {"$ref": "#/$defs/sha"}, "description": "verdict met or not_met, packs with a sealed floor: the sha256 of each consent entry the run counted"},
           "prev_sha256": {"$ref": "#/$defs/sha", "description": "sha256 of the entry before; 64 zeros for the first"},
           "sha256": {"$ref": "#/$defs/sha", "description": "sha256 of this entry without this field"}
         },
         "allOf": [
           {"if": {"properties": {"type": {"const": "verdict"}}}, "then": {"required": ["floor_member", "ceiling_member", "verdict", "method"], "not": {"anyOf": [{"required": ["by"]}, {"required": ["evidence"]}, {"required": ["signed"]}, {"required": ["signature"]}]}}},
-          {"if": {"properties": {"type": {"const": "consent"}}}, "then": {"required": ["run", "by", "buyer", "evidence", "commitments"], "properties": {"commitments": {"required": ["floor", "ceiling"]}}, "not": {"anyOf": [{"required": ["verdict"]}, {"required": ["reason"]}, {"required": ["method"]}, {"required": ["floor_member"]}, {"required": ["ceiling_member"]}]}}},
+          {"if": {"properties": {"type": {"const": "consent"}}}, "then": {"required": ["run", "by", "buyer", "evidence", "commitments"], "properties": {"commitments": {"required": ["floor", "ceiling"]}}, "not": {"anyOf": [{"required": ["verdict"]}, {"required": ["reason"]}, {"required": ["method"]}, {"required": ["floor_member"]}, {"required": ["ceiling_member"]}, {"required": ["answers"]}, {"required": ["consents"]}]}}},
           {"if": {"properties": {"verdict": {"const": "not_tested"}}, "required": ["verdict"]}, "then": {"required": ["reason"], "not": {"required": ["run"]}}, "else": {"not": {"required": ["reason"]}}},
           {"if": {"properties": {"verdict": {"enum": ["met", "not_met"]}}, "required": ["verdict"]}, "then": {"required": ["run"]}}
         ]

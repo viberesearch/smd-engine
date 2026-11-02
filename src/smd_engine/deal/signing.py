@@ -1,17 +1,18 @@
 """OpenSSH signatures for the sealed floor of a deal pack. A party signs his consent
-files and his sealed file with his own SSH key; the pack lists the public key of
-each party (`members[].ssh_key`). The engine calls `ssh-keygen -Y` and adds no
-Python dependency; the private key is never read here.
+files, his sealed file and his answers file with his own SSH key; the pack lists
+the public key of each party (`members[].ssh_key`). The engine calls
+`ssh-keygen -Y` and adds no Python dependency; the private key is never read here.
 
 Namespace `smd-deal`; the signer principal is the member id. A signature proves
 that the holder of the key wrote the file, so the holder's operator cannot forge a
-party's consent or sealed file. Everything below applies only when the pack has
-`deal.sealed_floor: true`; without it nothing changes."""
+party's consent, sealed file or answers file. Everything below applies only when
+the pack has `deal.sealed_floor: true`; without it nothing changes."""
 
 from __future__ import annotations
 
 import base64
 import binascii
+import hashlib
 import shlex
 import shutil
 import struct
@@ -67,6 +68,19 @@ def key_problem(line: Any) -> str:
 def public_key(line: str) -> str:
     """The key line without its comment: `type base64`."""
     return " ".join(line.split()[:2])
+
+
+def key_list_sha(pack: dict[str, Any]) -> str:
+    """The sha256 of the pack's list of signing keys: the lines `<member> <type>
+    <base64>` of every member with a usable `ssh_key` (comment dropped), sorted and
+    joined by newlines. A consent names it, so it is tied to the keys of the pack
+    it was written for."""
+    lines = sorted(
+        f"{m['id']} {public_key(m['ssh_key'])}"
+        for m in pack["members"]
+        if m.get("ssh_key") is not None and not key_problem(m["ssh_key"])
+    )
+    return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
 
 
 def key_findings(pack: dict[str, Any]) -> Found:
@@ -172,9 +186,9 @@ def verify_signature(
 
 def verify_file(
     pack: dict[str, Any], member: str, path: Path, signature: Path | None
-) -> None:
+) -> str:
     """Refuse a file that has no valid signature of `member` at `signature`
-    (`<path>.sig` by default)."""
+    (`<path>.sig` by default). Returns the sha256 of the bytes verified."""
     sig = signature or path.with_name(path.name + ".sig")
     try:
         data, text = path.read_bytes(), sig.read_text(encoding="utf-8")
@@ -184,3 +198,41 @@ def verify_file(
             f"the party signs it with: {sign_command('<private key>', path)}"
         ) from exc
     verify_signature(pack, member, data, text, str(path))
+    return hashlib.sha256(data).hexdigest()
+
+
+def key_holders(pack: dict[str, Any]) -> set[str]:
+    """The members whose answers files are signed: those with a usable ssh_key."""
+    return {
+        m["id"]
+        for m in pack["members"]
+        if m.get("ssh_key") is not None and not key_problem(m["ssh_key"])
+    }
+
+
+def verify_answers(
+    pack: dict[str, Any], loaded: list[tuple[Path, str, dict[str, Any]]]
+) -> None:
+    """Refuse (RecordError) unless the answers file of every member with a key is
+    signed by him (`<file>.sig`) and is the file `loaded` read (its sha256)."""
+    holders = key_holders(pack)
+    for path, sha, ans in loaded:
+        member = str(ans["member"])
+        if member in holders and verify_file(pack, member, path, None) != sha:
+            raise RecordError(f"{path}: the file changed while it was read")
+
+
+def unsigned_answers(
+    pack: dict[str, Any], loaded: list[tuple[Path, str, dict[str, Any]]]
+) -> list[str]:
+    """One message per answers file of a member with a key that has no valid
+    signature of his; for the warnings of `smd task diff`, which does not refuse."""
+    holders = key_holders(pack)
+    out: list[str] = []
+    for path, _, ans in loaded:
+        if ans["member"] in holders:
+            try:
+                verify_file(pack, str(ans["member"]), path, None)
+            except RecordError as exc:
+                out.append(str(exc))
+    return out
