@@ -1,0 +1,33 @@
+# Invented answers of Ana (bakeries example). Written blind: before seeing Ben's or Cy's.
+record: task_answers
+schema_version: "0.1"
+pack: {id: bakeries-first-service, version: "1", sha256: 5a05efaca298804a5f75c55660df226bec5f24e0d09000a37324785bef0373b8}
+member: ana
+date: "2026-01-21"
+drafted_by: self
+term_check:
+  tc-plant: A site that three or more bakeries use. The bakeries stay independent; none of them owns the site alone.
+  tc-pilot: Three bakeries for six weeks on one function, then stop and count.
+  tc-payer: The party that signs the invoice. A payer may also be a receiver.
+answers:
+  first-function:
+    value: dough
+    reason: The other two functions depend on its output, and the mills already deliver to it.
+    source: "s1#t=00:31:00"
+    confidence: high
+  shared-risks:
+    value: [price, quality]
+    reason: Both show up in the first week of any pilot.
+    confidence: medium
+  payer-view:
+    value: The bakeries pay per kilo of dough. The organiser does not pay.
+    confidence: medium
+  pilot-bakeries:
+    value: 3
+    reason: Three is what one night shift can serve.
+    confidence: high
+  next-steps:
+    value:
+      - Ask the mills for a price list
+      - Draft the quality standard
+    confidence: medium

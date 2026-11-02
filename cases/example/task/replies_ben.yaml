@@ -1,0 +1,16 @@
+# Invented replies of Ben to the diff. He leaves the term check points as positions and
+# sends the first function to the call.
+record: task_replies
+schema_version: "0.1"
+diff: 7a519d4438ad4399347dfe1884d2a7e02c3486fc5bbd149b7c2d0c770a478c37
+member: ben
+date: "2026-01-24"
+replies:
+  tc-plant: {choice: keep}
+  tc-pilot: {choice: keep}
+  tc-payer: {choice: keep}
+  first-function: {choice: discuss, note: "Cy's logistics-first needs a different pilot rule."}
+  shared-risks: {choice: keep}
+  payer-view: {choice: keep}
+  next-steps: {choice: accept, accept_member: ana}
+  add-cy-1: {choice: accept, accept_member: cy}

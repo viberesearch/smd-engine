@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/viberesearch/smd-engine/schemas/task_replies.schema.json",
+  "title": "Task replies: one member's reply to a diff, per open point",
+  "type": "object",
+  "required": ["record", "schema_version", "diff", "member", "date", "replies"],
+  "additionalProperties": false,
+  "properties": {
+    "record": {"const": "task_replies"},
+    "schema_version": {"const": "0.1"},
+    "diff": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "sha256 of diff.yaml the replies are for"},
+    "member": {"$ref": "#/$defs/id"},
+    "date": {"type": "string", "format": "date"},
+    "replies": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["choice"],
+        "additionalProperties": false,
+        "properties": {
+          "choice": {"enum": ["accept", "keep", "discuss"], "description": "accept another member's answer, keep mine as a position, or discuss on the call"},
+          "accept_member": {"$ref": "#/$defs/id"},
+          "note": {"type": "string"}
+        },
+        "allOf": [
+          {"if": {"properties": {"choice": {"const": "accept"}}}, "then": {"required": ["accept_member"]}}
+        ]
+      },
+      "description": "point id to the reply"
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}
+  }
+}

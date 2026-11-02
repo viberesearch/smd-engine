@@ -1,0 +1,37 @@
+# Invented answers of Ben. A model drafted them from his voice notes and he edited them.
+record: task_answers
+schema_version: "0.1"
+pack: {id: bakeries-first-service, version: "1", sha256: 5a05efaca298804a5f75c55660df226bec5f24e0d09000a37324785bef0373b8}
+member: ben
+date: "2026-01-22"
+drafted_by: model_edited
+transcripts:
+  - {path: transcript_ben.txt, sha256: 96c9452b17b7813847779fde911010eca469afc1fea32c0f96937cf10c4388b1, note: voice notes recorded while answering}
+term_check:
+  tc-plant: A site owned by the organiser's company, where bakeries rent capacity.
+  tc-pilot: A first run with a stop rule written down beforehand.
+  tc-payer: The party that funds the equipment.
+answers:
+  first-function:
+    value: dough
+    reason: Dough is the only function with a physical site to share.
+    confidence: high
+  shared-risks:
+    value: [price, quality, payer]
+    reason: Without a payer the pilot stops, whatever the flour costs.
+    confidence: medium
+  payer-view:
+    value: The bank leases the equipment and the bakeries pay a fee.
+    term_note: I read "payer" as the party that funds the equipment, not the one that signs the invoice.
+    confidence: low
+  pilot-bakeries:
+    value: 3
+    confidence: high
+  check-first:
+    value: [fn-dough, place-mills]
+    reason: The mills' delivery terms decide the dough price.
+    confidence: medium
+  next-steps:
+    value:
+      - Ask the mills for a price list
+    confidence: medium

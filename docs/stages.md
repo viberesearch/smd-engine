@@ -53,6 +53,7 @@ Plan approved 2026-10-25 (`docs/plan.md`). Each step is a branch and a PR. The s
 | ИСТ1 | Story view: `smd story paths`, `check`, `render`; record `story`; the invented case `cases/spectra_coffee/` | done in v0.6.3 |
 | Патчи | `set` on a relation by `from`, `to`, `kind`; `carries` shown in the renders | done in v0.6.3 |
 | Путь назад | Way back on adjoin moves: `move.return`, hint `move-return`; computability check in the qualification pass (dz02#l=11) | done in v0.6.4 |
+| АС2 | Task packs for async group work: `smd task check`, `render`, `diff`, `agenda`; schemas task_pack, task_answers, task_replies 0.1; procedures task-pack, task-diff (dz02#l=11, #l=15, #l=31) | done in v0.6.5 |
 
 ## Structural moves (Invention as a Structural Operation)
 

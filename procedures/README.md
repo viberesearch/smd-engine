@@ -30,6 +30,8 @@ Front matter, checked by `tests/test_procedures.py`:
 | `qualification-pass` | 3 | a board set | K items against the program's criteria and the classic checks |
 | `reflexive-protocol` | 3 | a finished cycle | what failed, the reflexive position, the next cycle |
 | `story` | 3 | one story skeleton, the boards, the shareable ontology part | a story file in the audience's language, checked by `smd story check`, a draft of the engine and never signed |
+| `task-pack` | 3 | a group task, the records it touches, the shared ontology | a task pack (`pack.yaml`) checked by `smd task check`, rendered as `pack.md` and `pack.html` |
+| `task-diff` | 3 | the diff from `smd task diff`, the answers files, the attached transcripts | the model's classes written into `diff.yaml` (`class_by: model`), an AI draft, never a merge of answers |
 | `solo-session` | 3 | a case and its records | the order of the step-3 procedures, with stops for the human's decisions |
 
 Common rules:

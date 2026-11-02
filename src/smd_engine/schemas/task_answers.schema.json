@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/viberesearch/smd-engine/schemas/task_answers.schema.json",
+  "title": "Task answers: one member's blind answers to a task pack",
+  "type": "object",
+  "required": ["record", "schema_version", "pack", "member", "date", "drafted_by", "term_check", "answers"],
+  "additionalProperties": false,
+  "properties": {
+    "record": {"const": "task_answers"},
+    "schema_version": {"const": "0.1"},
+    "pack": {
+      "type": "object",
+      "required": ["id", "version", "sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "version": {"type": "string"},
+        "sha256": {"$ref": "#/$defs/sha"}
+      },
+      "description": "the pack the answers are for; sha256 is that of the pack file"
+    },
+    "member": {"$ref": "#/$defs/id"},
+    "date": {"type": "string", "format": "date"},
+    "drafted_by": {"enum": ["self", "model_edited"], "description": "model_edited: a model drafted the answers and the member edited them; the diff lists it, so a model's draft is not read as a position without notice"},
+    "transcripts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path"],
+        "additionalProperties": false,
+        "properties": {
+          "path": {"type": "string", "minLength": 1, "description": "file name or path, relative to the answers file"},
+          "sha256": {"$ref": "#/$defs/sha"},
+          "note": {"type": "string"}
+        }
+      },
+      "description": "voice transcripts recorded while answering: a fuller raw source of the member's position"
+    },
+    "term_check": {
+      "type": "object",
+      "additionalProperties": {"type": "string"},
+      "description": "term_check item id to the member's own words"
+    },
+    "answers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["value"],
+        "additionalProperties": false,
+        "properties": {
+          "value": {"type": ["string", "number", "array"], "items": {"type": ["string", "number"]}},
+          "reason": {"type": "string"},
+          "source": {"type": "string"},
+          "confidence": {"enum": ["low", "medium", "high"]},
+          "term_note": {"type": "string", "description": "I read a term differently: which term and how"}
+        }
+      },
+      "description": "item id to the answer"
+    },
+    "added": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["text"],
+        "additionalProperties": false,
+        "properties": {"text": {"type": "string", "minLength": 1}, "refs": {"type": "array", "items": {"type": "string"}}}
+      },
+      "description": "points the member adds that the pack does not ask"
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

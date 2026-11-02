@@ -1,0 +1,31 @@
+# Invented answers of Cy.
+record: task_answers
+schema_version: "0.1"
+pack: {id: bakeries-first-service, version: "1", sha256: 5a05efaca298804a5f75c55660df226bec5f24e0d09000a37324785bef0373b8}
+member: cy
+date: "2026-01-22"
+drafted_by: self
+term_check:
+  tc-plant: A kitchen that bakeries can book by the hour.
+  tc-pilot: Two weeks on night logistics with the vehicles we already have.
+  tc-payer: The bakery that orders. The bank is a lender, not a payer.
+answers:
+  first-function:
+    value: logistics
+    reason: It needs no site and can start with the vehicles the bakeries already have.
+    confidence: medium
+  shared-risks:
+    value: [price]
+    confidence: low
+  payer-view:
+    value: Each bakery pays for its own deliveries; the plant is not paid for at all.
+    confidence: medium
+  pilot-bakeries:
+    value: 3
+    confidence: high
+  next-steps:
+    value:
+      - Visit a dairy cooperative
+    confidence: low
+added:
+  - {text: Agree a stop rule before the pilot starts, refs: [tc-pilot]}

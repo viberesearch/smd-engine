@@ -1,0 +1,110 @@
+# Invented example: a task pack for the bakeries case. The three members and
+# their answers are made up; the answers are built so that each class of the
+# diff appears at least once. Answers carry the sha256 of this file: after any
+# edit here, run the commands in tests/test_task.py (REGENERATE) again.
+record: task_pack
+schema_version: "0.1"
+id: bakeries-first-service
+title: Bakeries - the first service of the shared plant
+version: "1"
+date: "2026-01-20"
+due: "2026-01-23"
+lang: en
+members:
+  - {id: ana, name: Ana}
+  - {id: ben, name: Ben}
+  - {id: cy, name: Cy}
+facilitator: ana
+task:
+  what: >-
+    Choose which function the shared plant takes first, name the risks the
+    group must watch, say who pays, and propose the next steps.
+  why: >-
+    The board has three functions of the new frame and an empty place for the
+    payer (gap-payer). The group cannot start a pilot until it agrees on the
+    first function and on a next step.
+  feeds:
+    text: the pilot function on the board and the plan items for the next two weeks
+    ids: [fn-dough, fn-logistics, fn-quality, gap-payer]
+ontology:
+  terms:
+    - term: shared plant
+      definition: one production site that several independent bakeries use, owned by none of them alone
+      source: s1#t=00:31:00
+    - term: pilot
+      definition: a first run of one function with at most three bakeries, with a stop rule agreed beforehand
+      source: s3#t=00:05:00
+    - term: payer
+      definition: the party that carries the cost of a function, whether or not it receives the result
+      source: s2
+    - term: quality standard
+      definition: the written conditions a batch of dough must meet before it leaves the plant
+      source: s2
+  elements:
+    - {id: goal-shared, label: shared production for independent bakeries, tier: 2, kind: goal}
+    - {id: p-organiser, label: organiser of shared production, tier: 3, kind: position}
+    - {id: fn-dough, label: dough production, tier: 4, kind: function}
+    - {id: fn-logistics, label: night logistics, tier: 4, kind: function}
+    - {id: fn-quality, label: quality standard, tier: 4, kind: function}
+    - {id: place-mills, label: regional mills, tier: 5, kind: place_for_others}
+    - {id: gap-payer, label: who pays for the shared plant, kind: gap}
+  relations:
+    - {from: goal-shared, to: p-organiser, kind: intent of}
+    - {from: p-organiser, to: fn-dough, kind: answers for}
+    - {from: p-organiser, to: fn-logistics, kind: answers for}
+    - {from: p-organiser, to: fn-quality, kind: answers for}
+    - {from: place-mills, to: fn-dough, kind: flour}
+    - {from: fn-dough, to: fn-quality, kind: dough to check}
+    - {from: gap-payer, to: goal-shared, kind: blocks}
+sources:
+  - {id: s1, address: "s1#t=00:31:00", note: the organiser describes the new frame}
+  - {id: s2, address: s2, note: earlier concept note of the group}
+  - {id: s3, address: "s3#t=00:05:00", note: "second session: the pilot idea"}
+term_check:
+  - {id: tc-plant, term: shared plant, question: "What does \"shared plant\" mean for you here, in your own words?"}
+  - {id: tc-pilot, term: pilot, question: "What would a pilot be, and when would you call it finished?"}
+  - {id: tc-payer, term: payer, question: "Who is a payer, and can the payer also be a receiver?"}
+items:
+  - id: first-function
+    section: Scope
+    question: Which function should the shared plant take first?
+    kind: choice
+    options:
+      - {id: dough, label: Dough production, context: "Mills deliver flour; the most volume, the most capital."}
+      - {id: logistics, label: Night logistics, context: "Needs vehicles and drivers, not a site."}
+      - {id: quality, label: Quality standard, context: "A paper function; cheap, but nothing is produced."}
+    recommendation: {value: dough, reason: the other two functions depend on its output}
+    refs: [fn-dough, fn-logistics, fn-quality]
+    required: true
+  - id: shared-risks
+    section: Scope
+    question: Which risks must the pilot watch?
+    kind: multi
+    options:
+      - {id: price, label: Flour price swings}
+      - {id: quality, label: Batches below the standard}
+      - {id: payer, label: Nobody agrees to pay}
+      - {id: drivers, label: No night drivers}
+    refs: [place-mills, gap-payer]
+  - id: payer-view
+    section: Scope
+    question: Who should pay for the plant, and why?
+    kind: text
+    refs: [gap-payer]
+  - id: pilot-bakeries
+    section: Plan
+    question: With how many bakeries does the pilot start?
+    kind: number
+    refs: [goal-shared]
+  - id: check-first
+    section: Plan
+    question: Which elements of the board must be checked before the pilot?
+    kind: ids
+    refs: [fn-dough, fn-logistics, fn-quality, place-mills]
+    required: false
+  - id: next-steps
+    section: Plan
+    question: What are the next steps, in order?
+    kind: steps
+diff:
+  procedure: task-diff 0.1.0

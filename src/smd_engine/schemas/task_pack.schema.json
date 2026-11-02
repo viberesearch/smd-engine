@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/viberesearch/smd-engine/schemas/task_pack.schema.json",
+  "title": "Task pack: the material one group task is answered from, the same for every member",
+  "type": "object",
+  "required": ["record", "schema_version", "id", "version", "date", "due", "lang", "members", "facilitator", "task", "ontology", "sources", "term_check", "items", "diff"],
+  "additionalProperties": false,
+  "properties": {
+    "record": {"const": "task_pack"},
+    "schema_version": {"const": "0.1"},
+    "id": {"$ref": "#/$defs/id"},
+    "title": {"type": "string", "description": "one line"},
+    "version": {"type": "string", "minLength": 1},
+    "date": {"type": "string", "format": "date"},
+    "due": {"type": "string", "format": "date", "description": "the day the answers are due"},
+    "lang": {"enum": ["ru", "en"], "description": "language of the rendered pages"},
+    "members": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "additionalProperties": false,
+        "properties": {"id": {"$ref": "#/$defs/id"}, "name": {"type": "string", "minLength": 1}}
+      }
+    },
+    "facilitator": {"$ref": "#/$defs/id", "description": "member id of the person who sends the pack and decides who runs the diff"},
+    "task": {
+      "type": "object",
+      "required": ["what", "why", "feeds"],
+      "additionalProperties": false,
+      "properties": {
+        "what": {"type": "string", "minLength": 1, "description": "what is required of each member"},
+        "why": {"type": "string", "minLength": 1},
+        "feeds": {
+          "type": "object",
+          "required": ["text"],
+          "additionalProperties": false,
+          "description": "what the answers change",
+          "properties": {
+            "text": {"type": "string", "minLength": 1},
+            "ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "description": "board, matrix or plan ids that change"}
+          }
+        }
+      }
+    },
+    "ontology": {
+      "type": "object",
+      "required": ["terms", "elements", "relations"],
+      "additionalProperties": false,
+      "description": "the slice of the shared ontology the task needs",
+      "properties": {
+        "terms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["term", "definition", "source"],
+            "additionalProperties": false,
+            "properties": {
+              "term": {"type": "string", "minLength": 1},
+              "definition": {"type": "string", "minLength": 1},
+              "source": {"type": "string", "minLength": 1, "description": "source address of the definition"}
+            }
+          }
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "label"],
+            "additionalProperties": false,
+            "properties": {
+              "id": {"$ref": "#/$defs/id"},
+              "label": {"type": "string", "minLength": 1},
+              "tier": {"type": "integer", "minimum": 1, "maximum": 6},
+              "kind": {"type": "string"}
+            }
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["from", "to", "kind"],
+            "additionalProperties": false,
+            "properties": {"from": {"$ref": "#/$defs/id"}, "to": {"$ref": "#/$defs/id"}, "kind": {"type": "string", "minLength": 1}}
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "address"],
+        "additionalProperties": false,
+        "properties": {"id": {"$ref": "#/$defs/id"}, "address": {"type": "string", "minLength": 1}, "note": {"type": "string"}}
+      }
+    },
+    "term_check": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "term", "question"],
+        "additionalProperties": false,
+        "properties": {"id": {"$ref": "#/$defs/id"}, "term": {"type": "string", "minLength": 1}, "question": {"type": "string", "minLength": 1}}
+      },
+      "description": "3 to 7 items by the procedure; `smd task check` warns outside that range"
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "section", "question", "kind"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "section": {"type": "string", "minLength": 1},
+          "question": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["choice", "multi", "text", "number", "ids", "steps"]},
+          "options": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "required": ["id", "label"],
+              "additionalProperties": false,
+              "properties": {"id": {"$ref": "#/$defs/id"}, "label": {"type": "string", "minLength": 1}, "context": {"type": "string"}}
+            }
+          },
+          "recommendation": {
+            "type": "object",
+            "required": ["value"],
+            "additionalProperties": false,
+            "description": "only where the item is a gate; value is an option id (choice) or a list of them (multi)",
+            "properties": {"value": {}, "reason": {"type": "string"}}
+          },
+          "refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "description": "ids of ontology elements, sources or other items the question relies on"},
+          "required": {"type": "boolean", "description": "default true"}
+        },
+        "allOf": [
+          {"if": {"properties": {"kind": {"enum": ["choice", "multi"]}}}, "then": {"required": ["options"]}},
+          {"if": {"properties": {"kind": {"enum": ["text", "number", "ids", "steps"]}}}, "then": {"not": {"required": ["options"]}}}
+        ]
+      }
+    },
+    "diff": {
+      "type": "object",
+      "required": ["procedure"],
+      "additionalProperties": false,
+      "properties": {"procedure": {"type": "string", "minLength": 1, "description": "version of the diff procedure the group agreed on, e.g. task-diff 0.1.0"}}
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}
+  }
+}
