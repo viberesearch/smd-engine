@@ -221,6 +221,7 @@ def bound_point(
         "item_kind": "bound",
         "sealed": sealed,
         "audience": item["audience"],
+        **({"call_title": item["call_title"]} if "call_title" in item else {}),
         "answers": {},
         "committed_by": [m for m in who if m in committed],
     }

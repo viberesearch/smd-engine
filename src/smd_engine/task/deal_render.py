@@ -216,12 +216,15 @@ def pair_block(
     return lab["by_pair"], head, rows
 
 
-def view_note(diff: dict[str, Any], nm: Names, lang: str) -> str:
-    """One sentence on what a per-position view leaves out, or an empty string."""
+def view_note(
+    diff: dict[str, Any], nm: Names, lang: str, key: str = "view_note"
+) -> str:
+    """One sentence on what a per-position view (or, with `agenda_view_note`, a
+    per-position agenda) leaves out, or an empty string."""
     view = diff.get("view")
     if not view:
         return ""
     names = nm.labels.get("positions", {})
-    return str(DEAL_LABELS[lang]["view_note"]).format(
+    return str(DEAL_LABELS[lang][key]).format(
         p=names.get(view["position"], view["position"])
     )

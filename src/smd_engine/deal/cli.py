@@ -7,13 +7,15 @@ import argparse
 from pathlib import Path
 from typing import Any
 
+from smd_engine.deal.agenda_views import position_agenda
 from smd_engine.deal.seal_cmd import cmd_seal
 from smd_engine.deal.verdict_cmd import cmd_consent, cmd_verdict
 from smd_engine.deal.views import view_of
 from smd_engine.records import RecordError, dump_record
-from smd_engine.task.cli import valid_pack
+from smd_engine.task.agenda import build_agenda
+from smd_engine.task.cli import read_replies, valid_pack
 from smd_engine.task.diff_html import render_diff_html
-from smd_engine.task.diff_md import render_diff_md
+from smd_engine.task.diff_md import render_agenda_md, render_diff_md
 from smd_engine.task.model import load_task, read_bytes, sha256_bytes
 from smd_engine.task.positions import is_deal
 
@@ -31,6 +33,15 @@ def cmd_views(args: argparse.Namespace) -> int:
     if diff["pack"]["sha256"] != pack_sha:
         raise RecordError(f"{path}: the diff is for another text of the pack")
     diff_sha = sha256_bytes(read_bytes(path))
+    full = None
+    if args.replies:
+        if not args.members:
+            raise RecordError("--replies needs --members (who is expected to reply)")
+        members = [m.strip() for m in args.members.split(",") if m.strip()]
+        replies = read_replies(args.replies, members, diff, diff_sha)
+        if replies is None:
+            return 1
+        full = build_agenda(diff, diff_sha, replies, members)
     out = Path(args.output)
     out.mkdir(parents=True, exist_ok=True)
     for position in args.position or [p["id"] for p in pack["positions"]]:
@@ -48,6 +59,19 @@ def cmd_views(args: argparse.Namespace) -> int:
             f"wrote {out}/diff.{position}.yaml, .md, .html: "
             f"{len(view['points'])} points, sha256 {view_sha}"
         )
+        if full is not None:
+            agenda = position_agenda(pack, diff, diff_sha, full, position)
+            (out / f"agenda.{position}.yaml").write_text(
+                dump_record(agenda), encoding="utf-8"
+            )
+            (out / f"agenda.{position}.md").write_text(
+                render_agenda_md(agenda), encoding="utf-8"
+            )
+            c = agenda["counts"]
+            print(
+                f"wrote {out}/agenda.{position}.yaml, .md: "
+                f"{c['call']} for the call, {c['settled']} settled"
+            )
     return 0
 
 
@@ -66,6 +90,15 @@ def add_deal_parser(sub: Any) -> None:
     v.add_argument(
         "--position", action="append", help="only this position (repeat for several)"
     )
+    v.add_argument(
+        "--replies",
+        nargs="+",
+        default=[],
+        help="replies files: also write agenda.<position>.yaml and .md",
+    )
+    v.add_argument(
+        "--members", help="member ids, comma separated (with --replies, as in agenda)"
+    )
     v.set_defaults(func=cmd_views)
     s = dsub.add_parser(
         "seal",
@@ -77,6 +110,11 @@ def add_deal_parser(sub: Any) -> None:
     s.add_argument("--member", help="the member who seals (the item's committer)")
     s.add_argument("--value", help="the number; without it you are asked, unseen")
     s.add_argument("--date", help="date of the commitment (today by default)")
+    s.add_argument(
+        "--key",
+        help="your private SSH key: sign the sealed file with it (ssh-keygen -Y sign); "
+        "without it the command to run is printed",
+    )
     s.set_defaults(func=cmd_seal)
     vd = dsub.add_parser(
         "verdict",
@@ -87,6 +125,10 @@ def add_deal_parser(sub: Any) -> None:
     vd.add_argument("--answers", nargs="+", required=True, help="the parties' answers")
     vd.add_argument("--floor", help="the seller's sealed file")
     vd.add_argument("--ceiling", help="the buyer's sealed file, if he gave one")
+    vd.add_argument("--floor-sig", help="signature of the floor file (<floor>.sig)")
+    vd.add_argument(
+        "--ceiling-sig", help="signature of the ceiling file (<ceiling>.sig)"
+    )
     vd.add_argument("--ledger", required=True, help="verdicts.yaml")
     vd.add_argument(
         "--new",
@@ -105,6 +147,11 @@ def add_deal_parser(sub: Any) -> None:
     co.add_argument("--member", required=True, help="the party who consents")
     co.add_argument(
         "--evidence", required=True, help="the party's task_consent file for the run"
+    )
+    co.add_argument(
+        "--signature",
+        help="the party's SSH signature of the evidence (<evidence>.sig); "
+        "required when the pack has deal.sealed_floor",
     )
     co.add_argument("--ledger", required=True, help="verdicts.yaml")
     co.add_argument(

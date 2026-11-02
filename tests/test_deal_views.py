@@ -158,7 +158,12 @@ def test_the_agenda_lists_the_call_points_by_pair(work: Path, tmp_path: Path) ->
         and "key-person" in by_pair["broker-buyer"]
     )
     assert "rl-staff" in by_pair["seller-buyer"]  # boris rejects the red line
-    assert "Gleb" in agenda_md.read_text(encoding="utf-8")
+    text = agenda_md.read_text(encoding="utf-8")
+    assert "Gleb" in text
+    head = "## Call points by pair"
+    section = text.split(head)[1].split("\n## ")[0]
+    assert section.count("### ") == 2 and "seller-buyer" not in section
+    assert "- 1. " in section and "read-clients" not in section
 
 
 def test_a_view_has_only_the_points_for_its_position(
@@ -318,8 +323,13 @@ def test_the_agenda_shows_no_answers_of_a_value_point_or_an_annex_point(
         == 0
     )
     call = by_id({"points": load_task(out / "agenda.yaml")["call"]})
-    for pid in ("handover", "sale-reason"):
-        assert call[pid]["answers_withheld"] is True and "answers" not in call[pid]
+    assert (
+        call["handover"]["answers_withheld"] is True
+        and "answers" not in call["handover"]
+    )
+    annex = call["annex-1"]  # the seller's point, under a handle: not its item id
+    assert annex["answers_withheld"] is True and "answers" not in annex
+    assert "sale-reason" not in call
     assert "answers" in call["read-clients"]  # the shared core keeps its table
     for text in (agenda_md, out / "agenda.yaml"):
         shown = text.read_text(encoding="utf-8")
@@ -366,3 +376,156 @@ def test_task_diff_warns_that_a_deal_diff_with_annex_points_is_the_holders_only(
         == 0
     )
     assert warning not in capsys.readouterr().err
+
+
+ANNEX_DISCUSS = {
+    "vera": {"sale-reason": "discuss"},
+    "boris": {"first-year": "discuss"},
+    "gleb": {"broker-note": "discuss"},
+}
+
+
+def agendas(
+    work: Path, tmp_path: Path, discuss: dict[str, dict[str, str]] = ANNEX_DISCUSS
+) -> Path:
+    """Diff the example, have each member mark his own annex point for the call,
+    write the common agenda (agenda.md) and the agenda of each position."""
+    out = tmp_path / "out"
+    run_diff(work, out)
+    files = []
+    for member, choices in discuss.items():
+        path = tmp_path / f"replies_{member}.yaml"
+        path.write_text(
+            yaml.safe_dump(
+                {
+                    "record": "task_replies",
+                    "schema_version": "0.1",
+                    "diff": sha256_file(out / "diff.yaml"),
+                    "member": member,
+                    "date": "2026-11-04",
+                    "replies": {k: {"choice": c} for k, c in choices.items()},
+                }
+            ),
+            encoding="utf-8",
+        )
+        files.append(str(path))
+    members = ["--members", "vera,boris,gleb"]
+    assert (
+        main(
+            ["task", "agenda", str(out / "diff.yaml"), *files, *members]
+            + ["-o", str(out / "agenda.md")]
+        )
+        == 0
+    )
+    code = main(
+        ["deal", "views", str(work / "pack.yaml"), str(out / "diff.yaml")]
+        + ["-o", str(out), "--replies", *files, *members]
+    )
+    assert code == 0
+    return out
+
+
+def test_the_common_agenda_names_no_annex_item_and_calls_it_by_its_title(
+    work: Path, tmp_path: Path
+) -> None:
+    out = agendas(work, tmp_path)
+    pack = load_task(work / "pack.yaml")
+    hidden = [i for i in pack["items"] if "audience" in i]
+    agenda = load_task(out / "agenda.yaml")
+    for ext in ("yaml", "md"):
+        text = (out / f"agenda.{ext}").read_text(encoding="utf-8")
+        for i in hidden:
+            assert i["id"] not in text and i["question"] not in text
+    for block in ("numbers", "options"):
+        assert not [i["id"] for i in hidden if i["id"] in agenda["labels"][block]]
+    annex = [p for p in agenda["call"] if p.get("annex")]
+    assert [p["id"] for p in annex] == ["annex-1", "annex-2", "annex-3"]
+    assert {p["call_title"] for p in annex} == {"Own position"}
+    assert all("question" not in p and "class" not in p for p in annex)
+    text = (out / "agenda.md").read_text(encoding="utf-8")
+    assert re.search(r"^### \d+\. Own position$", text, re.M)
+    # a settled annex point is left out, except the price points, which keep
+    # their verdict but not their question or id; the counts follow the lists
+    assert [p["id"] for p in agenda["settled"] if p.get("annex")] == [
+        "annex-4",
+        "annex-5",
+    ]
+    assert {p["verdict"] for p in agenda["settled"] if p.get("annex")} == {"not_tested"}
+    c = agenda["counts"]
+    assert (
+        c["points"]
+        == c["call"] + c["settled"]
+        == len(agenda["call"]) + len(agenda["settled"])
+    )
+    assert c["points"] == len(load_task(out / "diff.yaml")["points"])
+
+
+def test_an_annex_point_with_no_call_title_is_an_annex_point_in_russian(
+    work: Path, tmp_path: Path
+) -> None:
+    def change(p: dict[str, Any]) -> None:
+        p["lang"] = "ru"
+        for i in p["items"]:
+            i.pop("call_title", None)
+
+    edit_pack(work, change)
+    out = agendas(work, tmp_path, {"vera": {"sale-reason": "discuss"}})
+    text = (out / "agenda.md").read_text(encoding="utf-8")
+    assert re.search(r"^### \d+\. Точка приложения$", text, re.M)
+    # nobody marked the buyer's and the broker's points: settled, so left out
+    agenda = load_task(out / "agenda.yaml")
+    whole = load_task(out / "diff.yaml")["points"]
+    assert agenda["counts"]["points"] == len(whole) - 2
+    assert "call_title" not in (out / "agenda.yaml").read_text(encoding="utf-8")
+
+
+def test_each_positions_agenda_is_cut_like_its_diff_view(
+    work: Path, tmp_path: Path
+) -> None:
+    edit_pack(
+        work,
+        lambda p: next(i for i in p["items"] if i["id"] == "margin")["claim"].update(
+            asserted_by="buyer"
+        ),
+    )
+    out = agendas(work, tmp_path)
+    pack = load_task(work / "pack.yaml")
+    whole = sha256_file(out / "diff.yaml")
+    for position in ("seller", "buyer", "broker"):
+        agenda = load_task(out / f"agenda.{position}.yaml")
+        assert agenda["view"] == {"position": position, "diff": whole}
+        shown = {p["id"] for p in view(out, position)["points"]}
+        listed = {p["id"] for p in agenda["call"] + agenda["settled"]}
+        assert listed == shown and agenda["counts"]["points"] == len(shown)
+        pairs = {pid for pair in agenda["call_by_pair"] for pid in pair["points"]}
+        assert pairs <= shown
+        for i in pack["items"]:
+            if "audience" in i and position not in i["audience"]:
+                for ext in ("yaml", "md"):
+                    text = (out / f"agenda.{position}.{ext}").read_text(
+                        encoding="utf-8"
+                    )
+                    assert i["id"] not in text and i["question"] not in text
+    seller = load_task(out / "agenda.seller.yaml")
+    own = {p["id"]: p for p in seller["call"]}["sale-reason"]
+    assert own["question"].startswith("Why does the owner sell now")
+    assert "margin" not in {p["id"] for p in seller["call"] + seller["settled"]}
+    assert "margin" in {
+        p["id"] for p in load_task(out / "agenda.buyer.yaml")["settled"]
+    } | {p["id"] for p in load_task(out / "agenda.buyer.yaml")["call"]}
+    assert "Agenda for" in (out / "agenda.seller.md").read_text(encoding="utf-8")
+
+
+def test_check_warns_about_a_call_title_that_is_missing_or_unused(work: Path) -> None:
+    pack = load_task(work / "pack.yaml")
+
+    def warnings() -> list[str]:
+        return [i.message for i in check_pack(pack, "p") if i.level == "warning"]
+
+    assert not [w for w in warnings() if "call_title" in w]
+    next(i for i in pack["items"] if i["id"] == "sale-reason").pop("call_title")
+    next(i for i in pack["items"] if i["id"] == "margin")["call_title"] = "Margin"
+    found = [w for w in warnings() if "call_title" in w]
+    assert any("sale-reason" in w and "no call_title" in w for w in found)
+    assert any("margin" in w and "not used" in w for w in found)
+    assert errors(check_pack(pack, "p")) == []

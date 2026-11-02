@@ -2,7 +2,7 @@
 id: task-diff
 title: The model's part of the diff of a task pack
 step: 3
-version: 0.2.0
+version: 0.2.1
 role: игротехник
 profile: any
 inputs:
@@ -17,7 +17,7 @@ sources: ["decision log dz02#l=11 and dz02#l=15 (case owner, gates АС3 В, А�
 
 # The model's part of the diff of a task pack
 
-`smd task diff` has already compared what a script can compare: the structured items (choice, multi, number, ids, steps) and the added points. This procedure covers the rest: the points whose class is `to_read` and the subtype of every `conflict`. You read what the members wrote and classify it. You never decide for them.
+`smd task diff` has already compared what a script can compare: the structured items (choice, multi, number, ids, steps) and the added points (in a deal pack an added point is for the author's position unless he shared it; leave its audience as the script set it). This procedure covers the rest: the points whose class is `to_read` and the subtype of every `conflict`. You read what the members wrote and classify it. You never decide for them.
 
 The result is a draft by an AI. Any member can reclassify a point when they reply to the diff, and the raw answers stay attached to every point.
 

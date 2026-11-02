@@ -83,7 +83,7 @@
         "type": "object",
         "required": ["text"],
         "additionalProperties": false,
-        "properties": {"text": {"type": "string", "minLength": 1}, "refs": {"type": "array", "items": {"type": "string"}}}
+        "properties": {"text": {"type": "string", "minLength": 1}, "refs": {"type": "array", "items": {"type": "string"}}, "share": {"type": "boolean", "description": "deal mode: false or absent keeps the point for the author's position; true shares it with every position. Ignored in a group pack"}}
       },
       "description": "points the member adds that the pack does not ask"
     }

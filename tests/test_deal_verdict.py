@@ -4,6 +4,7 @@ the pages, on the invented example in cases/example/deal/."""
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -15,10 +16,14 @@ from deal_helpers import (
     FLOOR,
     MEMBERS,
     by_id,
+    add_keys,
     copy_deal,
     edit_pack,
+    key_of,
+    needs_ssh,
     seal,
     set_answer,
+    sign_file,
 )
 from smd_engine.cli import main
 from smd_engine.deal import ledger as led
@@ -28,10 +33,14 @@ from smd_engine.deal.verdict import run_verdict
 from smd_engine.records import RecordError
 from smd_engine.task.model import load_task, sha256_file
 
+pytestmark = needs_ssh  # the example has a sealed floor: its files are signed
+
 
 @pytest.fixture()
 def work(tmp_path: Path) -> Path:
-    return copy_deal(tmp_path / "deal")
+    folder = copy_deal(tmp_path / "deal")
+    add_keys(folder, tmp_path / "keys")
+    return folder
 
 
 def committed(
@@ -147,6 +156,8 @@ def consent_file(work: Path, tmp_path: Path, member: str, **change: Any) -> Path
     }
     note = tmp_path / f"consent_{member}.yaml"
     note.write_text(yaml.safe_dump(data), encoding="utf-8")
+    if key_of(work, member).exists():  # the party signs what he writes
+        sign_file(key_of(work, member), note)
     return note
 
 
@@ -214,12 +225,17 @@ def test_a_commitment_that_fails_or_another_unit_is_not_tested(
     other["value"] = 999999
     forged = tmp_path / "forged.yaml"
     forged.write_text(yaml.safe_dump(other), encoding="utf-8")
+    sign_file(key_of(work, "boris"), forged)  # signed, but not the committed number
     assert verdict(work, {**files, "ceiling": forged}, ledger) == 0
-    # the buyer's file given as the seller's
-    assert verdict(work, {**files, "floor": files["ceiling"]}, ledger) == 0
+    # the buyer's file given as the seller's, signed as hers
+    swapped = tmp_path / "swapped.yaml"
+    shutil.copy(files["ceiling"], swapped)
+    sign_file(key_of(work, "vera"), swapped)
+    assert verdict(work, {**files, "floor": swapped}, ledger) == 0
     # a unit other than the item's
     other["value"], other["unit"] = 1, "USD"
     forged.write_text(yaml.safe_dump(other), encoding="utf-8")
+    sign_file(key_of(work, "boris"), forged)
     assert verdict(work, {**files, "ceiling": forged}, ledger) == 0
     assert [(e["verdict"], e["reason"]) for e in verdicts(ledger)] == [
         ("not_tested", "bad_commitment"),

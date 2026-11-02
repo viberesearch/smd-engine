@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import re
 import shutil
+import subprocess
 from pathlib import Path
 from typing import Any
 
+import pytest
 import yaml
 
 from smd_engine.cli import main
@@ -86,12 +88,71 @@ FLOOR = "431250"  # invented sealed numbers: they must appear nowhere but in the
 CEILING = "512750"
 
 
+needs_ssh = pytest.mark.skipif(
+    shutil.which("ssh-keygen") is None, reason="signatures need ssh-keygen"
+)
+
+
+def make_key(path: Path) -> str:
+    """An ed25519 key pair (no passphrase) at `path` and `path.pub`; the public line."""
+    subprocess.run(
+        [
+            "ssh-keygen",
+            "-q",
+            "-t",
+            "ed25519",
+            "-N",
+            "",
+            "-C",
+            path.name,
+            "-f",
+            str(path),
+        ],
+        check=True,
+    )
+    return Path(f"{path}.pub").read_text(encoding="utf-8").strip()
+
+
+def add_keys(work: Path, keys: Path) -> None:
+    """Make keys for the two parties in `keys` and put their public lines into the
+    pack of `work` (the example's own keys have no private half)."""
+    keys.mkdir()
+    lines = {who: make_key(keys / who) for who in ("vera", "boris")}
+    edit_pack(
+        work,
+        lambda p: [
+            m.update(ssh_key=lines[m["id"]]) for m in p["members"] if m["id"] in lines
+        ],
+    )
+
+
+def key_of(work: Path, member: str) -> Path:
+    """The private key `add_keys` made for the member of a test folder `work`
+    (keys sit beside it); a path that is not there when there are none."""
+    return work.parent / "keys" / member
+
+
+def sign_file(key: Path, path: Path) -> Path:
+    """Sign `path` as ssh-keygen does for the party; returns `<path>.sig`."""
+    sig = Path(f"{path}.sig")
+    sig.unlink(missing_ok=True)
+    subprocess.run(
+        ["ssh-keygen", "-Y", "sign", "-f", str(key), "-n", "smd-deal", str(path)],
+        check=True,
+        capture_output=True,
+    )
+    return sig
+
+
 def seal(work: Path, tmp_path: Path, item: str, value: str) -> tuple[Path, str]:
-    """Seal a number on the example; return the sealed file and its commitment."""
+    """Seal a number on the example; return the sealed file and its commitment.
+    When the test has keys, the file is signed by its party."""
     safe = tmp_path / "safe"
+    key = key_of(work, "vera" if item == "price-floor" else "boris")
     code = main(
         ["deal", "seal", str(work / "pack.yaml"), item, "-o", str(safe)]
         + ["--value", value, "--date", "2026-11-03"]
+        + (["--key", str(key)] if key.exists() else [])
     )
     assert code == 0
     path = next(safe.glob(f"sealed_*_{item}.yaml"))

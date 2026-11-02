@@ -16,7 +16,7 @@ from smd_engine.task.model import (
     schema_issues,
     sha256_file,
 )
-from smd_engine.task.positions import in_audience, member_positions
+from smd_engine.task.positions import in_audience, is_deal, member_positions
 from smd_engine.task.ranges import range_problem
 
 
@@ -208,6 +208,8 @@ def check_answers(
         for ref in point.get("refs", []):
             if ref not in refs:
                 add("warning", f"added point {n}: ref {ref} names nothing in the pack")
+        if "share" in point and not is_deal(pack):
+            add("warning", f"added point {n}: share is for a deal pack and is ignored")
     for entry in ans.get("transcripts", []):
         status = transcript_status(entry, base)
         if status == "mismatch":

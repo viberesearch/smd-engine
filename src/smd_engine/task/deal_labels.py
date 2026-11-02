@@ -38,12 +38,18 @@ DEAL_LABELS: dict[str, dict[str, Any]] = {
         "pair": "Pair",
         "pair_open": "Open",
         "by_pair": "By pair",
-        "call_by_pair": "Points for the call, by pair",
+        "call_by_pair": "Call points by pair",
         "view_note": (
             "View for {p}: part of the diff. Points for other positions, fact disputes "
             "over the buyer's claims (for the seller's side) and the other side's answers "
             "to value points are left out; a value point shows only open or settled."
         ),
+        "agenda_view_note": (
+            "Agenda for {p}: part of the agenda. Points for other positions, fact "
+            "disputes over the buyer's claims (for the seller's side) and the other "
+            "side's answers to value points are left out."
+        ),
+        "annex_point": "Annex point",
         "price_verdicts": {
             "met": "price: terms met - bargain at the in-person meeting",
             "not_met": "price: terms not met - bargain at the in-person meeting",
@@ -133,6 +139,12 @@ DEAL_LABELS: dict[str, dict[str, Any]] = {
             "стороны по пунктам о ценности не показаны; пункт о ценности показан только "
             "как открытый или решённый."
         ),
+        "agenda_view_note": (
+            "Повестка для позиции «{p}»: часть повестки. Пункты для других позиций, "
+            "споры о фактах из утверждений покупателя (для стороны продавца) и ответы "
+            "другой стороны по пунктам о ценности не показаны."
+        ),
+        "annex_point": "Точка приложения",
         "price_verdicts": {
             "met": "цена: условия сошлись — торг на личной встрече",
             "not_met": "цена: условия не сошлись — торг на личной встрече",

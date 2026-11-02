@@ -98,6 +98,8 @@ class Names:
         return short, p.get("question", "")
 
     def title(self, p: dict[str, Any]) -> str:
+        if p.get("annex"):  # a point of an annex on the common agenda: no question
+            return str(p.get("call_title") or DEAL_LABELS[self.lang]["annex_point"])
         short, text = self.heading(p)
         return f"{short}: {text}"
 

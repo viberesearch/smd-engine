@@ -85,6 +85,29 @@ def position_view(pack: dict[str, Any], position: str) -> dict[str, Any]:
     return out
 
 
+SIDES = {
+    "seller": "sell",
+    "broker_sell": "sell",
+    "buyer": "buy",
+    "broker_buy": "buy",
+}
+
+
+def side_of(pack: dict[str, Any], position: str) -> str:
+    """ "sell", "buy", or the position's own id. A broker is on the side of the
+    position his principal holds; with no principal, on the side of his kind."""
+    kinds = {p["id"]: p["kind"] for p in pack["positions"]}
+    where = member_positions(pack)
+    principals = {
+        where[m["principal"]]
+        for m in pack["members"]
+        if m.get("position") == position and m.get("principal") in where
+    }
+    if len(principals) == 1:
+        position = next(iter(principals))
+    return SIDES.get(kinds.get(position, ""), position)
+
+
 def _sha(data: dict[str, Any]) -> str:
     return hashlib.sha256(dump_record(data).encode("utf-8")).hexdigest()
 

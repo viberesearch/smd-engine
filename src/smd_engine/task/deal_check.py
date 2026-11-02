@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from smd_engine.deal.signing import key_findings
 from smd_engine.validate.redlines import _line_findings
 
 from smd_engine.task.asking import asking_findings
@@ -82,6 +83,27 @@ def _audiences(pack: dict[str, Any]) -> Found:
                 )
     annex = {i["id"] for i in pack["items"] if "audience" in i}
     for item in pack["items"]:
+        if "call_title" in item and "audience" not in item:
+            out.append(
+                (
+                    "warning",
+                    f"item {item['id']}: call_title is for an item with an audience; "
+                    "it is not used",
+                )
+            )
+        if (
+            "audience" in item
+            and "call_title" not in item
+            and item["kind"] != "bound"
+            and is_deal(pack)
+        ):
+            out.append(
+                (
+                    "warning",
+                    f"item {item['id']}: an item with an audience has no call_title; "
+                    "on the common agenda it is called an annex point",
+                )
+            )
         if "audience" in item:
             continue
         for ref in [
@@ -210,6 +232,7 @@ def deal_pack_findings(pack: dict[str, Any]) -> Found:
         + _fits(pack)
         + _pairs(pack)
         + bound_findings(pack)
+        + key_findings(pack)
     )
 
 

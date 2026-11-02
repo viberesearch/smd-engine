@@ -16,6 +16,7 @@ from smd_engine.deal.sealed import (
     usable_number,
     write_private,
 )
+from smd_engine.deal.signing import sign_command, sign_file, ssh_keygen
 from smd_engine.records import RecordError, dump_record
 from smd_engine.task.bounds import committer
 from smd_engine.task.cli import valid_pack
@@ -26,6 +27,13 @@ def _number(text: str) -> float:
         return float(text.strip().replace(",", "."))
     except ValueError:
         raise RecordError("the value is not a number") from None
+
+
+def _report(path: Path, member: str, item_id: str, commit: str) -> None:
+    print(f"wrote {path}: keep it outside every repository; it goes to the holder only")
+    print(f"commitment: {commit}")
+    print(f"put this under `answers:` in answers_{member}.yaml:")
+    print(f'  {item_id}: {{value: "{commit}"}}')
 
 
 def cmd_seal(args: argparse.Namespace) -> int:
@@ -40,6 +48,8 @@ def cmd_seal(args: argparse.Namespace) -> int:
     member = args.member or who
     if member != who:
         raise RecordError(f"item {item['id']} is committed by {who}, not by {member}")
+    if args.key:
+        ssh_keygen()  # fail before the file is written
     # a prompt keeps the number out of the shell history and the process list
     value = _number(
         args.value if args.value is not None else getpass.getpass("number: ")
@@ -51,10 +61,23 @@ def cmd_seal(args: argparse.Namespace) -> int:
     path = Path(args.output) / seal_file_name(str(member), item["id"])
     write_private(path, dump_record(sealed))
     commit = commitment_of(sealed)
-    print(f"wrote {path}: keep it outside every repository; it goes to the holder only")
-    print(f"commitment: {commit}")
-    print(f"put this under `answers:` in answers_{member}.yaml:")
-    print(f'  {item["id"]}: {{value: "{commit}"}}')
+    signed = f"{path}.sig"
+    if args.key:
+        try:
+            sign_file(Path(args.key), path)
+        except RecordError:
+            # the file stands and a second seal is refused: give what is needed
+            _report(path, str(member), item["id"], commit)
+            print(f"sign it with your key and send {signed} with it:")
+            print(f"  {sign_command('<private key>', path)}")
+            raise
+        print(f"signed {path}: the signature is {signed}; it goes with the file")
+    else:
+        print(
+            f"sign it with your key ({member}'s key listed in the pack) and send {signed} with it:"
+        )
+        print(f"  {sign_command('<private key>', path)}")
+    _report(path, str(member), item["id"], commit)
     if unignored_in_worktree(path):
         print(
             f"warning: {path} sits in a git work tree and is not ignored",

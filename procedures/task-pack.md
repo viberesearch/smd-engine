@@ -2,7 +2,7 @@
 id: task-pack
 title: Build a task pack for a group that answers apart
 step: 3
-version: 0.2.1
+version: 0.2.2
 role: игротехник
 profile: any
 inputs:
@@ -61,7 +61,8 @@ Each item has `id`, `section`, `question`, `kind` and `required`.
 
 A pack for a sale, a transfer or any task whose members are counterparties adds fields; leave them out for a group.
 - `positions` (seller, buyer, broker_sell, broker_buy, successor, family, adviser, verifier, stakeholder, other) and, on each member, `position` (and `principal` for a broker: the member he acts for). A broker is never the one who runs the diff.
-- `audience` (position ids) on an item or an ontology term puts it in the annex of those positions; without it the entry is in the shared core. Put in the annex only what one position needs to answer alone. The core carries the terms, facts and red lines everyone reads alike.
+- `audience` (position ids) on an item or an ontology term puts it in the annex of those positions; without it the entry is in the shared core. Give every item with an `audience` a `call_title`, a neutral title for the common agenda (it must not hint at the content); `smd task check` warns when it is missing. Put in the annex only what one position needs to answer alone. The core carries the terms, facts and red lines everyone reads alike.
+- A point a member adds in a deal pack is for the author's position only (audience = his position) unless he marks it `share: true`; only that position and the holder see it, and only that position replies. In the agenda it appears under a neutral title.
 - Split reading from fit. A reading item (`nature: term` or `fact`) asks what the business is; a fit item (`nature: value` or `position`, `fit_of: <reading item>`) asks whether it suits the member. Alpha leaves out value and position items.
 - `kind: fact` takes a `claim` (`text`, `asserted_by` a position, `source` an id from `sources`, `level` stated or checked). Give the source its `sha256` and `date`. Mark a claim `checked` only when a source or the verifier has confirmed it. Members answer holds, does_not_hold or cannot_say and may name `source_ids`.
 - `kind: line` takes a `line` as `docs/red-lines.md` gives it. Members answer accept or reject; the wanted change goes in the reason. A walk-away price is not a red line.

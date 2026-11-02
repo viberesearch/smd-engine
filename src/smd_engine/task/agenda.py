@@ -90,6 +90,7 @@ def build_agenda(
             "text",
             "item_kind",
             "audience",
+            "call_title",
             "after_reading",
             "claim",
             "line",

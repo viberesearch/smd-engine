@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from smd_engine.deal.agenda_views import common_agenda
 from smd_engine.deal.ledger import load_ledger
 from smd_engine.deal.sealed import stray_sealed_issues
 from smd_engine.records import RecordError, dump_record
@@ -158,21 +159,29 @@ def cmd_diff(args: argparse.Namespace) -> int:
     return 0
 
 
+def read_replies(
+    names: list[str], members: list[str], diff: dict[str, Any], diff_sha: str
+) -> list[dict[str, Any]] | None:
+    """The replies files, checked against the diff; None when one has an error."""
+    replies = []
+    errors = 0
+    for name in names:
+        rep = load_task(Path(name), "task_replies")
+        issues = check_replies(members, rep, name, diff, diff_sha)
+        errors += _report(name, issues) if issues else 0
+        replies.append(rep)
+    return None if errors else replies
+
+
 def cmd_agenda(args: argparse.Namespace) -> int:
     path = Path(args.diff)
     diff = load_task(path, "task_diff")
     diff_sha = sha256_bytes(read_bytes(path))
     members = [m.strip() for m in args.members.split(",") if m.strip()]
-    replies = []
-    errors = 0
-    for name in args.replies:
-        rep = load_task(Path(name), "task_replies")
-        issues = check_replies(members, rep, name, diff, diff_sha)
-        errors += _report(name, issues) if issues else 0
-        replies.append(rep)
-    if errors:
+    replies = read_replies(args.replies, members, diff, diff_sha)
+    if replies is None:
         return 1
-    agenda = build_agenda(diff, diff_sha, replies, members)
+    agenda = common_agenda(diff, build_agenda(diff, diff_sha, replies, members))
     target = Path(args.output)
     _write(target, render_agenda_md(agenda))
     _write(target.with_suffix(".yaml"), dump_record(agenda))

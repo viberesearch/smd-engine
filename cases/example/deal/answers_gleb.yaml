@@ -3,8 +3,8 @@ schema_version: "0.1"
 pack:
   id: bakery-sale
   version: "1"
-  sha256: "2768f4c5b53308e79e31c669c5e84aa12eac1594245458798e056a1e8238e2a1"
-  annex: {position: broker, sha256: "e26fb77cd1ee2af7bd9b8c0d23b964c8326bd6086e71a2881430d12ecd01f0e6"}
+  sha256: "1a649e4ed499620f8eebc97f73bdb74b0b1c01b47bcc954e689ef87c850e5a4d"
+  annex: {position: broker, sha256: "56072184ee793f34fc3a116cb86c69446860ec2fb7332776935791dc56b439e3"}
 member: gleb
 date: "2026-11-03"
 drafted_by: self

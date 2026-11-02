@@ -218,6 +218,25 @@ def render_diff_md(diff: dict[str, Any]) -> str:
     return "\n".join(out).rstrip() + "\n"
 
 
+def pair_call_lines(agenda: dict[str, Any], nm: Names, lang: str) -> list[str]:
+    """The section "Call points by pair" of agenda.md, for a deal agenda only:
+    per pair, its two members and the call points it put there, by their number
+    in the list above and their question."""
+    if not agenda.get("call_by_pair"):
+        return []
+    number = {p["id"]: n for n, p in enumerate(agenda["call"], start=1)}
+    by_id = {p["id"]: p for p in agenda["call"]}
+    out = [f"## {DEAL_LABELS[lang]['call_by_pair']}", ""]
+    for pair in agenda["call_by_pair"]:
+        names = " - ".join(nm.member(m) for m in pair["members"])
+        out += [f"### {pair['label'] + ': ' if pair.get('label') else ''}{names}", ""]
+        out += [f"- {number[i]}. {nm.title(by_id[i])}" for i in pair["points"]]
+        if not pair["points"]:
+            out.append(f"- {LABELS[lang]['none']}")
+        out.append("")
+    return out
+
+
 def render_agenda_md(agenda: dict[str, Any]) -> str:
     lang = agenda["lang"]
     lab = LABELS[lang]
@@ -225,6 +244,8 @@ def render_agenda_md(agenda: dict[str, Any]) -> str:
     out = [f"# {lab['agenda']}: {agenda['title']}", ""]
     if diff_line(agenda):
         out += [diff_line(agenda), ""]
+    if note := view_note(agenda, nm, lang, "agenda_view_note"):
+        out += [f"**{note}**", ""]
     out += [
         f"- {lab['pack_sha']}: {agenda['pack']['sha256'][:12]}; diff sha256: {agenda['diff'][:12]}",
         f"- {lab['replied']}: {nm.members(agenda['replied']) or lab['none']}",
@@ -239,10 +260,12 @@ def render_agenda_md(agenda: dict[str, Any]) -> str:
         out += [lab["nothing_call"], ""]
     for n, p in enumerate(agenda["call"], start=1):
         out += [f"### {n}. {nm.title(p)}", "", f"<!-- id: {p['id']} -->", ""]
-        out.append(
-            f"- {lab['class']}: **{class_word(lang, p)}** ({lab['class_by']}: {by_label(lang, p)})"
-        )
-        out.append(f"- {lab['route']}: {route_word(lang, p['route'])}")
+        if "class" in p:  # a point of an annex on the common agenda has none
+            out.append(
+                f"- {lab['class']}: **{class_word(lang, p)}**{_by(lab, lang, p)}"
+            )
+        if "route" in p:
+            out.append(f"- {lab['route']}: {route_word(lang, p['route'])}")
         why = p["why"]
         if why.get("discuss"):
             out.append(
@@ -265,12 +288,13 @@ def render_agenda_md(agenda: dict[str, Any]) -> str:
             for m, a in p["answers"].items()
         ]
         out += table([lab["member"], lab["answer"], lab["reason"]], rows)
+    out += pair_call_lines(agenda, nm, lang)
     out += [f"## {lab['settled_points']}", ""]
     rows = [
         [
             nm.title(p),
             class_word(lang, p),
-            how_word(lang, p["how"]),
+            how_word(lang, p["how"]) if "how" in p else "",
             "; ".join(
                 f"{nm.member(m)}: {nm.reply(r)}"
                 for m, r in p.get("replies", {}).items()

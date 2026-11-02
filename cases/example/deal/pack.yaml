@@ -17,8 +17,12 @@ positions:
   - {id: buyer, label: Buyer, kind: buyer}
   - {id: broker, label: Sell-side broker, kind: broker_sell}
 members:
-  - {id: vera, name: Vera, position: seller}
-  - {id: boris, name: Boris, position: buyer}
+  # ssh_key: the party's OpenSSH public key; with deal.sealed_floor his consents and
+  # sealed files are signed with the private half. These two keys are made up and
+  # their private halves were deleted: nobody can sign for Vera or Boris here.
+  # The tests make keys of their own and put them into a copy of this pack.
+  - {id: vera, name: Vera, position: seller, ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINFml7IJZKaSAhJg31js3yoSUic5KUw41wTJ7RYnGUSx vera-example"}
+  - {id: boris, name: Boris, position: buyer, ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKJw+2kx/CgXui0RByFjhG3b6uU1c+Hb7F4yzKc8SD6K boris-example"}
   - {id: gleb, name: Gleb, position: broker, principal: vera}
 pairs:
   - {id: seller-buyer, members: [vera, boris]}
@@ -139,16 +143,19 @@ items:
     question: Why does the owner sell now, and what must stay unsaid at the first meeting?
     kind: text
     audience: [seller]
+    call_title: Own position
   - id: first-year
     section: Own position
     question: What would you change in the first year?
     kind: text
     audience: [buyer]
+    call_title: Own position
   - id: broker-note
     section: Own position
     question: Which weak points of the file will you raise first with the buyer?
     kind: text
     audience: [broker]
+    call_title: Own position
   - id: handover
     section: Plan
     question: For how many weeks is a hand-over of the baking work to the buyer realistic?
@@ -165,12 +172,14 @@ items:
     kind: bound
     bound: {topic: price, side: floor, unit: EUR}
     audience: [seller]
+    call_title: Price
   - id: price-ceiling
     section: Price
     question: Optionally seal the highest price you would pay, once you have studied the business.
     kind: bound
     bound: {topic: price, side: ceiling, unit: EUR, stage: full-map}
     audience: [buyer]
+    call_title: Price
   - id: price-talk
     section: Price
     question: Are you ready to discuss the price, at the level the seller asks or below it?

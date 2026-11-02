@@ -25,7 +25,8 @@
           "id": {"$ref": "#/$defs/id"},
           "name": {"type": "string", "minLength": 1},
           "position": {"$ref": "#/$defs/id", "description": "deal mode: id of the position the member holds (see positions)"},
-          "principal": {"$ref": "#/$defs/id", "description": "deal mode, brokers: member id of the party the broker acts for"}
+          "principal": {"$ref": "#/$defs/id", "description": "deal mode, brokers: member id of the party the broker acts for"},
+          "ssh_key": {"type": "string", "minLength": 1, "description": "deal mode: the member's OpenSSH public key, one line ('ssh-ed25519 AAAA... name'). With deal.sealed_floor every seller and buyer needs one: consents and sealed files are signed with its private half (namespace smd-deal)"}
         }
       }
     },
@@ -230,6 +231,7 @@
           "refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "description": "ids of ontology elements, sources or other items the question relies on"},
           "required": {"type": "boolean", "description": "default true"},
           "audience": {"$ref": "#/$defs/audience"},
+          "call_title": {"type": "string", "minLength": 1, "description": "deal mode: the neutral title of an item with an `audience` on the common agenda, which never shows its question; a pack author writes it so that it tells nothing of the item"},
           "stage": {"$ref": "#/$defs/id", "description": "deal mode: the stage of deal.stages at which the item is asked; the pages say so"},
           "bound": {
             "type": "object",

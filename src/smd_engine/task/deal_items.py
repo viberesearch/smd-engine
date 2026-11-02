@@ -65,7 +65,7 @@ def classify_deal(
 def point_extra(item: dict[str, Any]) -> dict[str, Any]:
     """The deal fields of an item that its diff point carries."""
     extra: dict[str, Any] = {}
-    for key in ("nature", "fit_of", "claim", "line", "unit"):
+    for key in ("nature", "fit_of", "claim", "line", "unit", "call_title"):
         if key in item:
             extra[key] = item[key]
     return extra

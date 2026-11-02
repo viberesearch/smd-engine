@@ -14,13 +14,26 @@ from functools import cache
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
-from smd_engine.deal.consent import consented_commitments, read_consent
-from smd_engine.deal.ledger import RUN_BASE, RUN_MAX, append_entry, tested_runs
+from smd_engine.deal.consent import (
+    consent_commitments,
+    consented_commitments,
+    latest_consents,
+    parse_consent,
+    read_consent,
+)
+from smd_engine.deal.ledger import (
+    RUN_BASE,
+    RUN_MAX,
+    append_entry,
+    entry_sha,
+    tested_runs,
+)
 from smd_engine.deal.overlap import Comparator, comparator_for
 from smd_engine.deal.sealed import commitment_of
-from smd_engine.records import RecordError
+from smd_engine.deal.signing import NAMESPACE, signatures_on, verify_signature
+from smd_engine.records import RecordError, dump_record, parse_text
 from smd_engine.task.bounds import committer, topics
-from smd_engine.task.model import sha256_file
+from smd_engine.task.model import read_bytes, sha256_bytes
 
 SIDES = ("floor", "ceiling")
 # reads a sealed file when called; None when it is not a valid sealed file
@@ -179,11 +192,14 @@ def add_consent(
     member: str,
     evidence: Path,
     date: str,
+    signature: str | None = None,
 ) -> dict[str, Any]:
     """Log one party's consent to the next run of a topic. `evidence` is the
     consent file (see `deal/consent.py`); the entry keeps its sha256 and the
     commitments it names. The seller consents to every run, naming the buyer; for a
-    further run the buyer consents too, each with a file of his own."""
+    further run the buyer consents too, each with a file of his own. With a sealed
+    floor `signature` (the armored SSH signature of the file) is required and
+    verified, and the entry keeps the file's text and the signature."""
     items = topic_items(pack, topic)
     seller, buyer = (committer(pack, items[s]) for s in SIDES)
     if member not in (seller, buyer):
@@ -195,9 +211,31 @@ def add_consent(
         )
     if run > RUN_MAX:
         raise RecordError(f"topic {topic} is at its maximum of {RUN_MAX} runs")
-    commitments = read_consent(evidence, pack, topic, run, member, str(buyer))
-    # a new consent, naming other commitments, replaces the earlier one
-    if consented_commitments(ledger, topic, run).get(member) == commitments:
+    signed = ""
+    if signatures_on(pack):
+        raw = read_bytes(evidence)
+        try:
+            signed = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            raise RecordError(f"{evidence}: not UTF-8 text") from None
+        data = parse_consent(signed, str(evidence))
+        commitments = consent_commitments(
+            data, str(evidence), pack, topic, run, member, str(buyer)
+        )
+        if signature is None:
+            raise RecordError(
+                f"{evidence}: no signature; {member} signs the file with his key "
+                f"(ssh-keygen -Y sign -f <private key> -n {NAMESPACE} {evidence})"
+            )
+        verify_signature(pack, member, raw, signature, str(evidence))
+    else:
+        raw = read_bytes(evidence)
+        commitments = read_consent(evidence, pack, topic, run, member, str(buyer))
+    # a new consent, naming other commitments, replaces the earlier one; so does a
+    # signed one that names the same, when the earlier is a consent of a ledger
+    # from before signatures (0.7.0), which a sealed-floor verdict refuses
+    last = latest_consents(ledger, topic, run).get(member)
+    if last and last["commitments"] == commitments and (not signed or "signed" in last):
         raise RecordError(f"{member} has consented to run {run} already")
     entry = {
         "type": "consent",
@@ -206,7 +244,16 @@ def add_consent(
         "run": run,
         "by": member,
         "buyer": buyer,
-        "evidence": sha256_file(evidence),
+        "evidence": sha256_bytes(raw),
         "commitments": commitments,
     }
+    if signed:
+        entry.update({"signed": signed, "signature": signature})
+        again = parse_text(dump_record({"entry": entry}))["entry"]
+        if entry_sha(again) != entry_sha(entry):
+            raise RecordError(
+                f"{evidence}: the text does not survive being kept in the ledger "
+                "(it has a control character such as U+0085); write the consent "
+                "in plain text and sign it again"
+            )
     return append_entry(ledger, entry)

@@ -32,7 +32,12 @@ from smd_engine.task.model import (
     member_ids,
     sha256_file,
 )
-from smd_engine.task.positions import audience_members, is_deal, member_positions
+from smd_engine.task.positions import (
+    audience_members,
+    is_deal,
+    member_positions,
+    side_of,
+)
 
 # class -> the default route (procedures/task-diff.md, docs/task-packs.md)
 # A conflict takes its route from the subtype (CONFLICT_ROUTES).
@@ -268,6 +273,9 @@ def build_diff(
         }
         if item.get("refs") and item["kind"] != "ids":
             extra["refs"] = item["refs"]
+        if is_deal(pack) and "claim" in item:
+            if side_of(pack, item["claim"]["asserted_by"]) == "buy":
+                extra["buyer_claim"] = True  # the common agenda leaves a dispute out
         who = members
         if "audience" in item:
             extra["audience"] = item["audience"]
@@ -276,8 +284,13 @@ def build_diff(
             _point(item["id"], "item", extra, given[item["id"]], who, item["kind"])
         )
     apply_after_reading(points)
+    where = member_positions(pack)
     for m, a in by_member.items():
         for n, added in enumerate(a.get("added", []), start=1):
+            # in a deal pack an added point is for its author's position only,
+            # unless the author marked it `share: true`
+            private = is_deal(pack) and m in where and not added.get("share")
+            own = {"audience": [where[m]]} if private else {}
             point = _point(
                 f"add-{m}-{n}",
                 "added",
@@ -285,9 +298,10 @@ def build_diff(
                     "section": None,
                     "text": added["text"],
                     **({"refs": added["refs"]} if added.get("refs") else {}),
+                    **own,
                 },
                 {m: {"value": added["text"]}},
-                members,
+                audience_members(pack, own) if private else members,
                 None,
             )
             points.append(point)

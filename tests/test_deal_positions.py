@@ -8,14 +8,17 @@ annex. After a change to cases/example/deal/pack.yaml run
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 
 from deal_helpers import DEAL, copy_deal, edit_pack, restamp, run_diff
 from smd_engine.cli import main
 from smd_engine.records import RecordError
+from smd_engine.task.agenda import expected_repliers
 from smd_engine.task.asking import asking_price, default_stage
 from smd_engine.task.check import check_answers, check_pack
 from smd_engine.task.deal_web import deal_script
@@ -352,3 +355,55 @@ def test_an_item_names_a_stage_of_the_deal(work: Path) -> None:
     assert talk["stage"] == "full-map"
     talk["stage"] = "closing"
     assert any("price-talk: stage closing" in m for m in errors(check_pack(pack, "p")))
+
+
+def add_points(folder: Path, member: str, *entries: dict[str, Any]) -> None:
+    path = folder / f"answers_{member}.yaml"
+    ans = yaml.safe_load(path.read_text(encoding="utf-8"))
+    ans["added"] = list(entries)
+    path.write_text(yaml.safe_dump(ans, sort_keys=False), encoding="utf-8")
+
+
+def test_an_added_point_is_for_the_authors_position_unless_shared(
+    work: Path, tmp_path: Path
+) -> None:
+    add_points(work, "boris", {"text": "Private."}, {"text": "Open.", "share": True})
+    out = tmp_path / "out"
+    diff = run_diff(work, out)
+    added = {p["id"]: p for p in diff["points"] if p["kind"] == "added"}
+    assert added["add-boris-1"]["audience"] == ["buyer"]
+    assert "audience" not in added["add-boris-2"]
+    assert "silent" not in added["add-boris-1"]  # nobody else is in its audience
+    assert (
+        main(["deal", "views", str(PACK), str(out / "diff.yaml"), "-o", str(out)]) == 0
+    )
+    for position, private in (("seller", False), ("buyer", True), ("broker", False)):
+        ids = {p["id"] for p in load_task(out / f"diff.{position}.yaml")["points"]}
+        assert ("add-boris-1" in ids) is private and "add-boris-2" in ids
+    # only the author is in the audience, so nobody else owes a reply to it
+    where = diff["positions"]
+    members = diff["members"]
+    assert expected_repliers(added["add-boris-1"], members, where) == []
+    assert expected_repliers(added["add-boris-2"], members, where) == ["vera", "gleb"]
+
+
+def test_share_on_an_added_point_is_ignored_and_warned_in_a_group_pack(
+    tmp_path: Path,
+) -> None:
+    folder = tmp_path / "task"
+    shutil.copytree(Path(__file__).resolve().parents[1] / "cases/example/task", folder)
+    add_points(folder, "ana", {"text": "A group point.", "share": False})
+    pack = load_task(folder / "pack.yaml")
+    ans = load_task(folder / "answers_ana.yaml")
+    issues = check_answers(
+        pack, sha256_file(folder / "pack.yaml"), ans, "answers_ana.yaml", folder
+    )
+    assert any("share is for a deal pack" in i.message for i in issues)
+    assert errors(issues) == []
+    out = tmp_path / "out"
+    names = [str(folder / f"answers_{m}.yaml") for m in ("ana", "ben", "cy")]
+    assert (
+        main(["task", "diff", str(folder / "pack.yaml"), *names, "-o", str(out)]) == 0
+    )
+    added = [p for p in load_task(out / "diff.yaml")["points"] if p["kind"] == "added"]
+    assert added and all("audience" not in p for p in added)

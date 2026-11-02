@@ -21,14 +21,8 @@ from typing import Any
 from smd_engine.records import RecordError
 from smd_engine.task.deal_render import point_open
 from smd_engine.task.pairs import pair_summary
-from smd_engine.task.positions import in_audience, member_positions
+from smd_engine.task.positions import in_audience, member_positions, side_of
 
-SIDES = {
-    "seller": "sell",
-    "broker_sell": "sell",
-    "buyer": "buy",
-    "broker_buy": "buy",
-}
 # what a value point keeps: the question, never a class, route or other answers
 VALUE_KEEP = (
     "id",
@@ -41,21 +35,6 @@ VALUE_KEEP = (
     "refs",
     "audience",
 )
-
-
-def side_of(pack: dict[str, Any], position: str) -> str:
-    """ "sell", "buy", or the position's own id. A broker is on the side of the
-    position his principal holds; with no principal, on the side of his kind."""
-    kinds = {p["id"]: p["kind"] for p in pack["positions"]}
-    where = member_positions(pack)
-    principals = {
-        where[m["principal"]]
-        for m in pack["members"]
-        if m.get("position") == position and m.get("principal") in where
-    }
-    if len(principals) == 1:
-        position = next(iter(principals))
-    return SIDES.get(kinds.get(position, ""), position)
 
 
 def is_value_point(p: dict[str, Any]) -> bool:
@@ -73,8 +52,20 @@ def _buyer_fact_dispute(pack: dict[str, Any], p: dict[str, Any]) -> bool:
     return side_of(pack, claim["asserted_by"]) == "buy"
 
 
+def value_status(p: dict[str, Any]) -> str:
+    """What a view shows of the class of a value point: `open` or `settled`."""
+    return "open" if point_open(p) or p["route"] == "blocking" else "settled"
+
+
 def _status(p: dict[str, Any]) -> dict[str, str]:
-    return {"class": "open" if point_open(p) or p["route"] == "blocking" else "settled"}
+    return {"class": value_status(p)}
+
+
+def side_members(pack: dict[str, Any], diff: dict[str, Any], position: str) -> set[str]:
+    """The members of the diff on the position's side."""
+    where = member_positions(pack)
+    side = side_of(pack, position)
+    return {m for m in diff["members"] if side_of(pack, where[m]) == side}
 
 
 def _value_point(p: dict[str, Any], mine: set[str]) -> dict[str, Any]:
@@ -84,12 +75,20 @@ def _value_point(p: dict[str, Any], mine: set[str]) -> dict[str, Any]:
     return out
 
 
-def _labels(labels: dict[str, Any], shown: set[str]) -> dict[str, Any]:
-    """The labels block without the numbers and options of a point left out."""
+def filter_labels(
+    labels: dict[str, Any], shown: set[str], numbered: set[str] | None = None
+) -> dict[str, Any]:
+    """The labels block without the options of a point left out. The item numbers
+    are those of the items in `numbered` (default `shown`), counted again from 1
+    in the pack's order, as the pack the reader holds numbers them: a number that
+    skipped a hidden item would say how many there are."""
     out = dict(labels)
-    for key in ("numbers", "options"):
-        if key in out:
-            out[key] = {k: v for k, v in out[key].items() if k in shown}
+    if "options" in out:
+        out["options"] = {k: v for k, v in out["options"].items() if k in shown}
+    if "numbers" in out:
+        keep = shown if numbered is None else numbered
+        ids = sorted(out["numbers"], key=out["numbers"].__getitem__)
+        out["numbers"] = {k: n for n, k in enumerate((i for i in ids if i in keep), 1)}
     return out
 
 
@@ -98,9 +97,8 @@ def view_of(
 ) -> dict[str, Any]:
     if position not in {p["id"] for p in pack["positions"]}:
         raise RecordError(f"{position} is not a position of the pack")
-    where = member_positions(pack)
     side = side_of(pack, position)
-    mine = {m for m in diff["members"] if side_of(pack, where[m]) == side}
+    mine = side_members(pack, diff, position)
     points: list[dict[str, Any]] = []
     for p in diff["points"]:
         if not in_audience(p, position):
@@ -132,7 +130,8 @@ def view_of(
     }
     out["transcripts"] = {m: t for m, t in diff["transcripts"].items() if m in mine}
     if "labels" in out:
-        out["labels"] = _labels(out["labels"], shown)
+        own = {p["id"] for p in diff["points"] if in_audience(p, position)}
+        out["labels"] = filter_labels(out["labels"], shown, own)
     if by_pair:
         out["by_pair"] = by_pair
     out["summary"] = {
