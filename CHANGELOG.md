@@ -2,6 +2,13 @@
 
 Dates are those of the tag. All tags v0.2.1 to v0.3.5 were made on 2026-10-29. The version in `pyproject.toml` stayed at 0.2.0 through v0.2.4 and at 0.3.0 from v0.3.0 to v0.3.5; 0.3.6 is the first release whose package version equals its tag.
 
+## 0.7.4 - 2026-11-03
+
+`smd deal verify --diff` no longer trusts the diff's own list of answers files when a counted run follows its head, and `cli.py` and `profile.py` are split (release go dz03#l=31). Schema 0.1 stays; no file format changes, and every 0.7.3 pack, answers file, ledger and diff still loads.
+
+- Code layout, no change in behaviour (the case owner, dz03#l=7): `cli.py` (1168 lines) keeps the parser and `main`; the commands moved to `cli_boards.py`, `cli_session.py` and `cli_story.py`. `profile.py` (941 lines) keeps loading; the constants and classes moved to `profile_model.py` and the parsing to `profile_parse.py`. Every name stays importable from `smd_engine.profile`, and `smd = smd_engine.cli:main` is unchanged.
+- `smd deal verify --diff` no longer trusts the diff's own `answers_files` when the ledger has a counted run after the diff's head (two findings of the automated security review of 0.7.3: a holder could point the head before the run and drop or make up a committer's answers sha, and the point read `ok`). Such a run fails the diff unless a file given with `--answers`, signed by the party, shows the diff read other answers than the run (`diff_later_run`); for a committer whose files are given, the file the diff names must be one of them (`diff_answers_file`). A party who checks an older diff gives the answers files it names. Tests: `tests/test_deal_verify_diff.py`.
+
 ## 0.7.3 - 2026-11-03
 
 `smd deal verify --diff` now catches a holder who hides a logged verdict from the parties' diff (the case owner, dz02#l=79; release go dz03#l=7). Schema 0.1 stays; no file format changes, and every 0.7.2 pack, answers file, ledger and diff still loads.

@@ -12,8 +12,14 @@ from typing import Any, Callable
 import yaml
 
 from deal_helpers import needs_ssh, seal, set_answer, sign_answers
+from smd_engine.cli import main
 from smd_engine.task.model import load_task
-from test_deal_verdict import diff_with_ledger, work  # noqa: F401  (the fixture)
+from test_deal_verdict import (  # noqa: F401  (the fixture)
+    committed,
+    diff_with_ledger,
+    verdict,
+    work,
+)
 from test_deal_verify import codes, made, run  # noqa: F401  (the fixture)
 
 pytestmark = needs_ssh
@@ -166,3 +172,49 @@ def test_a_made_up_answers_file_an_old_or_no_head_or_a_false_view_fails(
         bad = str(forged(tmp_path, src, change, n))
         code, out = run(work, ledger, "--diff", bad, "--json")
         assert code == 1 and code_name in codes(out, "fail"), (code_name, out)
+
+
+def test_an_old_head_with_answers_files_dropped_or_made_up_fails(
+    work: Path, tmp_path: Path, run: Run  # noqa: F811
+) -> None:
+    _, ledger = made(work, tmp_path)
+    assert diff_with_ledger(work, ledger, tmp_path / "out") == 0
+    src = tmp_path / "out/diff.yaml"
+    first = load_task(ledger)["entries"][0]["sha256"]  # the consent, before the run
+
+    def old_head(d: dict[str, Any], sha: str | None) -> None:
+        for p in d["points"]:
+            if p["id"] in PRICE:
+                p["verdict"], p["ledger_head"] = "not_tested", first
+        d["answers_files"] = [f for f in d["answers_files"] if f["member"] != "vera"]
+        if sha:
+            d["answers_files"].append({"member": "vera", "sha256": sha})
+
+    for n, sha in enumerate((None, "e" * 64)):
+        bad = str(forged(tmp_path, src, lambda d: old_head(d, sha), n))
+        code, out = run(work, ledger, "--diff", bad, "--json", plain=True)
+        assert code == 1 and "diff_later_run" in codes(out, "fail"), out
+        code, out = run(work, ledger, "--diff", bad, "--json")
+        assert code == 1 and "diff_answers_file" in codes(out, "fail"), out
+
+
+def test_a_diff_of_older_answers_passes_only_with_the_files_it_names(
+    work: Path, tmp_path: Path, run: Run  # noqa: F811
+) -> None:
+    files = committed(work, tmp_path)
+    sign_answers(work)
+    out = tmp_path / "out"
+    names = [str(work / f"answers_{m}.yaml") for m in ("vera", "boris", "gleb")]
+    assert main(["task", "diff", str(work / "pack.yaml"), *names, "-o", str(out)]) == 0
+    shutil.copy(work / "answers_vera.yaml", tmp_path / "answers_vera_a.yaml")
+    shutil.copy(work / "answers_vera.yaml.sig", tmp_path / "answers_vera_a.yaml.sig")
+    files["floor"], commit = seal(work, tmp_path / "again", "price-floor", "100000")
+    set_answer(work, "vera", "price-floor", {"value": commit})
+    ledger = tmp_path / "verdicts.yaml"
+    assert verdict(work, files, ledger) == 0  # run 1 on the new answers
+    diff = str(out / "diff.yaml")
+    both = answers(work, tmp_path / "answers_vera_a.yaml")
+    code, report = run(work, ledger, "--diff", diff, *both, "--json", plain=True)
+    assert code == 0, report
+    code, report = run(work, ledger, "--diff", diff, "--json", plain=True)
+    assert code == 1 and "diff_later_run" in codes(report, "fail")

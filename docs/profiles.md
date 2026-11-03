@@ -1,6 +1,6 @@
 # Profiles: boards, kinds and the screen as data
 
-A profile is one YAML file that sets what a record may hold and how the engine draws it: the boards and where they stand on the screen, the kinds of elements, the relation kinds, the hints, the groups `smd compare` matches, the reading order of `smd frames` and the SessionFlow picks. `src/smd_engine/profile.py` loads it. What a record does with its profile (the `profile` key, the two shipped profiles, the fixed ids) is in `docs/data-model.md`, section Profiles.
+A profile is one YAML file that sets what a record may hold and how the engine draws it: the boards and where they stand on the screen, the kinds of elements, the relation kinds, the hints, the groups `smd compare` matches, the reading order of `smd frames` and the SessionFlow picks. `src/smd_engine/profile.py` loads it (`profile_parse.py` checks it, `profile_model.py` holds the classes). What a record does with its profile (the `profile` key, the two shipped profiles, the fixed ids) is in `docs/data-model.md`, section Profiles.
 
 ## Where profile files live
 

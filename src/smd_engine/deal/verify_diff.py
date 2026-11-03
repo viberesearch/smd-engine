@@ -13,10 +13,13 @@ ledger, so that the holder cannot hide a logged verdict from the parties.
   is given with `--answers`, its commitment differs from the one the run used.
   Without the file the claim is `skip`, never `ok`; with files of that member
   given and none of them the one the diff names, it is a `FAIL`.
+- For a committer whose answers files are given, the file the diff names must
+  be one of them.
 - A counted run logged after the head (or at all, with no head) that read the
   same answers files of both committers as the diff is a `FAIL`: the diff does
-  not show a verdict on its own answers, so an old or missing head cannot hide
-  one.
+  not show a verdict on its own answers. Any other later run is a `FAIL` too,
+  unless a file given with `--answers` shows the diff read other answers than
+  the run, so an old or missing head cannot hide a verdict.
 - A view names a position of the pack, which is reported."""
 
 from __future__ import annotations
@@ -139,31 +142,66 @@ def _changed_claim(
         rep.add("diff_changed_ok", OK, point=p["id"], verdict=run["verdict"])
 
 
-def _stale(
+def _given(files: AnswersFiles | None, member: str) -> set[str]:
+    return {f.sha for f in (files or {}).get(member, [])}
+
+
+def _check_files(
+    rep: Report,
+    diff: dict[str, Any],
+    files: AnswersFiles | None,
+    topics: dict[str, Topic],
+) -> None:
+    """For each committer whose answers files were given with `--answers`, the
+    file the diff names for him must be one of them: the diff's own list is the
+    holder's word, the files are signed by the parties."""
+    who = sorted({m for t in topics.values() for m in t.members.values() if m})
+    for member in who:
+        given = _given(files, member)
+        if given and _diff_file(diff, member) not in given:
+            rep.add("diff_answers_file", FAIL, member=member)
+
+
+def _later(
     rep: Report,
     p: dict[str, Any],
     later: list[dict[str, Any]],
     topic: Topic | None,
     diff: dict[str, Any],
+    files: AnswersFiles | None,
 ) -> bool:
-    """Whether a counted run of the point's topic logged after the diff's head (or
-    anywhere, for a diff with no head) read the very answers files of the
-    committers that the diff read: the diff then does not show a verdict on its
-    own answers, whatever head it names. Reported as a `FAIL`."""
-    if topic is None:
+    """Check the counted runs of the point's topic logged after the diff's head
+    (all of them, for a diff with no head); True when one is reported `FAIL`.
+
+    A run that read the very answers files the diff names makes the diff stale:
+    it does not show a verdict on its own answers. Any other later run passes
+    only when the diff is shown to be about other answers: for a committer, the
+    file the diff names is among the files given with `--answers` (signed by the
+    party) and is not the one the run recorded. The diff's list alone is not
+    enough, since the holder writes it."""
+    name = p["sealed"]["topic"]
+    runs = [
+        e
+        for e in later
+        if e["type"] == "verdict"
+        and e["topic"] == name
+        and e["verdict"] in ("met", "not_met")
+    ]
+    if not runs:
         return False
-    who = [m for m in topic.members.values() if m]
+    who = [m for m in topic.members.values() if m] if topic else []
     read = {m: _diff_file(diff, m) for m in who}
-    if not who or None in read.values():
-        return False
-    for e in reversed(later):
-        if (
-            e["type"] == "verdict"
-            and e["topic"] == p["sealed"]["topic"]
-            and e["verdict"] in ("met", "not_met")
-            and all((e.get("answers") or {}).get(m) == read[m] for m in who)
-        ):
+    for e in reversed(runs):
+        rec = e.get("answers") or {}
+        if who and all(read[m] is not None and rec.get(m) == read[m] for m in who):
             rep.add("diff_stale", FAIL, e["seq"], point=p["id"], verdict=e["verdict"])
+            return True
+        other = any(
+            read[m] in _given(files, m) and rec.get(m) not in (None, read[m])
+            for m in who
+        )
+        if not other:
+            rep.add("diff_later_run", FAIL, e["seq"], point=p["id"])
             return True
     return False
 
@@ -184,6 +222,7 @@ def check_diff(
         rep.add("diff_pack", FAIL)
         return
     points = _points(rep, pack, diff)
+    _check_files(rep, diff, files, topics)
     heads = {p.get("ledger_head") for p in points}
     if len(heads) > 1:
         rep.add("diff_head_mixed", FAIL, heads=len(heads))
@@ -191,7 +230,7 @@ def check_diff(
     head = next(iter(heads), None)
     if head is None:
         for p in points:
-            if _stale(rep, p, entries, topics.get(p["sealed"]["topic"]), diff):
+            if _later(rep, p, entries, topics.get(p["sealed"]["topic"]), diff, files):
                 continue
             if p.get("verdict") == "not_tested" and not p.get("changed_since_run"):
                 rep.add("diff_nohead", SKIP, point=p["id"])
@@ -212,7 +251,7 @@ def check_diff(
     then = {"entries": entries[:at]}
     for p in points:
         name = p["sealed"]["topic"]
-        if _stale(rep, p, entries[at:], topics.get(name), diff):
+        if _later(rep, p, entries[at:], topics.get(name), diff, files):
             continue
         shown, logged = p.get("verdict"), topic_verdict(then, name)
         run = last_run(then, name)
