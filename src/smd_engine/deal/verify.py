@@ -14,7 +14,7 @@ What is checked (see `docs/deal-mode.md`, "Verifying the ledger"):
   (and the buyer for a second run); the run is the next counted one and within
   the cap; the answers files it recorded match those given, with their signatures
   and commitments; with the holder's sealed files the outcome is recomputed; with
-  a diff its head and verdicts match.
+  a diff its head and verdicts match (`verify_diff.py`).
 
 Entries from before 0.7.2 (unsigned or unbound consents, verdicts that name no
 consents or answers) cannot be checked in full and are reported `unbound`. After
@@ -38,13 +38,13 @@ from smd_engine.deal.verify_extra import (
     SealedFolder,
     Topic,
     check_answers,
-    check_diff,
     latest_answers,
     load_answers_files,
 )
+from smd_engine.deal.verify_diff import check_diff
 from smd_engine.deal.verify_report import FAIL, OK, UNBOUND, Report
 from smd_engine.records import RecordError
-from smd_engine.task.bounds import committer
+from smd_engine.task.bounds import committer, topics
 from smd_engine.task.model import schema_issues, sha256_bytes
 
 BIND_CODES = {"pack": "consent_bind_pack", "keys": "consent_bind_keys"}
@@ -361,5 +361,6 @@ def verify_ledger(
     if diff is None:
         rep.add("diff_not_given", "skip")
     else:
-        check_diff(rep, pack_sha, ledger, diff)
+        known = {n: t for n in topics(pack) if (t := _topic(pack, n)) is not None}
+        check_diff(rep, pack, pack_sha, ledger, diff, known, files)
     return rep

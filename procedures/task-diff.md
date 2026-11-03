@@ -92,7 +92,7 @@ Set `route` from the table; `smd task agenda` reads it.
 Edit `diff.yaml` in place. For each point you changed: `class`, `subtype` where it applies, `route`, `class_by: model`, and `rationale`. Add at the top level:
 
 ```yaml
-model_pass: {voice: ai, status: AI draft, procedure: task-diff 0.2.0, model: <model name>, date: <date>}
+model_pass: {voice: ai, status: AI draft, procedure: task-diff 0.2.1, model: <model name>, date: <date>}
 ```
 
 Do not change `answers`, `silent`, `sets`, `alpha`, `labels` or `pack`. Then render again; the replies refer to the sha256 of this file:

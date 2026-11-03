@@ -122,10 +122,16 @@ def topic_verdict(ledger: dict[str, Any] | None, topic: str) -> str:
     return str(done[-1]["verdict"]) if done else "not_tested"
 
 
+def last_run(ledger: dict[str, Any] | None, topic: str) -> dict[str, Any] | None:
+    """The entry of the latest counted run of the topic, if any."""
+    done = _tested(ledger, topic) if ledger else []
+    return done[-1] if done else None
+
+
 def last_commitments(ledger: dict[str, Any] | None, topic: str) -> dict[str, str]:
     """The commitments ({"floor", "ceiling"}) the latest counted run used."""
-    done = _tested(ledger, topic) if ledger else []
-    return dict(done[-1]["commitments"]) if done else {}
+    run = last_run(ledger, topic)
+    return dict(run["commitments"]) if run else {}
 
 
 def has_entry(ledger: dict[str, Any], sha: str) -> bool:

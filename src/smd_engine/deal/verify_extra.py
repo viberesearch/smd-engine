@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from smd_engine.deal.ledger import topic_verdict
 from smd_engine.deal.overlap import comparator_for
 from smd_engine.deal.sealed import commitment_of, read_sealed
 from smd_engine.deal.signing import key_holders, signatures_on, verify_file
@@ -183,39 +182,3 @@ class SealedFolder:
             )
         else:
             rep.add("sealed_ok", OK, seq, verdict=recomputed)
-
-
-def check_diff(
-    rep: Report, pack_sha: str, ledger: dict[str, Any], diff: dict[str, Any]
-) -> None:
-    """The ledger head and the verdict of each sealed point of a diff against the
-    ledger: the head must be an entry of it, and the verdict the one the ledger
-    had at that entry (`not_tested` also when a commitment changed since the run)."""
-    entries = ledger["entries"]
-    if (diff.get("pack") or {}).get("sha256") != pack_sha:
-        rep.add("diff_pack", FAIL)
-        return
-    seen: set[str] = set()
-    for p in diff["points"]:
-        if "sealed" not in p:
-            continue
-        head, shown = p.get("ledger_head"), p.get("verdict")
-        topic = p["sealed"]["topic"]
-        if head is None:
-            if shown == "not_tested":
-                rep.add("diff_nohead", SKIP, point=p["id"])
-            else:
-                rep.add("diff_verdict", FAIL, point=p["id"], diff=shown, ledger="-")
-            continue
-        at = next((e["seq"] for e in entries if e["sha256"] == head), None)
-        if at is None:
-            rep.add("diff_head", FAIL, point=p["id"], head=head[:12])
-            continue
-        if head not in seen:
-            seen.add(head)
-            rep.add("diff_head_ok", OK, head=head[:12], at=at, later=len(entries) - at)
-        then = topic_verdict({"entries": entries[:at]}, topic)
-        if shown == then or (shown == "not_tested" and p.get("changed_since_run")):
-            rep.add("diff_verdict_ok", OK, point=p["id"], verdict=shown)
-        else:
-            rep.add("diff_verdict", FAIL, point=p["id"], diff=shown, ledger=then)
