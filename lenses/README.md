@@ -42,7 +42,7 @@ Elements, theses, hypotheses and ontology records carry `lens: <id>`; `smd compa
 | `schukin-boundaries` | smd | Schukin, written talk | five grounds of a cut between functions; four families of change; capability probes |
 | `schukin-interface-tax` | smd | Schukin, written talk | the function of each human touchpoint; achievement and balancing metrics; the engine's own sign-offs |
 | `fliamer-diamond` | smd | Fliamer, module-1 slides | complexes of the big situation: functions, products, consumption, new technical solutions |
-| `design-chain` | smd | team design study (local) | goal, beneficiary, subject, form, instruments, conditions, result of a pass between positions |
+| `design-chain` | smd | team design study (local) | goal, stakeholder, subject, form, instruments, conditions, result of a pass between positions |
 | `triz-contradictions` | triz | ARIZ-85V, Altshuller | a contradiction inside one object: zone, time, resources, ideal result, separation |
 | `scamper-check` | smd | Eberle, Osborn; Zharnikov | a cross-check of the four structural moves after the tract |
 | `three-positions` | smd | G.P., «Программа действий» (GP-Guide11); т. 5 | from where a scheme is drawn: inside, reflexive, external; which structures stay conditions |

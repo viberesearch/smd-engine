@@ -2,6 +2,16 @@
 
 Dates are those of the tag. All tags v0.2.1 to v0.3.5 were made on 2026-10-29. The version in `pyproject.toml` stayed at 0.2.0 through v0.2.4 and at 0.3.0 from v0.3.0 to v0.3.5; 0.3.6 is the first release whose package version equals its tag.
 
+## 0.7.6 - 2026-11-07
+
+A currency review of the documentation (the case owner, 7 November 2026). No code change in behaviour; schema 0.3 and every record, pack and ledger of 0.7.5 load as before.
+
+- `README.md` and `README_ru.md` give the current version and list the `story`, `task` and `deal` commands; `CONTRIBUTING.md` lists `task/`, `deal/`, `story/` and `cases/spectra_coffee/`; `docs/README.md` lists `changelog-0.2-0.5.md`.
+- `docs/release.md` records the finished rename and first publication; `docs/plan.md` is marked as the historical plan of 25 October 2026 and lists the three profiles.
+- Lens `design-chain` 0.2.2 says "stakeholder" where it said "beneficiary" (the term set in `docs/method/roles-and-actors.md`).
+- The example case `spectra_coffee` says «бизнес» for a business; its stories carry the new board stamp.
+- Code comments state rules in words instead of citing case decision logs.
+
 ## 0.7.5 - 2026-11-07
 
 The engine and its cases are kept apart (the case owner, 7 November 2026). No code change in behaviour; schema 0.3 and every record, pack and ledger of 0.7.4 load as before.

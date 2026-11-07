@@ -7,10 +7,10 @@ head, the last entry's sha256, is written into `diff.yaml`, so a ledger cut shor
 later no longer matches a diff made earlier. The ledger holds no sealed number
 and no salt; the commitments in it are public already (they are in the answers).
 
-Run cap (case owner, dz02#l=47): one run per seller-buyer pair per topic and
+Run cap: one run per seller-buyer pair per topic and
 deal; a second only when both parties' consent is logged here, not the holder's
 alone; two at most. Every run against a sealed floor also needs the seller's
-consent, naming the buyer (ЦН1 А, dz02#l=55). A comparison that could not be made (`not_tested`) gives
+consent, naming the buyer. A comparison that could not be made (`not_tested`) gives
 nothing away and does not count."""
 
 from __future__ import annotations

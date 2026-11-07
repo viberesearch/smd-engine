@@ -6,7 +6,7 @@ schema_version: "0.1"
 id: spectra-owner-scqa
 title: "Вымышленный пример: история для основателя «Спектры Кофе», SCQA, черновик ИИ"
 boards:
-  - {id: spectra-coffee-c1, version: "1.0", sha256: 9f373ea726ef28d3294f770ba56baec88f122963b048713c8646095e951a703c}
+  - {id: spectra-coffee-c1, version: "1.0", sha256: 40c9b9f8f0f3428ced672a7603a1e91f5a39b81447cdfb510f9a771166c6f5c0}
 audience: p-founder
 protagonist: p-founder
 form: scqa
@@ -21,7 +21,7 @@ sentences:
   - part: situation
     level: stated
     ids: [p-founder, goal-handover]
-    text: "Вам 61 год, вы основали «Спектру Кофе» и хотите передать дело в течение 3 лет, сохранив вкус напитков."
+    text: "Вам 61 год, вы основали «Спектру Кофе» и хотите передать бизнес в течение 3 лет, сохранив вкус напитков."
   - part: situation
     level: stated
     ids: [s-small, fact-staff, fact-spec]

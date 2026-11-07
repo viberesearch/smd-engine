@@ -37,7 +37,8 @@ Tests live in `tests/`, one file per area (`test_validate.py`, `test_profile.py`
 | `src/smd_engine/apply.py`, `revise.py`, `migrate.py` | `smd apply`, `smd revise`, `smd migrate` |
 | `src/smd_engine/compare.py`, `eval.py`, `pack.py`, `sources.py` | `smd compare`, `smd eval`, `smd pack`, `smd sources` |
 | `profiles/`, `procedures/`, `roles/`, `lenses/` | method files as data; `pyproject.toml` includes each in the wheel under `smd_engine/assets/` |
-| `cases/example/`, `cases/example_ru/` | invented teaching cases used by the tests (`example`) and as a Russian sample (`example_ru`) |
+| `src/smd_engine/task/`, `deal/`, `story/` | `smd task` (task packs, diff, agenda), `smd deal` (views, sealed price flag, consent, ledger, verdict, verify) and `smd story` (paths, check, render) |
+| `cases/example/`, `cases/example_ru/`, `cases/spectra_coffee/` | invented teaching cases used by the tests (`example`), a Russian sample (`example_ru`) and the neutral case for stories, tasks and deals (`spectra_coffee`) |
 | `docs/` | data model, commands, method notes, build plan; index in `docs/README.md` |
 | `.claude/` | Claude Code subagents for the roles and the `/procedure` command; optional |
 

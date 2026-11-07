@@ -8,7 +8,7 @@ record: board_set
 schema_version: "0.3"
 id: spectra-coffee-c1
 case: spectra-coffee-fiction
-title: "Вымышленный пример: «Спектра Кофе», передача дела основателем, карта по шести уровням"
+title: "Вымышленный пример: «Спектра Кофе», передача бизнеса основателем, карта по шести уровням"
 date: "2026-11-01"
 cycle: 1
 status: draft
@@ -35,7 +35,7 @@ elements:
      fillers: ["обжарщик зерна", "молочная ферма"], epistemic: stated, tags: {tier: [entity]}, lineage: [fictional], voice: ai}
   - {id: place-landlord, board: od, kind: place_for_others, label: "арендодатель флагманского кафе",
      fillers: ["арендодатель"], epistemic: stated, tags: {tier: [entity]}, lineage: [fictional], voice: ai}
-  - {id: goal-handover, board: od, kind: goal, label: "передать дело в течение 3 лет и сохранить вкус напитков",
+  - {id: goal-handover, board: od, kind: goal, label: "передать бизнес в течение 3 лет и сохранить вкус напитков",
      seen_from: p-founder, goal_source: own, epistemic: stated, tags: {tier: [intent]}, cites: ["s-talk#t=00:03:40"], lineage: [fictional], voice: ai}
   # --- объектная доска: рамки, функции, модель, стандарты, кооперация ---
   - {id: f-old, board: oo, kind: frame, frame_state: old, label: "старая рамка: кафе, где настройку помола держит основатель",
@@ -97,8 +97,8 @@ elements:
     cites: [s-books]
     lineage: [fictional]
     voice: ai
-  - {id: coop-transfer, short: "передача дела: четыре участника", board: oo, kind: cooperation,
-     label: "передача дела: основатель вводит управляющего, покупатель принимает, банк финансирует",
+  - {id: coop-transfer, short: "передача бизнеса: четыре участника", board: oo, kind: cooperation,
+     label: "передача бизнеса: основатель вводит управляющего, покупатель принимает, банк финансирует",
      epistemic: hypothesis, tags: {tier: [intent, entity]}, lineage: [fictional], voice: ai}
   # --- ситуационная доска ---
   - {id: s-small, short: "два кафе, 9 человек, всё держит основатель", board: s, half: small, kind: situation, label: "два кафе, 9 человек, настройку помола и закупки держит основатель",
@@ -157,7 +157,7 @@ relations:
   - {from: fn-train, to: place-successor, kind: flow, carries: product, label: "подготовленный управляющий", voice: ai}
   # кооперация передачи
   - {from: p-founder, to: coop-transfer, kind: flow, carries: information, label: "передаёт знание настроек; состав передачи открыт (K2)", voice: ai}
-  - {from: place-successor, to: coop-transfer, kind: flow, carries: information, label: "принимает дела", voice: ai}
+  - {from: place-successor, to: coop-transfer, kind: flow, carries: information, label: "принимает бизнес", voice: ai}
   - {from: place-buyer, to: coop-transfer, kind: flow, carries: information, label: "условия покупки", voice: ai}
   - {from: place-bank, to: coop-transfer, kind: flow, carries: money, label: "финансирование покупки", voice: ai}
   # права и условия
@@ -262,13 +262,13 @@ hypotheses:
     voice: ai
 ontology:
   - id: O1
-    object: "дело как записанная спецификация, которую можно передать другому"
+    object: "бизнес как записанная спецификация, которую можно передать другому"
     valid_for: [p-founder, place-buyer]
     subjects:
       - {position: p-founder, subject: "кафе, которое держится на моих настройках"}
       - {position: place-buyer, subject: "кафе, которое я могу прочитать до покупки"}
     cooperation: coop-transfer
-    competes: "покупатель читает кафе как набор записей, основатель как дело своего вкуса"
+    competes: "покупатель читает кафе как набор записей, основатель как бизнес своего вкуса"
     test: H2
     tags: {tier: [intent]}
 signoffs:

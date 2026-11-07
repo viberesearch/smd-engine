@@ -17,7 +17,8 @@ Start with `README.md` in the repository root. This folder holds the reference d
 | `red-lines.md` | red lines: `red_line`, the structured value `line`, `observed` values and the breach rule |
 | `profiles.md` | the profile format: boards and their regions, kinds, the screen layout, the ids every profile defines, the checks of a profile file |
 | `commands.md` | the commands of `smd` with examples, and the exit codes |
-| `plan.md` | the build plan approved 2026-10-25 and the architecture of the repository |
+| `plan.md` | the build plan approved 2026-10-25 (historical; status in `stages.md`) and the architecture of the repository |
+| `changelog-0.2-0.5.md` | the changelog of releases 0.2.0 to 0.5.9 |
 | `stages.md` | the build steps, their status, and where each method enters the engine |
 
 ## Method notes
@@ -48,5 +49,5 @@ Start with `README.md` in the repository root. This folder holds the reference d
 |---|---|
 | `README.md`, `README_ru.md` | overview in English and in Russian |
 | `CONTRIBUTING.md` | branch, tests, and how to add a kind, a check, a profile, a lens or a procedure |
-| `CHANGELOG.md` | what each release added |
+| `CHANGELOG.md` | what each release added, from 0.6.0; older releases in `docs/changelog-0.2-0.5.md` |
 | `LICENSE` | MIT for code; the method notes and examples are CC BY 4.0, as `README.md` states |

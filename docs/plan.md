@@ -1,5 +1,7 @@
 # Build plan
 
+Historical plan of 2026-10-25; the status of each step is in `docs/stages.md`.
+
 Approved 2026-10-25. This is the engine part of the plan; `docs/stages.md` tracks the status of each step and where each method enters. Case-specific parts (a pilot case's clean-room whitelist, its team's rule on raw sources, its calendar) live with the case, not here.
 
 Decisions:
@@ -13,7 +15,7 @@ Decisions:
 ```
 smd-engine/
   src/smd_engine/  schemas (JSON Schema, one file per record type), validate (check registry), render (svg|html|md|mermaid|frames|graph|vault|index), compare, revise, apply, migrate, eval, cli   (Python 3.14, uv)
-  profiles/        board layouts and kind tables as data: program-three-boards (default), classic-two-boards
+  profiles/        board layouts and kind tables as data: program-three-boards (default), classic-two-boards, management-four-boards
   procedures/      one Markdown file per procedure, YAML front matter; model-agnostic prompts; `profile:` names the layout a procedure assumes
   lenses/          one file per lens: when to use, questions, output slots, source
   roles/           игротехник, методолог, визионер, actor positions
@@ -74,7 +76,7 @@ Each step is a branch and a PR in this repository. Each change to a case reposit
 - Khaprov: 7 levels x 3 complexity kinds, 3 scales, ontology test, managing not-knowing.
 - Schukin: 5 boundary grounds, 4 change families, capability probes, interface tax, metrics.
 - Fliamer's diamond: functions, products, consumption, new technical solutions.
-- The transfer design chain: goal, beneficiary, subject of transfer, form, technologies, conditions, result.
+- The transfer design chain: goal, stakeholder, subject of transfer (`lenses/design-chain.md`), form, technologies, conditions, result.
 - TRIZ contradictions; SCAMPER as a cross-check of the four moves.
 - A selection table decides which lens a procedure offers at which step.
 

@@ -232,7 +232,7 @@ def test_s5_a_cited_id_off_the_path_needs_a_context_entry() -> None:
 
 
 def test_s5_an_open_hypothesis_a_sentence_cites_needs_a_context_entry() -> None:
-    # dz01#l=35: open hypotheses are listed in context like any other id
+    # open hypotheses are listed in context like any other id
     story = only("Вам 61 год.", ["p-founder", "H1"], "hypothesis")
     story["context"] = []
     found = [f for f in run(story) if f.ref.startswith("S5")]

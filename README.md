@@ -14,7 +14,7 @@ New here? Start with [docs/first-board.md](docs/first-board.md), a walkthrough f
 
 The default screen is the three-board screen of the MIPT program "Третья ступень" (org-activity, object and situation boards). A profile can lay out other boards: `classic-two-boards` is the classic org-activity and object-ontological pair. Terms that belong to the program and not to the classic method are marked as such in `roles/README.md`.
 
-Version 0.5.9 (`pyproject.toml`), schema 0.3. Python 3.14. The engine proposes and checks; a human decides, by sign-offs that each state a function.
+Version 0.7.6 (`pyproject.toml`), schema 0.3. Python 3.14. The engine proposes and checks; a human decides, by sign-offs that each state a function.
 
 ## Install
 
@@ -74,6 +74,9 @@ Examples with options are in `docs/commands.md`; `smd <command> --help` lists th
 | `pack` | One Markdown file with a procedure, its roles, lenses, the data model, the cells to fill and the records, for any model |
 | `status` | The core view of a board set on one page: state line, open K, hypotheses (untested ones in leverage order, a proposal), AI items waiting for a sign-off, transitions, counts |
 | `next` | The procedure to run next, with one line why and at most two alternatives, from the hint pointers and a few explicit rules, in the solo-session order (`docs/commands.md`) |
+| `story` | Stories as a checked view over the boards: `paths` lists walks over typed links from the protagonist through a conflict to a resolution, `check` tests a story file against rules G1-G7 and S1-S5, `render` prints it (`docs/stories.md`) |
+| `task` | Task packs for a group that answers apart: `check` the files, `render` the pack, `diff` the answers side by side, `agenda` for the call (`docs/task-packs.md`) |
+| `deal` | Deal mode for a sale or transfer: `views` per position, `seal` a number on your own machine, `consent`, `verdict` into a hash-chained ledger, `verify` it (`docs/deal-mode.md`) |
 
 ## Data model on one screen
 
@@ -122,7 +125,7 @@ A real case lives in the repository of its object of thinking; this repository h
 It runs the engine without a local copy, pinned to a release, for example in CI:
 
 ```bash
-uvx --from git+https://github.com/viberesearch/smd-engine@v0.5.9 smd validate . --sources sources.yaml --strict
+uvx --from git+https://github.com/viberesearch/smd-engine@v0.7.6 smd validate . --sources sources.yaml --strict
 ```
 
 Generated drawings (`smd publish`) are build output and are not committed. Records of an older schema are moved with `smd migrate`.

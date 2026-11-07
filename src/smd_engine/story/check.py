@@ -292,7 +292,7 @@ def _on_walk(story: dict[str, Any]) -> set[str]:
     `conflict` and `resolution` that are on the path, and the `context` list.
     Anything else, including an `open` hypothesis (a hypothesis never lies on
     a path) and a conflict or resolution id off the path, needs a `context`
-    entry (dz01#l=31, #l=35)."""
+    entry."""
     path = set(story["path"])
     out = set(path)
     for field in ("conflict", "resolution"):

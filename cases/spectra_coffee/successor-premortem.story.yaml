@@ -6,7 +6,7 @@ schema_version: "0.1"
 id: spectra-successor-premortem
 title: "Вымышленный пример: премортем для будущего управляющего «Спектры Кофе», черновик ИИ"
 boards:
-  - {id: spectra-coffee-c1, version: "1.0", sha256: 9f373ea726ef28d3294f770ba56baec88f122963b048713c8646095e951a703c}
+  - {id: spectra-coffee-c1, version: "1.0", sha256: 40c9b9f8f0f3428ced672a7603a1e91f5a39b81447cdfb510f9a771166c6f5c0}
 audience: place-successor
 protagonist: place-successor
 form: premortem
@@ -20,7 +20,7 @@ sentences:
   - part: failure
     level: hypothesis
     ids: [goal-handover, place-successor]
-    text: "Представим, что прошло 3 года и передача дела не удалась: вы не стали управляющим."
+    text: "Представим, что прошло 3 года и передача бизнеса не удалась: вы не стали управляющим."
   - part: cause
     level: hypothesis
     ids: [sig-august, rl-dialin]

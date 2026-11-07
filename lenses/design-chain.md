@@ -1,7 +1,7 @@
 ---
 id: design-chain
-title: "Design chain for a pass between positions (goal, beneficiary, subject, form, technologies, conditions, result)"
-version: 0.2.1
+title: "Design chain for a pass between positions (goal, stakeholder, subject, form, technologies, conditions, result)"
+version: 0.2.2
 source: "Report P, a design study of organised transfer prepared for the program by a model run (local, not in the repo): its closing design chain and its classification rule, as read in a local digest; generalised by this lens"
 route: smd
 offered_by: [positional-construction, functional-plan]
@@ -20,7 +20,7 @@ Marks: **[P]** stated in report P as the digest reads it; **[X]** this lens's ex
 The chain, in the order P closes with [P]:
 
 1. goal (in P, a preservation goal);
-2. beneficiary;
+2. stakeholder;
 3. subject of transfer;
 4. form of ownership and management;
 5. enabling technologies;
@@ -50,13 +50,13 @@ Passing (a) alone changes only (a) [P, generalised].
 
 1. **Goal.** What is to be preserved or achieved, and what would the parties regard as an unacceptable loss? Ask the loss first, before any form of the pass is named [P: the first interview opens with it]. Write the goal as a purpose, not as a method or an instrument.
 2. **Classification.** For each item named so far, is it a purpose, a method of passing or an instrument? Move any misfiled item to its class, and say what purpose it serves. [P]
-3. **Beneficiary.** Whose interests decide? Who else bears the loss or the cost? Where two beneficiaries want different goals, which goals conflict? [P: the table of purposes names whose interests decide; P has a section on conflicts]
+3. **Stakeholder.** Whose interests decide? Who else bears the loss or the cost? Where two stakeholders want different goals, which goals conflict? [P: the table of purposes names whose interests decide; P has a section on conflicts]
 4. **Subject.** What passes, from which position to which? For each of (a) to (d): does it pass, when, and what stays behind or is lost? [P, generalised X]
 5. **Form.** After the pass, who holds the right, who acts, and how are the two tied? May they be separated? [P: "ownership and management form"; the wording is generalised X]
 6. **Instruments.** Which instruments make the form workable? For each: which purpose it serves, who performs it, and who pays. Where one performer plays two operator roles, is the conflict disclosed, and is the fee logic? [P] P separates five operator roles and allows combining them only with disclosed conflicts and fee logic. The digest names them without defining them, and this lens does not reproduce the names: use the question only to check that roles are not silently combined [?].
 7. **Conditions.** Which rules must hold: law, programme rules, contracts, tax conditions? For each: source, addressee, date, supervisor, and the consequence of breach. Is it in force, deferred, or only proposed? [P: the legal register; in-force, deferred and proposed rules are kept apart]
 8. **Result.** What would be seen, by whom and by when, so that the group could say the goal was met? P suggests reading results at one, three and five years [P]; the group chooses its own timing. Its success criteria are proposals, not official indicators [P].
-9. **Chain check** [X]. Read the chain forward. Is any link empty: a goal with no beneficiary, a subject with no receiving position, a form with no one acting, an instrument with no performer, a condition with no source, a result nobody will observe?
+9. **Chain check** [X]. Read the chain forward. Is any link empty: a goal with no stakeholder, a subject with no receiving position, a form with no one acting, an instrument with no performer, a condition with no source, a result nobody will observe?
 
 ## Output slots
 
@@ -67,7 +67,7 @@ Every element carries `lens: design-chain`, `voice: ai`, `epistemic: hypothesis`
 | Q1 goal | `goal` | `od` | `seen_from` the position whose goal it is |
 | Q1 unacceptable loss | `note` | `od` | label "unacceptable loss: ..." |
 | Q2 class | no new element | | relabel or move the misfiled item; say the class in the reply |
-| Q3 beneficiary | `position` or `place_for_others` | `od` | a `position` only if the human works from it or an AI position is agreed |
+| Q3 stakeholder | `position` or `place_for_others` | `od` | a `position` only if the human works from it or an AI position is agreed |
 | Q3 conflict of goals | none | | `opposes` relation between the two `goal` elements. A `problem` thesis only if the group itself states two justified, opposite claims |
 | Q4 a subject | `other` | `oo` | label "subject: (a) formal right of ...", (b), (c) or (d); `flow` from giving position to it, and from it to receiving position |
 | Q4 a subject that nobody carries after the pass | `gap` | `od` | `of: function`: the function of carrying it is missing [X] |
@@ -77,7 +77,7 @@ Every element carries `lens: design-chain`, `voice: ai`, `epistemic: hypothesis`
 | Q6 operator roles combined | `note` | `oo` | label "combined roles: ...; conflict disclosed: yes or no" |
 | Q7 a condition | `standard` | `oo` | label begins "in force", "deferred" or "proposed"; `cites` the source, else `epistemic: unverified` |
 | Q8 the result | H record | | `assumes` (the chain works), `action`, `observe` (the result and its timing), `revise_if`, `targets` the goal. No result is written until the field gives one |
-| Q9 an empty link | `gap` | `od` or `oo` | `of`: `position` for beneficiary, receiver or actor; `function` for instrument; `method` for the way of passing; `product` for a result nobody receives [X] |
+| Q9 an empty link | `gap` | `od` or `oo` | `of`: `position` for stakeholder, receiver or actor; `function` for instrument; `method` for the way of passing; `product` for a result nobody receives [X] |
 
 A requirement's five register fields (source, addressee, date, supervisor, breach) go in the reply as a table. The record holds one `standard` per requirement, with the source in `cites`.
 
