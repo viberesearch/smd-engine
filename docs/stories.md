@@ -91,4 +91,4 @@ A story as readable Markdown: the title, the audience and form, the sentences by
 
 A story that passes has no sentence without a board id, no figure the board does not hold, no sentence stronger than its weakest source and no dropped opposition. It can still be a bad story: the walk may be the wrong one, the allow-list too wide, the wording too sure. Those are for the игротехник and the client.
 
-The first use of `paths` on a real board is the list of gaps (`--gaps`): where the record has no typed link between two items a story would need. On the MIPT case's cycle 5 only one of five hand-drawn story skeletons followed typed links (research note of 01.11.2026).
+The first use of `paths` on a real board is the list of gaps (`--gaps`): where the record has no typed link between two items a story would need. On the first case's cycle 5 only one of five hand-drawn story skeletons followed typed links (research note of 01.11.2026).

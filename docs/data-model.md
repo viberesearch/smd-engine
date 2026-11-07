@@ -215,7 +215,7 @@ signoffs:
 ```yaml
 record: taxonomies
 schema_version: "0.1"
-case: mipt-transfer
+case: spectra-coffee-fiction
 taxonomies:
   tier:
     - {id: t1, ru: "владелец и семья", en: "owner and family"}

@@ -8,7 +8,7 @@ A function's effective `ai` is its own `ai`, else the `ai` of the role in its
 `performed_by`. The hint `ai-decision-unanswered` names a function AI
 performs that is linked to a red line while no role without `ai: performs`
 answers for it: a decision that cannot be passed on without people of a
-certain role (the MIPT case's H64). Which elements are red lines, and what
+certain role. Which elements are red lines, and what
 an element is linked to, is in validate/redlines.py."""
 
 from __future__ import annotations
